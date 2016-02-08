@@ -1,0 +1,10 @@
+DEPENDENCIES
+  apt
+  web_server
+    path: .
+    metadata: true
+
+GRAPH
+  apt (2.9.2)
+  web_server (0.1.0)
+    apt (~> 2.9.2)
