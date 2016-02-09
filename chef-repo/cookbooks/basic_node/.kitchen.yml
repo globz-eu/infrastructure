@@ -24,5 +24,6 @@ suites:
   - name: default
     run_list:
       - recipe[basic_node::default]
+      - recipe[test-helper::default]
     attributes:
     excludes: centos-7.1

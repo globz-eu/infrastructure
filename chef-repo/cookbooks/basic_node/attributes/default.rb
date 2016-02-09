@@ -1,0 +1,1 @@
+default['basic_node']['admin_user']['node_admin'] = 'node_admin'

@@ -18,26 +18,31 @@
 # =====================================================================
 
 
-require 'serverspec'
+require 'spec_helper'
 
 set :backend, :exec
 
-describe user('admin') do
-  it { should exist }
+describe package('openssh-server') do
+  it { should be_installed }
 end
 
-describe user('admin') do
-  it { should belong_to_group 'sudo' }
+describe service('ssh') do
+  it { should be_enabled }
+  it { should be_running }
 end
 
-describe user('admin') do
-  it { should have_home_directory '/admin' }
+describe file('/home/' + $node['basic_node']['admin_user']['node_admin'] + '/.ssh/authorized_keys') do
+  it { should be_file }
 end
 
-describe user('admin') do
-  it { should have_login_shell '/bin/bash' }
+describe file('/home/' + $node['basic_node']['admin_user']['node_admin'] + '/.ssh/authorized_keys') do
+  it 'is pending'
 end
 
-describe user('admin') do
-  its(:encrypted_password) { should match(/^\$6\$.{16}\$.{86}$/) }
+describe file('/etc/ssh/sshd_config') do
+  it { should be_file }
+end
+
+describe file('/etc/ssh/sshd_config') do
+  it 'is pending'
 end
