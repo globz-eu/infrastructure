@@ -17,25 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
+# chef_gem 'chef-vault'
+# require 'chef-vault'
 
-require 'spec_helper'
+# node_admin_password = ChefVault::Item.load('basic_node', 'node_admin')
 
-set :backend, :exec
+# Load the secrets file and the encrypted data bag item that holds the root and user passwords
+password_secret = Chef::EncryptedDataBagItem.load_secret(node['basic_node']['node_admin']['secret_path'])
+node_admin_password = Chef::EncryptedDataBagItem.load('basic_node', 'node_admin', password_secret)
 
-describe package('openssh-server') do
-  it { should be_installed }
-end
-
-describe service('ssh') do
-  it { should be_enabled }
-  it { should be_running }
-end
-
-describe file('/home/' + $node['basic_node']['admin_user']['node_admin'] + '/.ssh/authorized_keys') do
-  it { should be_file }
-  it { should be_owned_by $node['basic_node']['admin_user']['node_admin'] }
-end
-
-describe file('/etc/ssh/sshd_config') do
-  it { should be_file }
+user node['basic_node']['admin_user']['node_admin'] do
+  home '/home/' + node['basic_node']['admin_user']['node_admin']
+  supports :manage_home => true
+  password node_admin_password['password']
+  shell '/bin/bash'
 end

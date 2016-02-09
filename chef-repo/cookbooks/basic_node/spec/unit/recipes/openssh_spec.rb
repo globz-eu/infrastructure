@@ -20,23 +20,62 @@
 require 'spec_helper'
 
 describe 'basic_node::ssh' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe)}
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
 
-  it 'installs the openssl-server package' do
-    expect(chef_run).to install_package( 'openssl-server' )
-  end
+    let(:secret_path) { '../../../.chef/encrypted_data_bag_secret' }
+    let(:secret) { 'secret' }
+    let(:fake_password) { 'sample_password' }
+    let(:admin_key_data_bag_item) do
+      { password: fake_password }
+    end
 
-  it 'starts the ssh service' do
-    expect(chef_run).to start_service( 'ssh' )
-  end
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(secret_path).and_return('true')
 
-  it 'enables the ssh service' do
-    expect(chef_run).to enable_service( 'ssh' )
-  end
+      allow(IO).to receive(:read).and_call_original
+      allow(IO).to receive(:read).with(secret_path).and_return(secret)
 
-  it 'creates appends or creates the authorized_keys file' do
-    expect(chef_run).to create_file_if_missing('/home/admin/.ssh/authorized_keys').with(
-                                                                                     user: 'admin'
-    )
+      allow(Chef::EncryptedDataBagItem).to receive(:load).with('keys', 'node_admin_key', secret).and_return(admin_key_data_bag_item)
+    end
+
+    it 'installs the openssl-server package' do
+      expect(chef_run).to install_package( 'openssl-server' )
+    end
+
+    it 'starts the ssh service' do
+      expect(chef_run).to start_service( 'ssh' )
+    end
+
+    it 'enables the ssh service' do
+      expect(chef_run).to enable_service( 'ssh' )
+    end
+
+    it 'appends or creates the authorized_keys file' do
+      expect(chef_run).to create_template_if_missing('/home/admin/.ssh/authorized_keys').with(
+                                                                                       owner: default['basic_node']['admin_user']['node_admin'],
+                                                                                       mode: '0640',
+                                                                                       source: 'authorized_keys',
+                                                                                       variables: { admin_key: admin_key_data_bag_item['key']}
+      )
+    end
+
+    it 'creates the sshd_config file' do
+      expect(chef_run).to create_template_if_missing('/etc/ssh/sshd_config').with(
+                                                                            owner: 'root',
+                                                                            mode: '0644',
+                                                                            source: 'sshd_config',
+                                                                            variables: {
+                                                                                permit_root_login: default['openssh']['sshd']['permit_root_login'],
+                                                                                password_autentication: default['openssh']['sshd']['password_autentication'],
+                                                                                pubkey_authentication: default['openssh']['sshd']['pubkey_authentication'],
+                                                                                rsa_authentication: default['openssh']['sshd']['rsa_authentication'],
+                                                                            }
+      )
+    end
   end
 end

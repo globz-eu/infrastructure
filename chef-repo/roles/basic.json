@@ -1,0 +1,9 @@
+{
+  "name": "basic",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "description": "Basic node configuration",
+  "run_list": [
+    "basic_node"
+  ]
+}

@@ -19,20 +19,46 @@
 
 require 'spec_helper'
 
-describe 'basic_node::ssh' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe)}
+describe 'basic_node::admin_user' do
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
 
-  it 'creates the admin user' do
-    expect(chef_run).to create_user('admin').with(
-                                                home: '/homne/admin',
-                                                shell: '/bin/bash'
-    )
-  end
+    let(:secret_path) { '/etc/chef/encrypted_data_bag_secret' }
+    let(:secret) { 'secret' }
+    let(:fake_password) { 'sample_password' }
+    # let(:admin_password_data_bag_item) do
+    #   { password: fake_password }
+    let(:node_admin_password) do
+      { password: fake_password }
+    end
 
-  it 'adds admin to group sudo' do
-    expect(chef_run).to manage_group('sudo').with(
-                                                append: true,
-                                                members: 'admin'
-    )
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(secret_path).and_return('true')
+
+      allow(IO).to receive(:read).and_call_original
+      allow(IO).to receive(:read).with(secret_path).and_return(secret)
+
+      allow(Chef::EncryptedDataBagItem).to receive(:load).with('basic_node', 'node_admin', secret).and_return(node_admin_password)
+      # allow(ChefVault::Item).to receive(:load).with('basic_node', 'node_admin').and_return(node_admin_password)
+    end
+
+    it 'creates the admin user' do
+      expect(chef_run).to create_user(chef_run.node['basic_node']['admin_user']['node_admin']).with(
+                                                  home: '/home/' + chef_run.node['basic_node']['admin_user']['node_admin'],
+                                                  shell: '/bin/bash',
+                                                  password: node_admin_password['password']
+      )
+    end
+
+    it 'adds admin to group sudo' do
+      expect(chef_run).to manage_group('sudo').with(
+                                                  append: true,
+                                                  members: chef_run.node['basic_node']['admin_user']['node_admin']
+      )
+    end
   end
 end
