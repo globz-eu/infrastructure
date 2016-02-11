@@ -53,7 +53,7 @@ describe 'basic_node::openssh' do
          mode: '0640',
          source: 'authorized_keys.erb',
          variables: {
-             admin_key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApPVju50vJyXJ0jYxn0PqauzbVLUqyV9aS/ezFjwD4AIQGBmYL9sl4FZxZMA2mNyWtJWeauLF+SyoUhg95JYBEfLYFJOH3mufl2V/SCwavkDqGnbepyrTRHXRkG6etNaaKEbbDoWdqxHo1eQVhjX8sR4slnIjQffgm8/pxOw3R30ilB1NfT73wtrVBGE/ryPloRRp1A16uBxO+5Fnac28LlHwHZXKXrbV8GeiWNTyE/RC+32NXHbOtZkBGc3jKVShCZ4+iKuU1wUGhMjdwUa4Jwmp0VKh8OlH6HkoErg2JLIrbSloz4Z769UkG8fPCb0DG04C0a79yU3w81n1GaqkjQIDAQAB==',
+             admin_key: 'AAAAB3NzaC1yc2EAAAADAQABAAACAQDV6LFiLYnDGQu/DFgMcuAD1BAqQp9cjKM5872hHS4d3tIeT5kcW7jUhEkJqo5OFtmPChdI4IchlzkuOzUHvNAuwgUkbhp0HSXDUiXCUDJLTkBsCg7iYIBEmqQF/xPHYvYoMmJxx4nS6SuXh9iYAHanGmEnVQtAChzbkEsARGhOG9CpUnqz7v+35qymNeEaj2Imw7ItQTh3WFZRzD+vaAh5+tmgE2JvjiGWt5NQa/5E91VOOj9hfzMzArGoCVDfTmdReyMYHKpVH3vb4uRfXU9/aewPj8ue1VJ25FbA3Z1vb9bjWAF4qwvJpXhWWY3rZeBD2cL4i5uLfDa2uBjb3JmdBR71oD/OiomJWfdC9zKjQTh8FGt32GQxFi35jUthBV2gIiyxAuFkBjyTnXoTXMUtjUoTl6KIwBuOoEvEA337IwyPT7yb4mFbK5giV4KwlXmX8Ju/sL9NYq8Dku95ZtLlz4wyaY2SF8RDPh8GsB/EVE/UYvlOSOZvYYKZkRCHWMGTVHUUmOWlq7UUPD8Pl3hUFaVAHzeRTumeXC3jhntVW1wRpIYDSXvdVzurfxpMrmvA+HQUxxHm17Kj5aq47Zoh2vZWsIUyPpsHv/mmvumZSoeCw+0b302XvSVYTy7j73amvewB4UJFI14ocnSH0jAE+axn7PYJr1WB6QB14FE2Bw==',
              user: 'admin@adminPC'
          })
     end
