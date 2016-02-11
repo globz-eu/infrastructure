@@ -19,17 +19,17 @@
 
 include_recipe 'chef-vault'
 
-node_admin_password = chef_vault_item('basic_node', 'node_admin')
+node_admin_item = chef_vault_item('basic_node', 'node_admin')
 
-user node_admin_password['user'] do
-  home '/home/' + node['basic_node']['admin_user']['node_admin']
+user node_admin_item['user'] do
+  home "/home/#{node_admin_item['user']}"
   supports :manage_home => true
-  password node_admin_password['password']
+  password node_admin_item['password']
   shell '/bin/bash'
 end
 
 group 'sudo' do
   action :manage
-  members node['basic_node']['admin_user']['node_admin']
+  members node_admin_item['user']
   append true
 end

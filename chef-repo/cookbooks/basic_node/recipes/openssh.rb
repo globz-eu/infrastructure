@@ -35,7 +35,10 @@ template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
   action :create
   owner node_admin_vault_item['user']
   mode '0640'
-  variables(admin_key: admin_key_vault_item['key'])
+  variables({
+                admin_key: admin_key_vault_item['key'],
+                user: admin_key_vault_item['user']
+            })
 end
 
 template '/etc/ssh/sshd_config' do
@@ -48,6 +51,7 @@ template '/etc/ssh/sshd_config' do
                 password_authentication: node['openssh']['sshd']['password_authentication'],
                 pubkey_authentication: node['openssh']['sshd']['pubkey_authentication'],
                 rsa_authentication: node['openssh']['sshd']['rsa_authentication'],
-                allowed_users: node['basic_node']['admin_user']['node_admin']
+                allowed_users: node_admin_vault_item['user']
             })
+  notifies :restart, 'service[ssh]'
 end

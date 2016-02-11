@@ -52,8 +52,10 @@ describe 'basic_node::openssh' do
          owner: 'node_admin',
          mode: '0640',
          source: 'authorized_keys.erb',
-         variables: { admin_key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApPVju50vJyXJ0jYxn0PqauzbVLUqyV9aS/ezFjwD4AIQGBmYL9sl4FZxZMA2mNyWtJWeauLF+SyoUhg95JYBEfLYFJOH3mufl2V/SCwavkDqGnbepyrTRHXRkG6etNaaKEbbDoWdqxHo1eQVhjX8sR4slnIjQffgm8/pxOw3R30ilB1NfT73wtrVBGE/ryPloRRp1A16uBxO+5Fnac28LlHwHZXKXrbV8GeiWNTyE/RC+32NXHbOtZkBGc3jKVShCZ4+iKuU1wUGhMjdwUa4Jwmp0VKh8OlH6HkoErg2JLIrbSloz4Z769UkG8fPCb0DG04C0a79yU3w81n1GaqkjQIDAQAB'}
-      )
+         variables: {
+             admin_key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApPVju50vJyXJ0jYxn0PqauzbVLUqyV9aS/ezFjwD4AIQGBmYL9sl4FZxZMA2mNyWtJWeauLF+SyoUhg95JYBEfLYFJOH3mufl2V/SCwavkDqGnbepyrTRHXRkG6etNaaKEbbDoWdqxHo1eQVhjX8sR4slnIjQffgm8/pxOw3R30ilB1NfT73wtrVBGE/ryPloRRp1A16uBxO+5Fnac28LlHwHZXKXrbV8GeiWNTyE/RC+32NXHbOtZkBGc3jKVShCZ4+iKuU1wUGhMjdwUa4Jwmp0VKh8OlH6HkoErg2JLIrbSloz4Z769UkG8fPCb0DG04C0a79yU3w81n1GaqkjQIDAQAB==',
+             user: 'admin@adminPC'
+         })
     end
 
     it 'creates the sshd_config file' do
@@ -66,7 +68,7 @@ describe 'basic_node::openssh' do
             password_authentication: chef_run.node['openssh']['sshd']['password_authentication'],
             pubkey_authentication: chef_run.node['openssh']['sshd']['pubkey_authentication'],
             rsa_authentication: chef_run.node['openssh']['sshd']['rsa_authentication'],
-            allowed_users: chef_run.node['basic_node']['admin_user']['node_admin']
+            allowed_users: 'node_admin'
         }
       )
     end

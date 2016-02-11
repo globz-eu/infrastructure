@@ -1,5 +1,3 @@
-default['basic_node']['admin_user']['node_admin'] = 'node_admin'
-
 default['openssh']['sshd']['permit_root_login'] = 'no'
 default['openssh']['sshd']['password_authentication'] = 'no'
 default['openssh']['sshd']['pubkey_authentication'] = 'yes'

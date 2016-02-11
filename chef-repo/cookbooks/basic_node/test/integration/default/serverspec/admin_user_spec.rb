@@ -22,22 +22,22 @@ require 'spec_helper'
 
 set :backend, :exec
 
-describe user( $node['basic_node']['admin_user']['node_admin'] ) do
+describe user( 'node_admin' ) do
   it { should exist }
 end
 
-describe user( $node['basic_node']['admin_user']['node_admin'] ) do
+describe user( 'node_admin' ) do
   it { should belong_to_group 'sudo' }
 end
 
-describe user( $node['basic_node']['admin_user']['node_admin'] ) do
-  it { should have_home_directory '/home/' + $node['basic_node']['admin_user']['node_admin'] }
+describe user( 'node_admin' ) do
+  it { should have_home_directory '/home/node_admin' }
 end
 
-describe user( $node['basic_node']['admin_user']['node_admin'] ) do
+describe user( 'node_admin' ) do
   it { should have_login_shell '/bin/bash' }
 end
 
-describe user( $node['basic_node']['admin_user']['node_admin'] ) do
+describe user( 'node_admin' ) do
   its(:encrypted_password) { should match('node_admin_password') }
 end
