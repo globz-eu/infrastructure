@@ -20,6 +20,7 @@
 include_recipe 'chef-vault'
 
 admin_key_vault_item = chef_vault_item('basic_node', 'admin_key1')
+node_admin_vault_item = chef_vault_item('basic_node', 'node_admin')
 
 package 'openssh-server'
 
@@ -27,14 +28,14 @@ service 'ssh' do
   action [:start, :enable]
 end
 
-directory "/home/#{node['basic_node']['admin_user']['node_admin']}/.ssh"
+directory "/home/#{node_admin_vault_item['user']}/.ssh"
 
-template "/home/#{node['basic_node']['admin_user']['node_admin']}/.ssh/authorized_keys" do
+template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
   source 'authorized_keys.erb'
   action :create
-  owner node['basic_node']['admin_user']['node_admin']
+  owner node_admin_vault_item['user']
   mode '0640'
-  variables(admin_key: admin_key_vault_item['admin_key1'])
+  variables(admin_key: admin_key_vault_item['key'])
 end
 
 template '/etc/ssh/sshd_config' do

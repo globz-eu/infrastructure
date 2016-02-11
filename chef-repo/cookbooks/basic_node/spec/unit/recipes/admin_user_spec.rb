@@ -32,8 +32,8 @@ describe 'basic_node::admin_user' do
     end
 
     it 'creates the admin user' do
-      expect(chef_run).to create_user(chef_run.node['basic_node']['admin_user']['node_admin']).with(
-                                                  home: '/home/' + chef_run.node['basic_node']['admin_user']['node_admin'],
+      expect(chef_run).to create_user('node_admin').with(
+                                                  home: '/home/node_admin',
                                                   shell: '/bin/bash',
                                                   password: 'node_admin_password'
       )
@@ -42,7 +42,7 @@ describe 'basic_node::admin_user' do
     it 'adds admin to group sudo' do
       expect(chef_run).to manage_group('sudo').with(
                                                   append: true,
-                                                  members: [chef_run.node['basic_node']['admin_user']['node_admin']]
+                                                  members: ['node_admin']
       )
     end
   end

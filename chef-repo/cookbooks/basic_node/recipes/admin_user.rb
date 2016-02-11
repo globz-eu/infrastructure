@@ -21,10 +21,10 @@ include_recipe 'chef-vault'
 
 node_admin_password = chef_vault_item('basic_node', 'node_admin')
 
-user node['basic_node']['admin_user']['node_admin'] do
+user node_admin_password['user'] do
   home '/home/' + node['basic_node']['admin_user']['node_admin']
   supports :manage_home => true
-  password node_admin_password['node_admin']
+  password node_admin_password['password']
   shell '/bin/bash'
 end
 

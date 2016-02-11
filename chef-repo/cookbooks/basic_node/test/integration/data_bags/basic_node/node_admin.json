@@ -1,4 +1,5 @@
 {
   "id": "node_admin",
-  "node_admin": "node_admin_password"
+  "user": "node_admin",
+  "password": "node_admin_password"
 }

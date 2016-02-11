@@ -44,12 +44,12 @@ describe 'basic_node::openssh' do
     end
 
     it 'creates the admin user .ssh directory' do
-      expect(chef_run).to create_directory("/home/#{chef_run.node['basic_node']['admin_user']['node_admin']}/.ssh")
+      expect(chef_run).to create_directory('/home/node_admin/.ssh')
     end
 
     it 'appends or creates the authorized_keys file' do
-      expect(chef_run).to create_template("/home/#{chef_run.node['basic_node']['admin_user']['node_admin']}/.ssh/authorized_keys").with(
-         owner: chef_run.node['basic_node']['admin_user']['node_admin'],
+      expect(chef_run).to create_template('/home/node_admin/.ssh/authorized_keys').with(
+         owner: 'node_admin',
          mode: '0640',
          source: 'authorized_keys.erb',
          variables: { admin_key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApPVju50vJyXJ0jYxn0PqauzbVLUqyV9aS/ezFjwD4AIQGBmYL9sl4FZxZMA2mNyWtJWeauLF+SyoUhg95JYBEfLYFJOH3mufl2V/SCwavkDqGnbepyrTRHXRkG6etNaaKEbbDoWdqxHo1eQVhjX8sR4slnIjQffgm8/pxOw3R30ilB1NfT73wtrVBGE/ryPloRRp1A16uBxO+5Fnac28LlHwHZXKXrbV8GeiWNTyE/RC+32NXHbOtZkBGc3jKVShCZ4+iKuU1wUGhMjdwUa4Jwmp0VKh8OlH6HkoErg2JLIrbSloz4Z769UkG8fPCb0DG04C0a79yU3w81n1GaqkjQIDAQAB'}
