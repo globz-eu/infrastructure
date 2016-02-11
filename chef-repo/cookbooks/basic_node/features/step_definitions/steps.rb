@@ -27,7 +27,7 @@ When(/^an admin with the user name "(.*?)" opens a SSH session to a node with th
     ssh.connection_timeout = 30
     ssh.ssh_options = {
         user: @user_name,
-        keys: [File.join(File.dirname(__FILE__), '../../test/integration/fixtures/id_rsa')],
+        keys: [File.join(File.dirname(__FILE__), '../../test/integration/fixtures/files/id_rsa')],
         forward_agent: true,
         auth_methods: ['publickey']
     }

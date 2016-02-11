@@ -28,7 +28,7 @@ describe 'basic_node::openssh' do
     end
 
     it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
+      expect{ chef_run }.to_not raise_error
     end
 
     it 'installs the openssh-server package' do

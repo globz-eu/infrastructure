@@ -20,5 +20,6 @@
 # Cookbook Name:: basic_node
 # Recipe:: default
 
+include_recipe 'apt::default'
 include_recipe 'basic_node::admin_user'
 include_recipe 'basic_node::openssh'
