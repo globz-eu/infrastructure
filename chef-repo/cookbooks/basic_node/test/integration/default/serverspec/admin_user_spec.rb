@@ -39,5 +39,5 @@ describe user( $node['basic_node']['admin_user']['node_admin'] ) do
 end
 
 describe user( $node['basic_node']['admin_user']['node_admin'] ) do
-  its(:encrypted_password) { should match(/^\$6\$.{16}\$.{86}$/) }
+  its(:encrypted_password) { should match('node_admin_password') }
 end

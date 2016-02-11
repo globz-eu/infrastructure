@@ -31,9 +31,16 @@ describe service('ssh') do
   it { should be_running }
 end
 
+describe file("/home/#{$node['basic_node']['admin_user']['node_admin']}/.ssh") do
+  it { should exist }
+  it { should be_directory }
+end
+
 describe file('/home/' + $node['basic_node']['admin_user']['node_admin'] + '/.ssh/authorized_keys') do
+  it { should exist }
   it { should be_file }
   it { should be_owned_by $node['basic_node']['admin_user']['node_admin'] }
+  it { should contain 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApPVju50vJyXJ0jYxn0PqauzbVLUqyV9aS/ezFjwD4AIQGBmYL9sl4FZxZMA2mNyWtJWeauLF+SyoUhg95JYBEfLYFJOH3mufl2V/SCwavkDqGnbepyrTRHXRkG6etNaaKEbbDoWdqxHo1eQVhjX8sR4slnIjQffgm8/pxOw3R30ilB1NfT73wtrVBGE/ryPloRRp1A16uBxO+5Fnac28LlHwHZXKXrbV8GeiWNTyE/RC+32NXHbOtZkBGc3jKVShCZ4+iKuU1wUGhMjdwUa4Jwmp0VKh8OlH6HkoErg2JLIrbSloz4Z769UkG8fPCb0DG04C0a79yU3w81n1GaqkjQIDAQAB'}
 end
 
 describe file('/etc/ssh/sshd_config') do
