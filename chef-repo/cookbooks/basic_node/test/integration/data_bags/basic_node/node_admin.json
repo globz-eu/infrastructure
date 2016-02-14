@@ -1,5 +1,6 @@
 {
   "id": "node_admin",
   "user": "node_admin",
-  "password": "node_admin_password"
+  "password": "node_admin_password",
+  "email": "admin@example.com"
 }

@@ -30,9 +30,7 @@ describe file('/etc/apt/apt.conf.d/50unattended-upgrades') do
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
-  it { should contain 'Unattended-Upgrade::Allowed-Origins {\n        "Ubuntu trusty-security";' }
-  it { should contain '//      "Ubuntu trusty-updates";' }
-  it { should contain 'Unattended-Upgrade::Mail "admin@example.com";' }
+  its(:md5sum) { should eq 'feab780852c9416828a3fb2722fc039d' }
 end
 
 describe file('/etc/apt/apt.conf.d/10periodic') do
@@ -40,10 +38,7 @@ describe file('/etc/apt/apt.conf.d/10periodic') do
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
-  it { should contain 'APT::Periodic::Update-Package-Lists "1";' }
-  it { should contain 'APT::Periodic::Download-Upgradeable-Packages "1";' }
-  it { should contain 'APT::Periodic::AutocleanInterval "7";' }
-  it { should contain 'APT::Periodic::Unattended-Upgrade "1";' }
+  its(:md5sum) { should eq '0cca37de3274683b2a6b79005ab397d8' }
 end
 
 describe package('apticron') do
@@ -55,5 +50,6 @@ describe file('/etc/apticron/apticron.conf') do
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
+  its(:md5sum) { should eq 'a91684ec9a956cb423be67f689979ed7' }
   it { should contain 'EMAIL="admin@example.com"' }
 end

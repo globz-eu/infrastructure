@@ -9,7 +9,7 @@ platforms:
   - name: ubuntu-14.04
     driver:
       provider: libvirt
-      box: trusty64
+      box: prod-like
       network:
         - ['private_network', {ip: '192.168.121.10'}]
       customize:

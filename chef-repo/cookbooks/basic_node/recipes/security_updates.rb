@@ -16,11 +16,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: basic_node
-# Recipe:: default
 
-include_recipe 'apt::default'
-include_recipe 'basic_node::admin_user'
-include_recipe 'basic_node::openssh'
-include_recipe 'basic_node::security_updates'
+include_recipe 'chef-vault'
+
+admin_email_vault_item = chef_vault_item('basic_node', 'node_admin')
+
+package 'unattended-upgrades'
+
+template '/etc/apt/apt.conf.d/50unattended-upgrades' do
+  source '50unattended-upgrades.erb'
+  action :create
+  owner 'root'
+  mode '0644'
+  variables(admin_email: admin_email_vault_item['email'])
+end
+
+template '/etc/apt/apt.conf.d/10periodic' do
+  source '10periodic.erb'
+  action :create
+  owner 'root'
+  mode '0644'
+end
+
+package 'apticron'
+
+template '/etc/apticron/apticron.conf' do
+  source 'apticron.conf.erb'
+  action :create
+  owner 'root'
+  mode '0644'
+  variables(admin_email: admin_email_vault_item['email'])
+end
