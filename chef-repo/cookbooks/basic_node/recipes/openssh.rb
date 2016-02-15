@@ -22,7 +22,6 @@
 
 include_recipe 'chef-vault'
 
-admin_key_vault_item = chef_vault_item('basic_node', 'admin_key1')
 node_admin_vault_item = chef_vault_item('basic_node', 'node_admin')
 
 package 'openssh-server'
@@ -39,8 +38,7 @@ template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
   owner node_admin_vault_item['user']
   mode '0640'
   variables({
-                admin_key: admin_key_vault_item['key'],
-                user: admin_key_vault_item['user']
+                admin_key: node_admin_vault_item['key'],
             })
 end
 
