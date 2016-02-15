@@ -16,8 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: web_server
+# Recipe:: nginx
 
+include_recipe 'chef-vault'
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+package 'nginx'
+
+firewall_rule 'http' do
+  protocol :tcp
+  direction :in
+  command :allow
+  port 80
+end
+
+service 'nginx' do
+  action [:enable, :start]
+end

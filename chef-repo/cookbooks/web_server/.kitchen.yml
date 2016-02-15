@@ -9,7 +9,7 @@ platforms:
   - name: ubuntu-14.04
     driver:
       provider: libvirt
-      box: trusty64
+      box: prod-like
       network:
         - ['private_network', {ip: '192.168.121.10'}]
       customize:
@@ -23,6 +23,8 @@ platforms:
 suites:
   - name: default
     run_list:
+      - recipe[basic_node::default]
       - recipe[web_server::default]
+      - recipe[test-helper::default]
     attributes:
     excludes: centos-7.1

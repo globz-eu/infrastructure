@@ -17,7 +17,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
+require 'spec_helper'
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+describe 'web_server::nginx' do
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    include ChefVault::TestFixtures.rspec_shared_context(true)
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
+
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
+
+    it 'installs the nginx package' do
+      expect(chef_run).to install_package( 'nginx' )
+    end
+
+    it 'starts the nginx service' do
+      expect(chef_run).to start_service( 'nginx' )
+    end
+
+    it 'enables the nginx service' do
+      expect(chef_run).to enable_service( 'nginx' )
+    end
+
+    it 'creates firewall rules' do
+      expect( chef_run ).to create_firewall_rule('http')
+    end
+  end
+end

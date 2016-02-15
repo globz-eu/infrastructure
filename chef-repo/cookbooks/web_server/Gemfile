@@ -14,5 +14,7 @@ gem 'berkshelf'
 #   gem "vagrant-omnibus", github: "schisamo/vagrant-omnibus"
 # end
 
-gem "test-kitchen"
-gem "kitchen-vagrant"
+gem 'test-kitchen'
+gem 'kitchen-vagrant'
+gem 'chef-vault-testfixtures', '~> 0.5'
+gem 'chef-sugar', '~> 3.3.0'

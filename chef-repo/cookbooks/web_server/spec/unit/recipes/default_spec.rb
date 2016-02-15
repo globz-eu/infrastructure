@@ -24,18 +24,15 @@
 require 'spec_helper'
 
 describe 'web_server::default' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe)}
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    include ChefVault::TestFixtures.rspec_shared_context(true)
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
 
-  it 'installs the nginx package' do
-    expect(chef_run).to install_package( 'nginx' )
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
   end
-
-  it 'starts the nginx service' do
-    expect(chef_run).to start_service( 'nginx' )
-  end
-
-  it 'enables the nginx service' do
-    expect(chef_run).to enable_service( 'nginx' )
-  end
-
 end

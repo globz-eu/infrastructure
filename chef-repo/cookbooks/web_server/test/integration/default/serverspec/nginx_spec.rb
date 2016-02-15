@@ -22,6 +22,23 @@ require 'serverspec'
 
 set :backend, :exec
 
+expected_rules = [
+    %r{ 22/tcp + ALLOW IN + Anywhere},
+    %r{ 80/tcp + ALLOW IN + Anywhere},
+    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
+    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
+    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
+    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
+    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+]
+
+describe command( 'ufw status numbered' ) do
+  its(:stdout) { should match(/Status: active/) }
+  expected_rules.each do |r|
+    its(:stdout) { should match(r) }
+  end
+end
+
 describe package('nginx') do
   it { should be_installed }
 end

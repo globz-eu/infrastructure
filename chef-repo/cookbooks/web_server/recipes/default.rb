@@ -22,9 +22,4 @@
 
 
 include_recipe 'apt::default'
-
-package 'nginx'
-
-service 'nginx' do
-  action [:enable, :start]
-end
+include_recipe 'web_server::nginx'
