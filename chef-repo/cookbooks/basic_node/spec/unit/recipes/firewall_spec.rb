@@ -16,23 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: basic_node
-# Recipe:: admin_user
 
-include_recipe 'chef-vault'
+require 'spec_helper'
 
-node_admin_item = chef_vault_item('basic_node', 'node_admin')
+describe 'basic_node::firewall' do
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    include ChefVault::TestFixtures.rspec_shared_context(true)
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
 
-user node_admin_item['user'] do
-  home "/home/#{node_admin_item['user']}"
-  supports :manage_home => true
-  password node_admin_item['password']
-  shell '/bin/bash'
-end
+    it 'converges successfully' do
+      expect{ chef_run }.to_not raise_error
+    end
 
-group 'sudo' do
-  action :manage
-  members node_admin_item['user']
-  append true
+    it 'creates firewall rules' do
+      expect( chef_run ).to create_firewall_rule('min_out_tcp')
+      expect( chef_run ).to create_firewall_rule('min_out_udp')
+      expect( chef_run ).to create_firewall_rule('ssh')
+    end
+
+  end
 end

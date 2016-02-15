@@ -1,3 +1,4 @@
 source 'https://rubygems.org'
 
 gem 'chef-vault-testfixtures', '~> 0.5'
+gem 'chef-sugar', '~> 3.3.0'

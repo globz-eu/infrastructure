@@ -16,23 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: basic_node
-# Recipe:: admin_user
 
-include_recipe 'chef-vault'
 
-node_admin_item = chef_vault_item('basic_node', 'node_admin')
+require 'spec_helper'
 
-user node_admin_item['user'] do
-  home "/home/#{node_admin_item['user']}"
-  supports :manage_home => true
-  password node_admin_item['password']
-  shell '/bin/bash'
-end
+set :backend, :exec
 
-group 'sudo' do
-  action :manage
-  members node_admin_item['user']
-  append true
+expected_rules = [
+    %r{ 22/tcp + ALLOW IN + Anywhere},
+    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
+    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
+    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
+    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
+    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+]
+
+describe command( 'ufw status numbered' ) do
+  its(:stdout) { should match(/Status: active/) }
+  expected_rules.each do |r|
+    its(:stdout) { should match(r) }
+  end
 end

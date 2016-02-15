@@ -18,21 +18,25 @@
 # =====================================================================
 #
 # Cookbook Name:: basic_node
-# Recipe:: admin_user
+# Recipe:: firewall
 
-include_recipe 'chef-vault'
-
-node_admin_item = chef_vault_item('basic_node', 'node_admin')
-
-user node_admin_item['user'] do
-  home "/home/#{node_admin_item['user']}"
-  supports :manage_home => true
-  password node_admin_item['password']
-  shell '/bin/bash'
+firewall_rule 'min_out_tcp' do
+  protocol :tcp
+  direction :out
+  command :allow
+  port [22,53,80,443]
 end
 
-group 'sudo' do
-  action :manage
-  members node_admin_item['user']
-  append true
+firewall_rule 'min_out_udp' do
+  protocol :udp
+  direction :out
+  command :allow
+  port [53,67,68]
+end
+
+firewall_rule 'ssh' do
+  protocol :tcp
+  direction :in
+  command :allow
+  port 22
 end
