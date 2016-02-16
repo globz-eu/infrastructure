@@ -28,6 +28,11 @@ describe 'db_server::default' do
     let(:chef_run) do
       runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
       runner.converge(described_recipe)
+      stub_command("ls /var/lib/postgresql/9.5/main/recovery.conf").and_return('')
+    end
+
+    before do
+      stub_command(/ls \/.*\/recovery.conf/).and_return(false)
     end
 
     it 'converges successfully' do

@@ -26,13 +26,13 @@ expected_apt_key_list = [
     %r{uid\s+PostgreSQL Debian Repository}
 ]
 
-describe file('/etc/apt/sources.list.d/postgresql.list') do
+describe file('/etc/apt/sources.list.d/apt.postgresql.org.list') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
-  its(:content) { should match %r{deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5}}
-  its(:md5sum) { should eq 'e231145ff9780269cecde8603841186c' }
+  its(:content) { should match %r{deb\s+"http://apt.postgresql.org/pub/repos/apt" trusty-pgdg main 9.5} }
+  its(:md5sum) { should eq '473d8003a185a7e593299826ba983aaa' }
 end
 
 describe command( 'apt-key list' ) do

@@ -22,26 +22,9 @@
 
 include_recipe 'chef-vault'
 
-template '/etc/apt/sources.list.d/postgresql.list' do
-  source 'postgresql.list.erb'
-  action :create
-  owner 'root'
-  mode '0644'
-  variables({
-                source: 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5',
-            })
-end
+pg_server_item = chef_vault_item('pg_server', 'postgres')
+node.default['postgresql']['password']['postgres'] = pg_server_item['password']
 
-execute 'add apt-key' do
-  command 'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -'
-end
-
-execute 'apt-get update' do
-  command 'apt-get update'
-end
-
-package ['postgresql-9.5', 'postgresql-contrib-9.5', 'postgresql-client-9.5', 'postgresql-server-dev-9.5']
-
-service 'postgresql' do
-  action [:start, :enable]
-end
+include_recipe 'postgresql::default'
+include_recipe 'postgresql::server'
+include_recipe 'postgresql::contrib'

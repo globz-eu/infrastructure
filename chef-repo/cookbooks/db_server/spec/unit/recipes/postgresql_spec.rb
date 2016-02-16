@@ -30,30 +30,20 @@ describe 'db_server::postgresql' do
       runner.converge(described_recipe)
     end
 
+    before do
+      stub_command(/ls \/.*\/recovery.conf/).and_return(false)
+    end
+
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
     end
 
-    it 'creates the /etc/apt/sources.list.d/postgresql.list file' do
-      expect(chef_run).to create_template('/etc/apt/sources.list.d/postgresql.list').with(
-          owner: 'root',
-          mode: '0644',
-          source: 'postgresql.list.erb',
-          variables: {
-              source: 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5',
-          })
-    end
-
-    it 'runs the "add apt-key" command' do
-      expect(chef_run).to run_execute('add apt-key')
-    end
-
-    it 'runs the "apt-get update" command' do
-      expect(chef_run).to run_execute('apt-get update')
-    end
-
-    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-dev-9.5" packages' do
-      expect(chef_run).to install_package(['postgresql-9.5', 'postgresql-contrib-9.5', 'postgresql-client-9.5', 'postgresql-server-dev-9.5'])
+    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
+      expect(chef_run).to install_package('postgresql-9.5')
+      expect(chef_run).to install_package('postgresql-contrib-9.5')
+      expect(chef_run).to install_package('postgresql-client-9.5')
+      expect(chef_run).to install_package('postgresql-server-dev-9.5')
+      expect(chef_run).to install_package('postgresql-server-9.5')
     end
 
     it 'starts the postgresql service' do

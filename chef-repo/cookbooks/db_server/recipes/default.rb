@@ -15,11 +15,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# =====================================================================#
+# =====================================================================
 #
 # Cookbook Name:: db_server
 # Recipe:: default
 
 include_recipe 'apt::default'
 include_recipe 'db_server::postgresql'
-
+include_recipe 'database::postgresql'

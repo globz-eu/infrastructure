@@ -17,18 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-name 'db_server'
-maintainer 'The Authors'
-maintainer_email 'you@example.com'
-license 'all_rights'
-description 'Installs/Configures db_server'
-long_description 'Installs/Configures db_server'
-version '0.1.1'
-
-depends 'apt', '~> 2.9.2'
-depends 'test-helper'
-depends 'chef-vault', '~> 1.3.2'
-depends 'firewall', '~> 2.4.0'
-depends 'basic_node', '~> 0.1.12'
-depends 'postgresql', '~> 4.0.0'
-depends 'database', '~> 4.0.9'
+default['postgresql']['version'] = '9.5'
+default['postgresql']['enable_pgdg_apt'] = true
+default['postgresql']['dir'] = '/etc/postgresql/9.5/main'
+default['postgresql']['client']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-client-9.5']
+default['postgresql']['server']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-9.5']
+default['postgresql']['server']['service_name'] = 'postgresql'
+default['postgresql']['contrib']['packages'] = ['postgresql-contrib-9.5']
