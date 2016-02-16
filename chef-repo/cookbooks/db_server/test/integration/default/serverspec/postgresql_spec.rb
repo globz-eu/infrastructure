@@ -21,6 +21,26 @@ require 'spec_helper'
 
 set :backend, :exec
 
+expected_apt_key_list = [
+    %r{pub\s+4096R/ACCC4CF8},
+    %r{uid\s+PostgreSQL Debian Repository}
+]
+
+describe file('/etc/apt/sources.list.d/postgresql.list') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_mode 644 }
+  its(:content) { should match %r{deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5}}
+  its(:md5sum) { should eq 'd41d8cd98f00b204e9800998ecf8427e' }
+end
+
+describe command( 'apt-key list' ) do
+  expected_apt_key_list.each do |r|
+    its(:stdout) { should match(r) }
+  end
+end
+
 describe package('postgresql-9.5') do
   it { should be_installed }
 end
