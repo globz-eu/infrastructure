@@ -39,5 +39,17 @@ describe 'basic_node::default' do
       expect( chef_run ).to install_firewall('default')
     end
 
+    it 'installs the ntp package' do
+      expect( chef_run ).to install_package('ntp')
+    end
+
+    it 'starts the ntp service' do
+      expect(chef_run).to start_service( 'ntp' )
+    end
+
+    it 'enables the ntp service' do
+      expect(chef_run).to enable_service( 'ntp' )
+    end
+
   end
 end

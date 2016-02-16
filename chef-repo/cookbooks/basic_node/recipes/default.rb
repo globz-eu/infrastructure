@@ -26,3 +26,9 @@ include_recipe 'basic_node::openssh'
 include_recipe 'basic_node::security_updates'
 include_recipe 'firewall::default'
 include_recipe 'basic_node::firewall'
+
+package 'ntp'
+
+service 'ntp' do
+  action [:start, :enable]
+end
