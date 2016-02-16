@@ -33,6 +33,7 @@ When(/^an admin with the user name "(.*?)" opens a SSH session to a node with th
     }
   end
   on @ip do
+    %x('ssh-keygen -f "/home/golg/.ssh/known_hosts" -R #{@ip}')
     $whoami_output = capture(:whoami)
   end
 end
