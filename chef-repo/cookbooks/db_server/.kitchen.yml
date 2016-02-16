@@ -1,0 +1,30 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-14.04
+    driver:
+      provider: libvirt
+      box: prod-like
+      network:
+        - ['private_network', {ip: '192.168.121.10'}]
+      customize:
+        memory: 2048
+        cpus: 2
+  - name: centos-7.1
+    driver:
+      provider: libvirt
+      box: centos/7
+
+suites:
+  - name: default
+    run_list:
+      - recipe[basic_node::default]
+      - recipe[db_server::default]
+      - recipe[test-helper::default]
+    attributes:
+    excludes: centos-7.1
