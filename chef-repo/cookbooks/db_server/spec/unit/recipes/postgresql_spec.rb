@@ -40,12 +40,12 @@ describe 'db_server::postgresql' do
           mode: '0644',
           source: 'postgresql.list.erb',
           variables: {
-              admin_key: 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5',
+              source: 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5',
           })
     end
 
-    it 'runs the "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -" command' do
-      expect(chef_run).to run_execute('wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -')
+    it 'runs the "add apt-key" command' do
+      expect(chef_run).to run_execute('add apt-key')
     end
 
     it 'runs the "apt-get update" command' do

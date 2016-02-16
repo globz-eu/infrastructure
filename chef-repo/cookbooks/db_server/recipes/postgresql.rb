@@ -15,11 +15,33 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# =====================================================================#
+# =====================================================================
 #
 # Cookbook Name:: db_server
-# Recipe:: default
+# Recipe:: postgresql
 
-include_recipe 'apt::default'
-include_recipe 'db_server::postgresql'
+include_recipe 'chef-vault'
 
+template '/etc/apt/sources.list.d/postgresql.list' do
+  source 'postgresql.list.erb'
+  action :create
+  owner 'root'
+  mode '0644'
+  variables({
+                source: 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5',
+            })
+end
+
+execute 'add apt-key' do
+  command 'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -'
+end
+
+execute 'apt-get update' do
+  command 'apt-get update'
+end
+
+package ['postgresql-9.5', 'postgresql-contrib-9.5', 'postgresql-client-9.5', 'postgresql-server-dev-9.5']
+
+service 'postgresql' do
+  action [:start, :enable]
+end

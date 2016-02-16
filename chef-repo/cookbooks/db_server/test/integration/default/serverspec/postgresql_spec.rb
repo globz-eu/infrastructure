@@ -32,7 +32,7 @@ describe file('/etc/apt/sources.list.d/postgresql.list') do
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
   its(:content) { should match %r{deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5}}
-  its(:md5sum) { should eq 'd41d8cd98f00b204e9800998ecf8427e' }
+  its(:md5sum) { should eq 'e231145ff9780269cecde8603841186c' }
 end
 
 describe command( 'apt-key list' ) do
