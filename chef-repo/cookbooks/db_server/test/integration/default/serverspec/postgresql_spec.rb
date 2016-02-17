@@ -61,3 +61,16 @@ describe service('postgresql') do
   it { should be_enabled }
   it { should be_running }
 end
+
+describe file('/etc/postgresql/9.5/main/pg_hba.conf') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'postgres' }
+  it { should be_mode 600 }
+  its(:content) { should match %r{local\s+all\s+postgres\s+ident} }
+  its(:md5sum) { should eq '9996ac972ded78f610ebb788b0750059' }
+end
+
+describe command( 'sudo -u postgres -p vagrant psql -l' ) do
+    its(:stdout) { should match(/ app_name  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | /) }
+end

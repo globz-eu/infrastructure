@@ -28,3 +28,14 @@ node.default['postgresql']['password']['postgres'] = pg_server_item['password']
 include_recipe 'postgresql::default'
 include_recipe 'postgresql::server'
 include_recipe 'postgresql::contrib'
+include_recipe 'database::postgresql'
+
+postgresql_database 'app_name' do
+  connection(
+      :host      => '127.0.0.1',
+      :port      => 5432,
+      :username  => 'postgres',
+      :password  => pg_server_item['password']
+  )
+  action :create
+end
