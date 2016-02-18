@@ -34,8 +34,8 @@ template '/etc/apt/apt.conf.d/50unattended-upgrades' do
   variables(admin_email: admin_email_vault_item['email'])
 end
 
-template '/etc/apt/apt.conf.d/10periodic' do
-  source '10periodic.erb'
+template '/etc/apt/apt.conf.d/20auto-upgrades' do
+  source '20auto-upgrades.erb'
   action :create
   owner 'root'
   mode '0644'

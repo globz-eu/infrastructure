@@ -28,6 +28,12 @@ end
 
 describe user( 'node_admin' ) do
   it { should belong_to_group 'sudo' }
+  it { should belong_to_group 'adm' }
+  it { should belong_to_group 'cdrom' }
+  it { should belong_to_group 'dip' }
+  it { should belong_to_group 'plugdev' }
+  it { should belong_to_group 'lpadmin' }
+  it { should belong_to_group 'sambashare' }
 end
 
 describe user( 'node_admin' ) do

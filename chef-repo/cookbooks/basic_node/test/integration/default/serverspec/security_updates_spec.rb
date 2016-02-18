@@ -33,7 +33,7 @@ describe file('/etc/apt/apt.conf.d/50unattended-upgrades') do
   its(:md5sum) { should eq 'feab780852c9416828a3fb2722fc039d' }
 end
 
-describe file('/etc/apt/apt.conf.d/10periodic') do
+describe file('/etc/apt/apt.conf.d/20auto-upgrades') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }

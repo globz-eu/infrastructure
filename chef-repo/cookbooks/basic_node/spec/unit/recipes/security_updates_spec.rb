@@ -43,8 +43,8 @@ describe 'basic_node::security_updates' do
       )
     end
 
-    it 'manages the 10periodic file' do
-      expect(chef_run).to create_template('/etc/apt/apt.conf.d/10periodic').with(
+    it 'manages the 20auto-upgrades file' do
+      expect(chef_run).to create_template('/etc/apt/apt.conf.d/20auto-upgrades').with(
        owner: 'root',
        mode: '0644'
       )
