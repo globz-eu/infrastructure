@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-admin_email_vault_item = chef_vault_item('basic_node', 'node_admin')
+admin_email_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
 
 package 'unattended-upgrades'
 
