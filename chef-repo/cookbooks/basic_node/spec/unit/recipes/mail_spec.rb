@@ -16,14 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: basic_node
-# Spec:: default
-#
 
 require 'spec_helper'
 
-describe 'basic_node::default' do
+describe 'basic_node::admin_user' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
@@ -33,6 +29,31 @@ describe 'basic_node::default' do
 
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
+    end
+
+    it 'installs the ssmtp package' do
+      expect(chef_run).to install_package( 'ssmtp' )
+    end
+
+    it 'installs the mailutils package' do
+      expect(chef_run).to install_package( 'mailutils' )
+    end
+
+    it 'manages the ssmtp.conf file' do
+      expect(chef_run).to create_template('/etc/ssmtp/ssmtp.conf').with(
+          owner: 'root',
+          mode: '0644',
+          variables: {
+              auth_user: 'admin@example.com',
+              auth_pass: 'password',
+              mail_hub: 'smtp.mail.com',
+              port: '587'
+          }
+      )
+    end
+
+    it 'creates mail firewall rule' do
+      expect( chef_run ).to create_firewall_rule('mail')
     end
 
   end

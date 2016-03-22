@@ -23,17 +23,21 @@ require 'spec_helper'
 set :backend, :exec
 
 expected_rules = [
-    %r{ 22/tcp + ALLOW IN + Anywhere},
-    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
-    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
-    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+    %r{ 587/tcp + ALLOW OUT + Anywhere \(out\)},
+    %r{ 587/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
 ]
 
-describe command( 'ufw status verbose' ) do
-  its(:stdout) { should match(/Status: active/) }
-  its(:stdout) { should match(%r{Default: deny \(incoming\), deny \(outgoing\), disabled \(routed\)}) }
+describe file('//etc/ssmtp/ssmtp.conf') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_mode 644 }
+  its(:md5sum) { should eq 'b949ecbfacb2e1e26b41faae5f2f25c3' }
+  it { should contain 'FromLineOverride=YES' }
+  it { should contain 'AuthUser=admin@example.com' }
+  it { should contain 'AuthPass=password' }
+  it { should contain 'mailhub=smtp.mail.com:587' }
+  it { should contain 'UseSTARTTLS=YES' }
 end
 
 describe command( 'ufw status numbered' ) do

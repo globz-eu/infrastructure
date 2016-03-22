@@ -24,11 +24,5 @@ include_recipe 'apt::default'
 include_recipe 'basic_node::admin_user'
 include_recipe 'basic_node::openssh'
 include_recipe 'basic_node::security_updates'
-include_recipe 'firewall::default'
 include_recipe 'basic_node::firewall'
-
-package 'ntp'
-
-service 'ntp' do
-  action [:start, :enable]
-end
+include_recipe 'basic_node::ntp'

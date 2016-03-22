@@ -33,12 +33,12 @@ describe file('/etc/apt/apt.conf.d/50unattended-upgrades') do
   its(:md5sum) { should eq 'feab780852c9416828a3fb2722fc039d' }
 end
 
-describe file('/etc/apt/apt.conf.d/20auto-upgrades') do
+describe file('/etc/apt/apt.conf.d/10periodic') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_mode 644 }
-  its(:md5sum) { should eq '0cca37de3274683b2a6b79005ab397d8' }
+  its(:md5sum) { should eq '02b9482fe6a6c797200a8ed78806799f' }
 end
 
 describe package('apticron') do

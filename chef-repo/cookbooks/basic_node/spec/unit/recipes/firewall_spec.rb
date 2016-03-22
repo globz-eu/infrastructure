@@ -31,6 +31,10 @@ describe 'basic_node::firewall' do
       expect{ chef_run }.to_not raise_error
     end
 
+    it 'enables the firewall' do
+      expect( chef_run ).to install_firewall('default')
+    end
+
     it 'creates firewall rules' do
       expect( chef_run ).to create_firewall_rule('min_out_tcp')
       expect( chef_run ).to create_firewall_rule('min_out_udp')

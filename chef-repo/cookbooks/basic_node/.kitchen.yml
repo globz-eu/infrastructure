@@ -4,6 +4,7 @@ driver:
 
 provisioner:
   name: chef_solo
+  log_file: "/var/log/chef/chef-client.log"
 
 platforms:
   - name: ubuntu-14.04

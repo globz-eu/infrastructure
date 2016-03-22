@@ -17,28 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-
 require 'spec_helper'
 
 set :backend, :exec
 
-expected_rules = [
-    %r{ 22/tcp + ALLOW IN + Anywhere},
-    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
-    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
-    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
-]
-
-describe command( 'ufw status verbose' ) do
-  its(:stdout) { should match(/Status: active/) }
-  its(:stdout) { should match(%r{Default: deny \(incoming\), deny \(outgoing\), disabled \(routed\)}) }
+describe package('ntp') do
+  it { should be_installed }
 end
 
-describe command( 'ufw status numbered' ) do
-  its(:stdout) { should match(/Status: active/) }
-  expected_rules.each do |r|
-    its(:stdout) { should match(r) }
-  end
+describe service('ntp') do
+  it { should be_enabled }
+  it { should be_running }
 end

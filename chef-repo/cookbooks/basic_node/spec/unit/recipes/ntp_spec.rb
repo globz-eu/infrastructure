@@ -17,28 +17,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-
 require 'spec_helper'
 
-set :backend, :exec
+describe 'basic_node::default' do
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    include ChefVault::TestFixtures.rspec_shared_context(true)
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
 
-expected_rules = [
-    %r{ 22/tcp + ALLOW IN + Anywhere},
-    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
-    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
-    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
-]
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
 
-describe command( 'ufw status verbose' ) do
-  its(:stdout) { should match(/Status: active/) }
-  its(:stdout) { should match(%r{Default: deny \(incoming\), deny \(outgoing\), disabled \(routed\)}) }
-end
+    it 'installs the ntp package' do
+      expect( chef_run ).to install_package('ntp')
+    end
 
-describe command( 'ufw status numbered' ) do
-  its(:stdout) { should match(/Status: active/) }
-  expected_rules.each do |r|
-    its(:stdout) { should match(r) }
+    it 'starts the ntp service' do
+      expect(chef_run).to start_service( 'ntp' )
+    end
+
+    it 'enables the ntp service' do
+      expect(chef_run).to enable_service( 'ntp' )
+    end
+
   end
 end

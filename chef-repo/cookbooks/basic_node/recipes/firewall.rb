@@ -20,6 +20,8 @@
 # Cookbook Name:: basic_node
 # Recipe:: firewall
 
+include_recipe 'firewall::default'
+
 firewall_rule 'min_out_tcp' do
   protocol :tcp
   direction :out
