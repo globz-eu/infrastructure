@@ -42,11 +42,13 @@ describe 'basic_node::mail' do
     it 'manages the ssmtp.conf file' do
       expect(chef_run).to create_template('/etc/ssmtp/ssmtp.conf').with(
           owner: 'root',
+          group: 'root',
           mode: '0644',
           variables: {
               auth_user: 'admin@example.com',
-              auth_pass: 'password',
+              password: 'password',
               mail_hub: 'smtp.mail.com',
+              TLS: 'YES',
               port: '587'
           }
       )

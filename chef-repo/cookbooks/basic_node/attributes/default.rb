@@ -19,4 +19,4 @@ default['apt']['unattended_upgrades']['mail'] = 'admin@example.com'
 default['apt']['unattended_upgrades']['remove_unused_dependencies'] = true
 
 default['mail']['ssmtp_conf']['TLS'] = 'YES'
-default['mail']['ssmtp_conf']['port'] = 587
+default['mail']['ssmtp_conf']['port'] = '587'

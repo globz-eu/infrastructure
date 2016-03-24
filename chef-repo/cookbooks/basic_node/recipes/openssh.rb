@@ -36,6 +36,7 @@ template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
   source 'authorized_keys.erb'
   action :create
   owner node_admin_vault_item['user']
+  group node_admin_vault_item['user']
   mode '0640'
   variables({
                 admin_key: node_admin_vault_item['key'],
@@ -46,6 +47,7 @@ template '/etc/ssh/sshd_config' do
   source 'sshd_config.erb'
   action :create
   owner 'root'
+  group 'root'
   mode '0644'
   variables({
                 permit_root_login: node['openssh']['sshd']['permit_root_login'],

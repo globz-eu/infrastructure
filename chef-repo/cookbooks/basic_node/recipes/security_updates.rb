@@ -30,6 +30,7 @@ template '/etc/apticron/apticron.conf' do
   source 'apticron.conf.erb'
   action :create
   owner 'root'
+  group 'root'
   mode '0644'
   variables(admin_email: admin_email_vault_item['email'])
 end

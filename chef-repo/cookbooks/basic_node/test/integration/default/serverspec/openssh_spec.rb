@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-
+#
+# Cookbook Name:: basic_node
+# Recipe:: openssh
 
 require 'spec_helper'
 
@@ -34,12 +36,16 @@ end
 describe file('/home/node_admin/.ssh') do
   it { should exist }
   it { should be_directory }
+  it { should be_owned_by 'node_admin' }
+  it { should be_grouped_into 'node_admin' }
+  it { should be_mode 750 }
 end
 
 describe file('/home/node_admin/.ssh/authorized_keys') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'node_admin' }
+  it { should be_grouped_into 'node_admin' }
   it { should be_mode 640 }
   its(:md5sum) { should eq '99f40d69488f7264e8cf7cf8126fbb37' }
 end
@@ -48,6 +54,7 @@ describe file('/etc/ssh/sshd_config') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
   it { should be_mode 644 }
   its(:md5sum) { should eq 'b038bfea872686f44976f5f484d46923' }
 end

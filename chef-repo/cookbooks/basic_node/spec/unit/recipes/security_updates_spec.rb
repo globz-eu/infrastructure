@@ -38,6 +38,7 @@ describe 'basic_node::security_updates' do
     it 'manages the apticron.conf file' do
       expect(chef_run).to create_template('/etc/apticron/apticron.conf').with(
         owner: 'root',
+        group: 'root',
         mode: '0644',
         variables: { admin_email: 'admin@example.com' }
       )

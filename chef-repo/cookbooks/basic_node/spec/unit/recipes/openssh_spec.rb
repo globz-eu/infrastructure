@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: basic_node
+# Recipe:: openssh
 
 require 'spec_helper'
 
@@ -50,6 +53,7 @@ describe 'basic_node::openssh' do
     it 'appends or creates the authorized_keys file' do
       expect(chef_run).to create_template('/home/node_admin/.ssh/authorized_keys').with(
          owner: 'node_admin',
+         group: 'node_admin',
          mode: '0640',
          source: 'authorized_keys.erb',
          variables: {
@@ -60,6 +64,7 @@ describe 'basic_node::openssh' do
     it 'creates the sshd_config file' do
       expect(chef_run).to create_template('/etc/ssh/sshd_config').with(
         owner: 'root',
+        group: 'root',
         mode: '0644',
         source: 'sshd_config.erb',
         variables: {
