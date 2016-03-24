@@ -31,25 +31,6 @@ describe 'basic_node::security_updates' do
       expect { chef_run }.to_not raise_error
     end
 
-    it 'installs the unattended-upgrades package' do
-      expect(chef_run).to install_package('unattended-upgrades')
-    end
-
-    it 'manages the 50unattended-upgrades file' do
-      expect(chef_run).to create_template('/etc/apt/apt.conf.d/50unattended-upgrades').with(
-        owner: 'root',
-        mode: '0644',
-        variables: { admin_email: 'admin@example.com' }
-      )
-    end
-
-    it 'manages the 10periodic file' do
-      expect(chef_run).to create_template('/etc/apt/apt.conf.d/10periodic').with(
-       owner: 'root',
-       mode: '0644'
-      )
-    end
-
     it 'installs the apticron package' do
       expect(chef_run).to install_package('apticron')
     end

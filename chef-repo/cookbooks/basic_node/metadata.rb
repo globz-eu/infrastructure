@@ -6,7 +6,7 @@ description 'Installs/Configures basic_node'
 long_description 'Installs/Configures basic_node'
 version '0.1.16'
 
-depends 'apt', '~> 2.9.2'
+depends 'apt', '~> 3.0.0'
 depends 'test-helper'
 depends 'chef-vault', '~> 1.3.2'
 depends 'firewall', '~> 2.4.0'

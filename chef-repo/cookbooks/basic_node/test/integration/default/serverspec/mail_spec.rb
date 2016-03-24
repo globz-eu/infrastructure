@@ -27,10 +27,19 @@ expected_rules = [
     %r{ 587/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
 ]
 
-describe file('//etc/ssmtp/ssmtp.conf') do
+describe package('ssmtp') do
+  it { should be_installed }
+end
+
+describe package('mailutils') do
+  it { should be_installed }
+end
+
+describe file('/etc/ssmtp/ssmtp.conf') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
   it { should be_mode 644 }
   its(:md5sum) { should eq 'b949ecbfacb2e1e26b41faae5f2f25c3' }
   it { should contain 'FromLineOverride=YES' }

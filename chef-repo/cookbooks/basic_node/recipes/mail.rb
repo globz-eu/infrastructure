@@ -18,18 +18,34 @@
 # =====================================================================
 #
 # Cookbook Name:: basic_node
-# Recipe:: security_updates
+# Recipe:: mail
 
 include_recipe 'chef-vault'
 
-admin_email_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+smtp_auth_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_smtp')
 
-package 'apticron'
+package 'ssmtp'
 
-template '/etc/apticron/apticron.conf' do
-  source 'apticron.conf.erb'
+package 'mailutils'
+
+template '/etc/ssmtp/ssmtp.conf' do
+  source 'ssmtp.conf.erb'
   action :create
   owner 'root'
+  group 'root'
   mode '0644'
-  variables(admin_email: admin_email_vault_item['email'])
+  variables({
+                auth_user: smtp_auth_vault_item['auth_user'],
+                password: smtp_auth_vault_item['password'],
+                mail_hub: smtp_auth_vault_item['mail_hub'],
+                TLS: node['mail']['ssmtp_conf']['TLS'],
+                port: node['mail']['ssmtp_conf']['port']
+            })
+end
+
+firewall_rule 'mail' do
+  protocol :tcp
+  direction :out
+  command :allow
+  port 587
 end

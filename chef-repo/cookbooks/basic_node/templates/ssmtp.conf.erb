@@ -20,7 +20,7 @@ hostname=davical
 # NO - Use the system generated From: address
 FromLineOverride=YES
 
-AuthUser=admin@example.com
-AuthPass=password
-mailhub=smtp.mail.com:587
-UseSTARTTLS=YES
+AuthUser=<%= @auth_user %>
+AuthPass=<%= @password %>
+mailhub=<%= @mail_hub %>:<%= @port %>
+UseSTARTTLS=<%= @TLS %>

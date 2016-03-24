@@ -2,3 +2,4 @@
 source "https://rubygems.org"
 
 gem 'sshkit'
+gem 'chef-rewind'

@@ -12,3 +12,11 @@ default['firewall']['ufw']['defaults']['policy'] = {
     forward: 'DROP',
     application: 'SKIP'
 }
+
+default['apt']['unattended_upgrades']['enable'] = true
+default['apt']['unattended_upgrades']['allowed_origins'] = ['Ubuntu trusty-security']
+default['apt']['unattended_upgrades']['mail'] = 'admin@example.com'
+default['apt']['unattended_upgrades']['remove_unused_dependencies'] = true
+
+default['mail']['ssmtp_conf']['TLS'] = 'YES'
+default['mail']['ssmtp_conf']['port'] = 587

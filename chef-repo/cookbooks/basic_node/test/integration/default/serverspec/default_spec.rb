@@ -21,13 +21,28 @@ require 'spec_helper'
 
 set :backend, :exec
 
-expected_rules = [
-    %r{Default: deny \(incoming\), deny \(outgoing\), disabled \(routed\)},
-    ]
+describe package('unattended-upgrades') do
+  it { should be_installed }
+end
 
-describe command( 'ufw status verbose' ) do
-  its(:stdout) { should match(/Status: active/) }
-  expected_rules.each do |r|
-    its(:stdout) { should match(r) }
-  end
+describe package('bsd-mailx') do
+  it { should_not be_installed }
+end
+
+describe file('/etc/apt/apt.conf.d/50unattended-upgrades') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
+  its(:md5sum) { should eq 'a89c22db4df9a6331162e78f561dd8ea' }
+  it { should contain 'Unattended-Upgrade::Mail "admin@example.com";' }
+end
+
+describe file('/etc/apt/apt.conf.d/20auto-upgrades') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_mode 644 }
+  its(:md5sum) { should eq '1c261d6541420797f8b824d65ac5c197' }
 end
