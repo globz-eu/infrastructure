@@ -47,7 +47,11 @@ describe 'basic_node::openssh' do
     end
 
     it 'creates the admin user .ssh directory' do
-      expect(chef_run).to create_directory('/home/node_admin/.ssh')
+      expect(chef_run).to create_directory('/home/node_admin/.ssh').with(
+          owner: 'node_admin',
+          group: 'node_admin',
+          mode: '0750',
+      )
     end
 
     it 'appends or creates the authorized_keys file' do

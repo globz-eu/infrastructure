@@ -18,47 +18,67 @@
 # =====================================================================
 #
 # Cookbook Name:: basic_node
-# Recipe:: openssh
+# Recipe:: remote_unlock
 
 include_recipe 'chef-vault'
 
 node_admin_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
 
-package 'openssh-server'
+package 'dropbear'
 
-service 'ssh' do
-  action [:start, :enable]
-end
-
-directory "/home/#{node_admin_vault_item['user']}/.ssh" do
-  owner node_admin_vault_item['user']
-  group node_admin_vault_item['user']
-  mode '0750'
-end
-
-template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
-  source 'authorized_keys.erb'
-  action :create
-  owner node_admin_vault_item['user']
-  group node_admin_vault_item['user']
-  mode '0640'
-  variables({
-                admin_key: node_admin_vault_item['key'],
-            })
-end
-
-template '/etc/ssh/sshd_config' do
-  source 'sshd_config.erb'
-  action :create
+directory '/etc/initramfs-tools/root/.ssh' do
   owner 'root'
   group 'root'
-  mode '0644'
+  mode '0750'
+  recursive true
+end
+
+template '/etc/initramfs-tools/root/.ssh/authorized_keys' do
+  owner 'root'
+  group 'root'
+  mode '0640'
+  source 'authorized_keys.erb'
   variables({
-                permit_root_login: node['openssh']['sshd']['permit_root_login'],
-                password_authentication: node['openssh']['sshd']['password_authentication'],
-                pubkey_authentication: node['openssh']['sshd']['pubkey_authentication'],
-                rsa_authentication: node['openssh']['sshd']['rsa_authentication'],
-                allowed_users: node_admin_vault_item['user']
+      admin_key: node_admin_vault_item['key']
             })
-  notifies :restart, 'service[ssh]'
+end
+
+template '/etc/initramfs-tools/hooks/crypt_unlock.sh' do
+  owner 'root'
+  group 'root'
+  mode '0750'
+  source 'crypt_unlock.sh.erb'
+end
+
+template '/usr/share/initramfs-tools/scripts/init-bottom/dropbear' do
+  owner 'root'
+  group 'root'
+  mode '0640'
+  source 'dropbear.erb'
+  variables({
+      interface: 'eth1'
+            })
+end
+
+template '/etc/initramfs-tools/initramfs.conf' do
+  owner 'root'
+  group 'root'
+  mode '0640'
+  source 'initramfs.conf.erb'
+  variables({
+      interface: 'eth1',
+      ip: '10.10.10.10',
+      netmask: '255.255.255.0',
+      dropbear: 'DROPBEAR=y'
+            })
+end
+
+execute 'update-initramfs -u' do
+  action :nothing
+  subscribes :run, 'template[/etc/initramfs-tools/initramfs.conf]', :immediate
+end
+
+execute 'update-rc.d -f dropbear remove' do
+  action :nothing
+  subscribes :run, 'execute[update-initramfs -u]', :immediate
 end

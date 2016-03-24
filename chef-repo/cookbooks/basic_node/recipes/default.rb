@@ -20,14 +20,11 @@
 # Cookbook Name:: basic_node
 # Recipe:: default
 
-# chef_gem 'chef-rewind'
-# require 'chef/rewind'
-
 include_recipe 'chef-vault'
 
-admin_email_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
 
-node.default['apt']['unattended_upgrades']['mail'] = admin_email_vault_item['email']
+node.default['apt']['unattended_upgrades']['mail'] = node_admin_vault_item['email']
 
 include_recipe 'apt::default'
 include_recipe 'apt::unattended-upgrades'
@@ -40,3 +37,4 @@ include_recipe 'basic_node::openssh'
 include_recipe 'basic_node::security_updates'
 include_recipe 'basic_node::firewall'
 include_recipe 'basic_node::ntp'
+include_recipe 'basic_node::remote_unlock'

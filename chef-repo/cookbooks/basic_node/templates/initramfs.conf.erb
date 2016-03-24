@@ -28,7 +28,7 @@ MODULES=most
 #
 
 BUSYBOX=y
-DROPBEAR=Y
+<%= @dropbear %>
 
 #
 # COMPCACHE_SIZE: [ "x K" | "x M" | "x G" | "x %" ]
@@ -74,8 +74,8 @@ BOOT=local
 # Overridden by optional ip= bootarg
 #
 
-DEVICE=eth1
-IP=10.10.10.10:::255.255.255.0::eth1:off
+DEVICE=<%= @interface %>
+IP=<%= @ip %>:::<%= @netmask %>::<%= @interface %>:off
 
 #
 # NFSROOT: [ auto | HOST:MOUNT ]

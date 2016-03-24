@@ -38,6 +38,14 @@ describe 'basic_node::remote_unlock' do
       expect(chef_run).to install_package( 'dropbear' )
     end
 
+    it 'creates the /etc/initramfs-tools/root/.ssh directory'do
+      expect(chef_run).to create_directory('/etc/initramfs-tools/root/.ssh').with(
+          owner: 'root',
+          group: 'root',
+          mode: '0750'
+      )
+    end
+
     it 'appends or creates the initramfs authorized_keys file' do
       expect(chef_run).to create_template('/etc/initramfs-tools/root/.ssh/authorized_keys').with(
           owner: 'root',
@@ -84,17 +92,15 @@ describe 'basic_node::remote_unlock' do
     end
 
     it 'runs the "update-initramfs" command' do
-      expect(chef_run).to run_execute('update-initramfs -u').with(
-          action :nothing,
-          subscribes(:run, 'templdate[/etc/initramfs-tools/initramfs.conf]', :immediate)
-      )
+      expect(chef_run).to_not run_execute('update-initramfs -u')
+      resource = chef_run.execute('update-initramfs -u')
+      expect(resource).to subscribe_to('template[/etc/initramfs-tools/initramfs.conf]').on(:run).immediately
     end
 
     it 'runs the "update-rc.d -f dropbear remove" command' do
-      expect(chef_run).to run_execute('update-rc.d -f dropbear remove').with(
-          action :nothing,
-          subscribes(:run, 'execute[update-rc.d -f dropbear remove]', :immediate)
-      )
+      expect(chef_run).to_not run_execute('update-rc.d -f dropbear remove')
+      resource = chef_run.execute('update-rc.d -f dropbear remove')
+      expect(resource).to subscribe_to('execute[update-initramfs -u]').on(:run).immediately
     end
 
   end

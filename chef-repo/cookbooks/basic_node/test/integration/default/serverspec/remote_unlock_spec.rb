@@ -29,7 +29,7 @@ describe package('dropbear') do
   it { should be_installed }
 end
 
-describe file('/etc/initramfs-tools/.ssh') do
+describe file('/etc/initramfs-tools/root/.ssh') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
@@ -37,7 +37,7 @@ describe file('/etc/initramfs-tools/.ssh') do
   it { should be_mode 750 }
 end
 
-describe file('/etc/initramfs-tools/.ssh/authorized_keys') do
+describe file('/etc/initramfs-tools/root/.ssh/authorized_keys') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
@@ -64,7 +64,7 @@ describe file('/etc/initramfs-tools/initramfs.conf') do
   its(:content) { should match(/DROPBEAR=y/)}
   its(:content) { should match(/DEVICE=eth1/)}
   its(:content) { should match(/IP=10.10.10.10:::255.255.255.0::eth1:off/)}
-  its(:md5sum) { should eq '2526d52598ee3ee9000416db9f9f56f7' }
+  its(:md5sum) { should eq 'cf40216a4fd2389beb18918f14b27122' }
 end
 
 describe file('/usr/share/initramfs-tools/scripts/init-bottom/dropbear') do
@@ -80,8 +80,8 @@ end
 describe command ( 'ls -l /boot | grep initrd.img-3.19.0-56-generic' ) do
   day = DateTime.now.strftime("%d")
   month = Date::ABBR_MONTHNAMES[Date.today.month]
-  time_regex = "/#{month} #{day}/"
-  its(:stdout) { should match(time_regex)}
+  time_regex = "#{month} #{day}"
+  its(:stdout) { should match(/#{time_regex}/)}
 end
 
 describe command( 'update-initramfs -u' ) do
