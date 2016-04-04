@@ -7,8 +7,6 @@ group :integration do
 end
 
 cookbook 'chef-vault', '~> 1.3.2'
-cookbook 'apt', '~> 2.9.2'
-cookbook 'firewall', '~> 2.4.0'
-cookbook 'basic_node', '~> 0.1.16', path: '../basic_node'
+cookbook 'apt', '~> 3.0.0'
 cookbook 'postgresql', '~> 4.0.0'
 cookbook 'database', '~> 4.0.9'

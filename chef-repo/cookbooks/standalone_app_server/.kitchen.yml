@@ -24,7 +24,10 @@ platforms:
 suites:
   - name: default
     run_list:
+      - recipe[basic_node::default]
       - recipe[db_server::default]
+      - recipe[web_server::default]
+      - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
     excludes: centos-7.1

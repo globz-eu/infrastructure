@@ -17,12 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: db_server
-# Spec:: postgresql
+# Cookbook Name:: django_app_server
+# Spec:: git
+#
 
 require 'spec_helper'
 
-describe 'db_server::postgresql' do
+describe 'basic_node::default' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
@@ -30,28 +31,12 @@ describe 'db_server::postgresql' do
       runner.converge(described_recipe)
     end
 
-    before do
-      stub_command(/ls \/.*\/recovery.conf/).and_return(false)
-    end
-
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
     end
 
-    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
-      expect(chef_run).to install_package('postgresql-9.5')
-      expect(chef_run).to install_package('postgresql-contrib-9.5')
-      expect(chef_run).to install_package('postgresql-client-9.5')
-      expect(chef_run).to install_package('postgresql-server-dev-9.5')
+    it 'installs the git package' do
+      expect( chef_run ).to install_package('git')
     end
-
-    it 'starts the postgresql service' do
-      expect(chef_run).to start_service( 'postgresql' )
-    end
-
-    it 'enables the postgresql service' do
-      expect(chef_run).to enable_service( 'postgresql' )
-    end
-
   end
 end

@@ -19,7 +19,7 @@
 
 require 'spec_helper'
 
-describe 'basic_node::default' do
+describe 'basic_node::ntp' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do

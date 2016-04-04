@@ -1,9 +1,11 @@
 require 'spec_helper'
 
-describe 'db_server::default' do
-  # Serverspec examples can be found at
-  # http://serverspec.org/resource_types.html
-  it 'does something' do
-    skip 'Replace this with meaningful tests'
-  end
+describe file('/var/log/chef-kitchen/chef-client.log') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
+  its(:content) { should_not match(/ERROR/)}
+  its(:content) { should_not match(/FATAL/)}
 end

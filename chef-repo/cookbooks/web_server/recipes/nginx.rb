@@ -20,8 +20,6 @@
 # Cookbook Name:: web_server
 # Recipe:: nginx
 
-include_recipe 'chef-vault'
-
 package 'nginx'
 
 firewall_rule 'http' do

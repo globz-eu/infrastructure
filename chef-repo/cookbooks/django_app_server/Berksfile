@@ -6,6 +6,4 @@ group :integration do
   cookbook 'test-helper', path: '../test-helper'
 end
 
-cookbook 'firewall', '~> 2.4.0'
-cookbook 'apt', '~> 3.0.0'
-cookbook 'basic_node', '~> 0.1.18', path: '../basic_node'
+cookbook 'poise-python', '~> 1.2.1'

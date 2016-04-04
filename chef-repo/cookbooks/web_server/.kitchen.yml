@@ -4,6 +4,7 @@ driver:
 
 provisioner:
   name: chef_solo
+  log_file: "/var/log/chef-kitchen/chef-client.log"
 
 platforms:
   - name: ubuntu-14.04
@@ -23,7 +24,7 @@ platforms:
 suites:
   - name: default
     run_list:
-      - recipe[basic_node::default]
+      - recipe[basic_node::firewall]
       - recipe[web_server::default]
       - recipe[test-helper::default]
     attributes:

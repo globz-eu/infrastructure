@@ -18,17 +18,15 @@
 # =====================================================================
 
 name 'db_server'
-maintainer 'The Authors'
-maintainer_email 'you@example.com'
-license 'all_rights'
+maintainer 'Stefan Dieterle'
+maintainer_email 'golgoths@yahoo.fr'
+license 'GNU General Public License'
 description 'Installs/Configures db_server'
 long_description 'Installs/Configures db_server'
 version '0.1.4'
 
-depends 'apt', '~> 2.9.2'
 depends 'test-helper'
 depends 'chef-vault', '~> 1.3.2'
-depends 'firewall', '~> 2.4.0'
-depends 'basic_node', '~> 0.1.16'
+depends 'apt', '~> 3.0.0'
 depends 'postgresql', '~> 4.0.0'
 depends 'database', '~> 4.0.9'
