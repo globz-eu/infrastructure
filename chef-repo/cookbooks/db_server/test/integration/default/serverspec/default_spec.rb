@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+set :backend, :exec
+
 describe file('/var/log/chef-kitchen/chef-client.log') do
   it { should exist }
   it { should be_file }

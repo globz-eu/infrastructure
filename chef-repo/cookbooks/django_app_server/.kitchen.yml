@@ -12,7 +12,8 @@ platforms:
       provider: libvirt
       box: prod-like
       network:
-        - ['private_network', {ip: '192.168.121.20'}]
+        - ['private_network', {ip: '192.168.121.10'}]
+        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge'}]
       customize:
         memory: 2048
         cpus: 2

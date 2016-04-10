@@ -25,4 +25,5 @@ description 'Installs/Configures django_app_server'
 long_description 'Installs/Configures django_app_server'
 version '0.1.0'
 
-cookbook 'poise-python', '~> 1.2.1'
+depends 'test-helper'
+depends 'poise-python', '~> 1.2.1'
