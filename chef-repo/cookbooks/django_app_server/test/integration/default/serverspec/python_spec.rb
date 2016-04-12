@@ -118,19 +118,11 @@ describe file('/home/app_user/sites/app_name/static') do
   it { should be_mode 750 }
 end
 
-describe file('/home/app_user/sites/app_name/source/manage.py') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
-end
-
 describe file('/home/app_user/sites/app_name/source/configuration.py') do
   params = [
       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
       "ALLOWED_HOSTS = ['192.168.1.81']",
-      'PG_PASSWORD = "db_user_password"',
+      'PASSWORD = "db_user_password"',
       'DEBUG = False',
       "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
       "'NAME': 'app_name'",

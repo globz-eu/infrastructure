@@ -26,24 +26,9 @@ set :backend, :exec
 
 describe user( 'app_user' ) do
   it { should exist }
-end
-
-describe user( 'app_user' ) do
   it { should belong_to_group 'app_user' }
-end
-
-describe user( 'app_user' ) do
   it { should belong_to_group 'www-data' }
-end
-
-describe user( 'app_user' ) do
   it { should have_home_directory '/home/app_user' }
-end
-
-describe user( 'app_user' ) do
   it { should have_login_shell '/bin/bash' }
-end
-
-describe user( 'app_user' ) do
   its(:encrypted_password) { should match('app_user_password') }
 end
