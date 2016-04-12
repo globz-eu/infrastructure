@@ -54,8 +54,11 @@ end
 
 describe command ( 'pip3 list' ) do
   its(:stdout) { should match(/virtualenv/)}
-  its(:stdout) { should match(/Django/)}
   its(:stdout) { should match(/uWSGI/)}
+end
+
+describe command ( '/home/app_user/.envs/app_name/bin/pip3 list' ) do
+  its(:stdout) { should match(/Django/)}
 end
 
 describe file('/home/app_user/.envs') do
@@ -81,14 +84,13 @@ describe file('/home/app_user/.envs/app_name/lib/python3.4/app_name.pth') do
   it { should be_grouped_into 'app_user' }
   it { should be_mode 400 }
   its(:content) { should match(/\/home\/app_user\/sites\/app_name\/source/)}
-  its(:content) { should match(/PG_PASSWORD = "postgres_password"/)}
 end
 
 describe file('/home/app_user/sites') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
+  it { should be_grouped_into 'www-data' }
   it { should be_mode 750 }
 end
 
@@ -96,7 +98,7 @@ describe file('/home/app_user/sites/app_name') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
+  it { should be_grouped_into 'www-data' }
   it { should be_mode 750 }
 end
 
@@ -112,7 +114,7 @@ describe file('/home/app_user/sites/app_name/static') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
+  it { should be_grouped_into 'www-data' }
   it { should be_mode 750 }
 end
 
@@ -125,15 +127,25 @@ describe file('/home/app_user/sites/app_name/source/manage.py') do
 end
 
 describe file('/home/app_user/sites/app_name/source/configuration.py') do
+  params = [
+      "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
+      "ALLOWED_HOSTS = ['192.168.1.81']",
+      'PG_PASSWORD = "db_user_password"',
+      'DEBUG = False',
+      "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
+      "'NAME': 'app_name'",
+      "'USER': 'db_user'",
+      "'HOST': 'localhost'",
+      "'NAME': 'test_app_name'"
+  ]
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
   it { should be_mode 400 }
-  its(:content) { should match(/SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0^\*q#-lddwv!'/)}
-  its(:content) { should match(/PG_PASSWORD = "postgres_password"/)}
-  its(:content) { should match(/DEBUG = False/)}
-  its(:content) { should match(/ALLOWED_HOSTS = \['192\.168\.1\.90'\]/)}
+  params.each do |p|
+    its(:content) { should match(Regexp.escape(p))}
+  end
 end
 
 describe command ( "su - app_user -c 'cd && .envs/app_name/bin/python sites/app_name/source/manage.py makemigrations'" ) do
@@ -142,4 +154,25 @@ end
 
 describe command ( "su - app_user -c 'cd && .envs/app_name/bin/python sites/app_name/source/manage.py migrate'" ) do
   its(:stdout) { should match(/No migrations to apply\./)}
+end
+
+describe file('/home/app_user/sites/app_name/source/app_name_uwsgi.ini') do
+  params = [
+      'chdir = /home/app_user/sites/app_name/source',
+      'module = app_name.wsgi',
+      'home = /home/app_user/.envs/app_name',
+      'processes = 2',
+      'socket = /home/app_user/sites/app_name/sockets/app_name.sock',
+      'chmod-socket = 660',
+      'daemonize = /var/log/uwsgi/app_name.log',
+      'master-fifo = /tmp/fifo0'
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'app_user' }
+  it { should be_mode 400 }
+  params.each do |p|
+    its(:content) { should match(Regexp.escape(p))}
+  end
 end

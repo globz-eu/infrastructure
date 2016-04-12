@@ -1,6 +1,18 @@
 SECRET_KEY = '<%= secret_key %>'
-PG_PASSWORD = "<%= pg_password %>"
 DEBUG = <%= debug %>
 ALLOWED_HOSTS = [<%= host %>]
+DATABASES = {
+    'default': {
+    'ENGINE': '<%= engine %>',
+    'NAME': '<%= app_name %>',
+    'USER': '<%= db_user %>',
+    'PASSWORD': "<%= db_user_password %>",
+    'HOST': '<%= host %>',
+    'TEST': {
+    'NAME': 'test_<%= app_name %>',
+    }
+  }
+}
+
 CHROME_DRIVER = ''
 SERVER_URL = ''

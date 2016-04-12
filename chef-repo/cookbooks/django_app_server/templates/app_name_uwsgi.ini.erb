@@ -1,0 +1,22 @@
+# <%= app_name %>_uwsgi.ini file
+[uwsgi]
+
+# Django-related settings
+# the base directory (full path)
+chdir           = /home/<%= app_user %>/sites/<%= app_name %>/source
+# Django's wsgi file
+module          = <%= app_name %>.wsgi
+# the virtualenv (full path)
+home            = /home/<%= app_user %>/.envs/<%= app_name %>
+
+# process-related settings
+# master
+master          = true
+# maximum number of worker processes
+processes       = <%= processes %>
+# the socket (use the full path to be safe
+socket          = <%= socket %>
+# ... with appropriate permissions - may be needed
+<%= chmod_socket %>
+# clear environment on exit
+vacuum          = true
