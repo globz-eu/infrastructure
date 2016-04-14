@@ -18,25 +18,21 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
-# Spec:: git
-#
+# Recipe:: app_user
 
-require 'spec_helper'
+include_recipe 'chef-vault'
 
-describe 'django_app_server::git' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
-    end
+app_user_item = chef_vault_item("app_user", 'app_user')
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+user app_user_item['user'] do
+  home "/home/#{app_user_item['user']}"
+  supports :manage_home => true
+  password app_user_item['password']
+  shell '/bin/bash'
+end
 
-    it 'installs the git package' do
-      expect( chef_run ).to install_package('git')
-    end
-  end
+group 'www-data' do
+  action :manage
+  members app_user_item['user']
+  append true
 end

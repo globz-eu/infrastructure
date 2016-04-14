@@ -22,7 +22,7 @@
 
 require 'spec_helper'
 
-describe 'basic_node::app_user' do
+describe 'django_app_server::app_user' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
@@ -39,13 +39,6 @@ describe 'basic_node::app_user' do
           home: '/home/app_user',
           shell: '/bin/bash',
           password: '$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/'
-      )
-    end
-
-    it 'app_user is in group app_user' do
-      expect(chef_run).to manage_group('app_user').with(
-          append: true,
-          members: ['app_user']
       )
     end
 
