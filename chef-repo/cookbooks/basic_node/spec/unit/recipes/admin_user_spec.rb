@@ -35,7 +35,7 @@ describe 'basic_node::admin_user' do
       expect(chef_run).to create_user('node_admin').with(
                                                   home: '/home/node_admin',
                                                   shell: '/bin/bash',
-                                                  password: 'node_admin_password'
+                                                  password: '$6$oWrcKQHI2UL$rrFuhMmBnMpw102eOdNzBWibU7BnQyaT3031KiPpz8VqOqzLbIBiC.wpY8Uw4Z3n3LsgtfxpqaN5b9LuVGCfX.'
       )
     end
 

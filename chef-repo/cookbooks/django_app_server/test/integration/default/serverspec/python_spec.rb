@@ -122,7 +122,7 @@ describe file('/home/app_user/sites/app_name/source/configuration.py') do
   params = [
       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
       "ALLOWED_HOSTS = ['192.168.1.81']",
-      'PASSWORD = "db_user_password"',
+      "'PASSWORD': 'db_user_password'",
       'DEBUG = False',
       "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
       "'NAME': 'app_name'",
@@ -158,6 +158,28 @@ describe file('/home/app_user/sites/app_name/source/app_name_uwsgi.ini') do
       'chmod-socket = 660',
       'daemonize = /var/log/uwsgi/app_name.log',
       'master-fifo = /tmp/fifo0'
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'app_user' }
+  it { should be_mode 400 }
+  params.each do |p|
+    its(:content) { should match(Regexp.escape(p))}
+  end
+end
+
+describe file('/home/app_user/sites/app_name/source/app_name/settings_admin.py') do
+  params = [
+      "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
+      "ALLOWED_HOSTS = ['192.168.1.81']",
+      "'PASSWORD': 'postgres_password'",
+      'DEBUG = False',
+      "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
+      "'NAME': 'app_name'",
+      "'USER': 'postgres'",
+      "'HOST': 'localhost'",
+      "'NAME': 'test_app_name'"
   ]
   it { should exist }
   it { should be_file }

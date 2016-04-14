@@ -45,5 +45,5 @@ describe user( 'node_admin' ) do
 end
 
 describe user( 'node_admin' ) do
-  its(:encrypted_password) { should match('node_admin_password') }
+  its(:encrypted_password) { should match('$6$oWrcKQHI2UL$rrFuhMmBnMpw102eOdNzBWibU7BnQyaT3031KiPpz8VqOqzLbIBiC.wpY8Uw4Z3n3LsgtfxpqaN5b9LuVGCfX.') }
 end
