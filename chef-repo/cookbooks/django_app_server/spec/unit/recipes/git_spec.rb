@@ -58,13 +58,25 @@ describe 'django_app_server::git' do
     it 'creates the /home/app_user/sites/app_name/source directory' do
       expect(chef_run).to create_directory('/home/app_user/sites/app_name/source').with(
           owner: 'app_user',
-          group: 'www-data',
+          group: 'app_user',
           mode: '0750',
       )
     end
 
     it 'clones or syncs the django app' do
       expect( chef_run ).to sync_git('/home/app_user/sites/app_name/source').with(repository: 'https://github.com/globz-eu/django_base.git')
+    end
+
+    it 'changes ownership of the django app to app_user:app_user' do
+      expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/sites/app_name/source')
+    end
+
+    it 'changes permissions for all files in django app to 0400' do
+      expect(chef_run).to run_execute('find /home/app_user/sites/app_name/source -type f -exec chmod 0400 {} +')
+    end
+
+    it 'changes permissions for all directories in django app to 0500' do
+      expect(chef_run).to run_execute('find /home/app_user/sites/app_name/source -type d -exec chmod 0500 {} +')
     end
   end
 end

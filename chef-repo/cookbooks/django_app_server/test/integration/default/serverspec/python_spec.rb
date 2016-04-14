@@ -94,6 +94,14 @@ describe file('/home/app_user/sites/app_name/static') do
   it { should be_mode 750 }
 end
 
+describe file('/home/app_user/sites/app_name/static/media') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'www-data' }
+  it { should be_mode 750 }
+end
+
 describe file('/home/app_user/sites/app_name/source/configuration.py') do
   params = [
       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",

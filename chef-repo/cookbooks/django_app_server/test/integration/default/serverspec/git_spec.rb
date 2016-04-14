@@ -49,7 +49,7 @@ describe file('/home/app_user/sites/app_name/source') do
   it { should be_directory }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
+  it { should be_mode 500 }
 end
 
 describe file('/home/app_user/sites/app_name/source/manage.py') do
@@ -57,5 +57,5 @@ describe file('/home/app_user/sites/app_name/source/manage.py') do
   it { should be_file }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
+  it { should be_mode 400 }
 end

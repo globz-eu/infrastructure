@@ -25,6 +25,7 @@ description 'Installs/Configures django_app_server'
 long_description 'Installs/Configures django_app_server'
 version '0.1.0'
 
+depends 'apt', '~> 3.0.0'
 depends 'test-helper'
 depends 'chef-vault', '~> 1.3.2'
 depends 'poise-python', '~> 1.2.1'

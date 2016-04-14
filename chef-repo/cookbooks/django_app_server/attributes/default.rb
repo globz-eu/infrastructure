@@ -18,21 +18,6 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
-# Recipe:: app_user
 
-include_recipe 'chef-vault'
-
-app_user_item = chef_vault_item('app_user', 'app_user')
-
-user app_user_item['user'] do
-  home "/home/#{app_user_item['user']}"
-  supports :manage_home => true
-  password app_user_item['password']
-  shell '/bin/bash'
-end
-
-group 'www-data' do
-  action :manage
-  members app_user_item['user']
-  append true
-end
+default['django_app_server']['app_name'] = 'app_name'
+default['django_app_server']['git_repo'] = 'https://github.com/globz-eu/django_base.git'

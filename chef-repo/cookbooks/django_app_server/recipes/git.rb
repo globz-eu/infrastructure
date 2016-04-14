@@ -20,4 +20,36 @@
 # Cookbook Name:: django_app_server
 # Recipe:: git
 
+include_recipe 'chef-vault'
+
+app_user_item = chef_vault_item('app_user', 'app_user')
+
 package 'git'
+
+directory "/home/#{app_user_item['user']}/sites" do
+  owner app_user_item['user']
+  group 'www-data'
+  mode '0750'
+end
+
+directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}" do
+  owner app_user_item['user']
+  group 'www-data'
+  mode '0750'
+end
+
+directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
+  owner app_user_item['user']
+  group 'app_user'
+  mode '0750'
+end
+
+git "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
+  repository node['django_app_server']['git_repo']
+end
+
+execute 'chown -R app_user:app_user /home/app_user/sites/app_name/source'
+
+execute 'find /home/app_user/sites/app_name/source -type f -exec chmod 0400 {} +'
+
+execute 'find /home/app_user/sites/app_name/source -type d -exec chmod 0500 {} +'
