@@ -86,30 +86,6 @@ describe file('/home/app_user/.envs/app_name/lib/python3.4/app_name.pth') do
   its(:content) { should match(/\/home\/app_user\/sites\/app_name\/source/)}
 end
 
-describe file('/home/app_user/sites') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
-end
-
-describe file('/home/app_user/sites/app_name') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
-end
-
-describe file('/home/app_user/sites/app_name/source') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
-end
-
 describe file('/home/app_user/sites/app_name/static') do
   it { should exist }
   it { should be_directory }

@@ -38,5 +38,33 @@ describe 'django_app_server::git' do
     it 'installs the git package' do
       expect( chef_run ).to install_package('git')
     end
+
+    it 'creates the /home/app_user/sites directory' do
+      expect(chef_run).to create_directory('/home/app_user/sites').with(
+          owner: 'app_user',
+          group: 'www-data',
+          mode: '0750',
+      )
+    end
+
+    it 'creates the /home/app_user/sites/app_name directory' do
+      expect(chef_run).to create_directory('/home/app_user/sites/app_name').with(
+          owner: 'app_user',
+          group: 'www-data',
+          mode: '0750',
+      )
+    end
+
+    it 'creates the /home/app_user/sites/app_name/source directory' do
+      expect(chef_run).to create_directory('/home/app_user/sites/app_name/source').with(
+          owner: 'app_user',
+          group: 'www-data',
+          mode: '0750',
+      )
+    end
+
+    it 'clones or syncs the django app' do
+      expect( chef_run ).to sync_git('/home/app_user/sites/app_name/source').with(repository: 'https://github.com/globz-eu/django_base.git')
+    end
   end
 end
