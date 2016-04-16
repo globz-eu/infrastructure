@@ -1,22 +1,27 @@
-# <%= app_name %>_uwsgi.ini file
+# <%= @app_name %>_uwsgi.ini file
+#
+############################################
+# File managed by Chef, please do not edit #
+############################################
+#
 [uwsgi]
 
 # Django-related settings
 # the base directory (full path)
-chdir           = /home/<%= app_user %>/sites/<%= app_name %>/source
+chdir           = /home/<%= @app_user %>/sites/<%= @app_name %>/source
 # Django's wsgi file
-module          = <%= app_name %>.wsgi
+module          = <%= @app_name %>.wsgi
 # the virtualenv (full path)
-home            = /home/<%= app_user %>/.envs/<%= app_name %>
+home            = /home/<%= @app_user %>/.envs/<%= @app_name %>
 
 # process-related settings
 # master
 master          = true
 # maximum number of worker processes
-processes       = <%= processes %>
+processes       = <%= @processes %>
 # the socket (use the full path to be safe
-socket          = <%= socket %>
+socket          = <%= @socket %>
 # ... with appropriate permissions - may be needed
-<%= chmod_socket %>
+<%= @chmod_socket %>
 # clear environment on exit
 vacuum          = true

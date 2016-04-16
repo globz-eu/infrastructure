@@ -24,41 +24,22 @@ require 'spec_helper'
 
 set :backend, :exec
 
-describe package('python3') do
+describe package('python3.4') do
   it { should be_installed }
 end
 
-describe package('python3-pip') do
-  it { should be_installed }
+describe file('/usr/bin/python3.4') do
+  it { should exist }
+  it { should be_file }
+end
+
+describe command ( 'pip3 -V' ) do
+  pip3_version = 'pip 8.1.1 from /usr/local/lib/python3.4/dist-packages (python 3.4)'
+  its(:stdout) { should match(Regexp.escape(pip3_version))}
 end
 
 describe package('python3.4-dev') do
   it { should be_installed }
-end
-
-describe package('libxml2-dev') do
-  it { should be_installed }
-end
-
-describe package('libxslt1-dev') do
-  it { should be_installed }
-end
-
-describe package('zlib1g-dev') do
-  it { should be_installed }
-end
-
-describe package('python3-numpy') do
-  it { should be_installed }
-end
-
-describe command ( 'pip3 list' ) do
-  its(:stdout) { should match(/virtualenv/)}
-  its(:stdout) { should match(/uWSGI/)}
-end
-
-describe command ( '/home/app_user/.envs/app_name/bin/pip3 list' ) do
-  its(:stdout) { should match(/Django/)}
 end
 
 describe file('/home/app_user/.envs') do
@@ -66,111 +47,21 @@ describe file('/home/app_user/.envs') do
   it { should be_directory }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
+  it { should be_mode 500 }
 end
 
-describe file('/home/app_user/.envs/app_name') do
+describe file('/home/app_user/.envs/django_base') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
-  it { should be_mode 750 }
+  it { should be_mode 500 }
 end
 
-describe file('/home/app_user/.envs/app_name/lib/python3.4/app_name.pth') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  its(:content) { should match(/\/home\/app_user\/sites\/app_name\/source/)}
-end
-
-describe file('/home/app_user/sites/app_name/static') do
+describe file('/home/app_user/.envs/django_base/bin') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
-end
-
-describe file('/home/app_user/sites/app_name/static/media') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
-end
-
-describe file('/home/app_user/sites/app_name/source/configuration.py') do
-  params = [
-      "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-      "ALLOWED_HOSTS = ['192.168.1.81']",
-      "'PASSWORD': 'db_user_password'",
-      'DEBUG = False',
-      "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
-      "'NAME': 'app_name'",
-      "'USER': 'db_user'",
-      "'HOST': 'localhost'",
-      "'NAME': 'test_app_name'"
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(Regexp.escape(p))}
-  end
-end
-
-describe command ( "su - app_user -c 'cd && .envs/app_name/bin/python sites/app_name/source/manage.py makemigrations'" ) do
-  its(:stdout) { should match(/No changes detected/)}
-end
-
-describe command ( "su - app_user -c 'cd && .envs/app_name/bin/python sites/app_name/source/manage.py migrate'" ) do
-  its(:stdout) { should match(/No migrations to apply\./)}
-end
-
-describe file('/home/app_user/sites/app_name/source/app_name_uwsgi.ini') do
-  params = [
-      'chdir = /home/app_user/sites/app_name/source',
-      'module = app_name.wsgi',
-      'home = /home/app_user/.envs/app_name',
-      'processes = 2',
-      'socket = /home/app_user/sites/app_name/sockets/app_name.sock',
-      'chmod-socket = 660',
-      'daemonize = /var/log/uwsgi/app_name.log',
-      'master-fifo = /tmp/fifo0'
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(Regexp.escape(p))}
-  end
-end
-
-describe file('/home/app_user/sites/app_name/source/app_name/settings_admin.py') do
-  params = [
-      "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-      "ALLOWED_HOSTS = ['192.168.1.81']",
-      "'PASSWORD': 'postgres_password'",
-      'DEBUG = False',
-      "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
-      "'NAME': 'app_name'",
-      "'USER': 'postgres'",
-      "'HOST': 'localhost'",
-      "'NAME': 'test_app_name'"
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(Regexp.escape(p))}
-  end
+  it { should be_mode 755 }
 end

@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+#
+############################################
+# File managed by Chef, please do not edit #
+############################################
+
+import subprocess
+
+path = '<%= @dep_file_path %>'
+with open(path) as system_dependencies:
+  deps = ' '.join([line.rstrip() for line in system_dependencies])
+
+cmd = 'apt-get install -y ' + str(deps)
+subprocess.Popen(cmd, shell=True)

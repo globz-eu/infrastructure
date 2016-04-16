@@ -18,38 +18,36 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
-# Recipe:: git
+# Recipe:: python
 
+include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
 
-package 'git'
+python_runtime '3.4'
 
-directory "/home/#{app_user_item['user']}/sites" do
-  owner app_user_item['user']
-  group 'www-data'
-  mode '0550'
-end
-
-directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}" do
-  owner app_user_item['user']
-  group 'www-data'
-  mode '0550'
-end
-
-directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
+directory "/home/#{app_user_item['user']}/.envs" do
   owner app_user_item['user']
   group app_user_item['user']
   mode '0500'
 end
 
-git "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
-  repository node['django_app_server']['git_repo']
+directory "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app_name']}" do
+  owner app_user_item['user']
+  group app_user_item['user']
+  mode '0500'
 end
 
-execute "chown -R #{app_user_item['user']}:#{app_user_item['user']} /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source"
+python_virtualenv "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app_name']}" do
+  python '3.4'
+end
 
-execute "find /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source -type f -exec chmod 0400 {} +"
+package 'python3-numpy'
 
-execute "find /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source -type d -exec chmod 0500 {} +"
+python_package 'numpy' do
+  version '1.11.0'
+  virtualenv "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app_name']}"
+end
+
+execute "chown -R #{app_user_item['user']}:#{app_user_item['user']} /home/app_user/.envs/#{node['django_app_server']['app_name']}"

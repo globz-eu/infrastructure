@@ -33,18 +33,18 @@ describe file('/home/app_user/sites') do
   it { should be_directory }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
+  it { should be_mode 550 }
 end
 
-describe file('/home/app_user/sites/app_name') do
+describe file('/home/app_user/sites/django_base') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
   it { should be_grouped_into 'www-data' }
-  it { should be_mode 750 }
+  it { should be_mode 550 }
 end
 
-describe file('/home/app_user/sites/app_name/source') do
+describe file('/home/app_user/sites/django_base/source') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'app_user' }
@@ -52,7 +52,7 @@ describe file('/home/app_user/sites/app_name/source') do
   it { should be_mode 500 }
 end
 
-describe file('/home/app_user/sites/app_name/source/manage.py') do
+describe file('/home/app_user/sites/django_base/source/manage.py') do
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'app_user' }

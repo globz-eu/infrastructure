@@ -28,4 +28,6 @@ suites:
       - recipe[django_app_server::default]
       - recipe[test-helper::default]
     attributes:
+      django_app_server:
+        allowed_host: "192.168.1.81"
     excludes: centos-7.1

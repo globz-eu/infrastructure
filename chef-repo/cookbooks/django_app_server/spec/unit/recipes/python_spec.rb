@@ -18,12 +18,29 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
+# Spec:: python
 
-default['poise-python']['install_python2'] = false
+require 'spec_helper'
 
-default['django_app_server']['app_name'] = 'django_base'
-default['django_app_server']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
-default['django_app_server']['debug'] = 'False'
-default['django_app_server']['allowed_host'] = 'localhost'
-default['django_app_server']['engine'] = 'django.db.backends.postgresql_psycopg2'
-default['django_app_server']['db_host'] = 'localhost'
+describe 'django_app_server::python' do
+  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
+    include ChefVault::TestFixtures.rspec_shared_context(true)
+    let(:chef_run) do
+      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner.converge(described_recipe)
+    end
+
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
+
+    it 'changes ownership of the venv to app_user:app_user' do
+      expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/.envs/django_base')
+    end
+
+    it 'installs python3-numpy' do
+      expect(chef_run).to install_package('python3-numpy')
+    end
+
+  end
+end

@@ -18,12 +18,33 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
+# Server Spec:: python
 
-default['poise-python']['install_python2'] = false
+require 'spec_helper'
 
-default['django_app_server']['app_name'] = 'django_base'
-default['django_app_server']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
-default['django_app_server']['debug'] = 'False'
-default['django_app_server']['allowed_host'] = 'localhost'
-default['django_app_server']['engine'] = 'django.db.backends.postgresql_psycopg2'
-default['django_app_server']['db_host'] = 'localhost'
+set :backend, :exec
+
+describe command ( 'pip3 list' ) do
+  its(:stdout) { should match(/uWSGI/)}
+end
+
+describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
+  params = [
+      'chdir = /home/app_user/sites/django_base/source',
+      'module = django_base.wsgi',
+      'home = /home/app_user/.envs/django_base',
+      'processes = 2',
+      'socket = /home/app_user/sites/django_base/sockets/django_base.sock',
+      'chmod-socket = 660',
+      'daemonize = /var/log/uwsgi/django_base.log',
+      'master-fifo = /tmp/fifo0'
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'app_user' }
+  it { should be_mode 400 }
+  params.each do |p|
+    its(:content) { should match(Regexp.escape(p))}
+  end
+end
