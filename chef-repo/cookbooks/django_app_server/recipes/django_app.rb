@@ -117,6 +117,6 @@ end
 # install python packages for app
 bash 'install_requirements' do
   cwd "/home/#{app_user_vault['user']}/sites/#{node['django_app_server']['app_name']}/source"
-  code './install_dependencies.py'
+  code "/home/#{app_user_vault['user']}/.envs/#{node['django_app_server']['app_name']}/bin/pip3 install -r ./requirements.txt"
   user 'root'
 end

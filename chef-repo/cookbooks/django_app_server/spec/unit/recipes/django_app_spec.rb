@@ -123,7 +123,7 @@ describe 'django_app_server::django_app' do
       expect(chef_run).to run_bash('install_requirements').with({
           cwd: '/home/app_user/sites/django_base/source',
           code: '/home/app_user/.envs/django_base/bin/pip3 install -r ./requirements.txt',
-          user: 'app_user'
+          user: 'root'
           })
     end
 

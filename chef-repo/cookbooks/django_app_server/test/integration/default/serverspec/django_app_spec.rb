@@ -66,7 +66,12 @@ describe package('python3-numpy') do
 end
 
 describe command ( '/home/app_user/.envs/django_base/bin/pip3 list' ) do
-  packages = %w(Django==1.9 numpy==1.11.0 biopython==1.66 lxml==3.5.0 psycopg2==2.6.1)
+  packages = [
+      'Django (1.9)',
+      'numpy (1.11.0)',
+      'biopython (1.66)',
+      'lxml (3.5.0)',
+  ]
   packages.each do |p|
     its(:stdout) { should match(Regexp.escape(p))}
   end

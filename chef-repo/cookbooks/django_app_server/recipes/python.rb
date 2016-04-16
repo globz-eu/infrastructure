@@ -19,14 +19,21 @@
 #
 # Cookbook Name:: django_app_server
 # Recipe:: python
+#
+# Installs python3.4 runtime, creates venv file structure, creates
+# venv, installs apt package python3-numpy and python package numpy
+# (need to be installed before biopython), changes ownership of venv to
+# app_user
 
 include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
 
+# install python3.4 runtime
 python_runtime '3.4'
 
+# create venv file structure
 directory "/home/#{app_user_item['user']}/.envs" do
   owner app_user_item['user']
   group app_user_item['user']
@@ -39,10 +46,12 @@ directory "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app
   mode '0500'
 end
 
+# create python3.4 venv
 python_virtualenv "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app_name']}" do
   python '3.4'
 end
 
+# install numpy
 package 'python3-numpy'
 
 python_package 'numpy' do
@@ -50,4 +59,5 @@ python_package 'numpy' do
   virtualenv "/home/#{app_user_item['user']}/.envs/#{node['django_app_server']['app_name']}"
 end
 
+# change ownership of venv back to app_user
 execute "chown -R #{app_user_item['user']}:#{app_user_item['user']} /home/app_user/.envs/#{node['django_app_server']['app_name']}"
