@@ -89,6 +89,7 @@ describe 'django_app_server::django_app' do
               allowed_host: 'localhost',
               engine: 'django.db.backends.postgresql_psycopg2',
               app_name: 'django_base',
+              installed_apps: 'django_base',
               db_admin_user: 'postgres',
               db_admin_password: 'postgres_password',
               db_host: 'localhost'
