@@ -10,5 +10,7 @@ path = '<%= @dep_file_path %>'
 with open(path) as system_dependencies:
   deps = ' '.join([line.rstrip() for line in system_dependencies])
 
-cmd = 'apt-get install -y ' + str(deps)
+# Need to redirect output from cmd for Chef to execute correctly for some reason
+cmd = 'apt-get install -y ' + deps + ' > /dev/null'
+
 subprocess.Popen(cmd, shell=True)

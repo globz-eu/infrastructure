@@ -118,5 +118,13 @@ describe 'django_app_server::django_app' do
           })
     end
 
+    it 'installs python packages from requirements.txt' do
+      expect(chef_run).to run_bash('install_requirements').with({
+          cwd: '/home/app_user/sites/django_base/source',
+          code: '/home/app_user/.envs/django_base/bin/pip3 install -r ./requirements.txt',
+          user: 'app_user'
+          })
+    end
+
   end
 end
