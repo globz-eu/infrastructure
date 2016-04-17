@@ -88,7 +88,7 @@ template "/home/#{app_user_vault['user']}/sites/#{node['django_app_server']['app
                 engine: node['django_app_server']['engine'],
                 app_name: node['django_app_server']['app_name'],
                 # TODO: manage installed apps for settings_admin.py
-                installed_apps: 'django_base',
+                installed_apps: "'django_base'",
                 db_admin_user: django_app_vault['db_admin_user'],
                 db_admin_password: django_app_vault['db_admin_password'],
                 db_host: node['django_app_server']['db_host']
