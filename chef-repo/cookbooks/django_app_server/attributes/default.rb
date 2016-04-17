@@ -21,9 +21,11 @@
 
 default['poise-python']['install_python2'] = false
 
-default['django_app_server']['app_name'] = 'django_base'
-default['django_app_server']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
-default['django_app_server']['debug'] = 'False'
-default['django_app_server']['allowed_host'] = 'localhost'
-default['django_app_server']['engine'] = 'django.db.backends.postgresql_psycopg2'
-default['django_app_server']['db_host'] = 'localhost'
+default['django_app_server']['git']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
+default['django_app_server']['django_app']['app_name'] = 'django_base'
+default['django_app_server']['django_app']['debug'] = 'False'
+default['django_app_server']['django_app']['allowed_host'] = 'localhost'
+default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'
+default['django_app_server']['django_app']['db_host'] = 'localhost'
+default['django_app_server']['uwsgi']['processes'] = '2'
+default['django_app_server']['uwsgi']['socket'] = 'unix'

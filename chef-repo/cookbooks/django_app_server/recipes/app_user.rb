@@ -23,9 +23,10 @@
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
+app_user = app_user_item['user']
 
-user app_user_item['user'] do
-  home "/home/#{app_user_item['user']}"
+user app_user do
+  home "/home/#{app_user}"
   supports :manage_home => true
   password app_user_item['password']
   shell '/bin/bash'
@@ -33,6 +34,6 @@ end
 
 group 'www-data' do
   action :manage
-  members app_user_item['user']
+  members app_user
   append true
 end

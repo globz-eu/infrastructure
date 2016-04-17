@@ -23,33 +23,35 @@
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
+app_user = app_user_item['user']
+app_name = node['django_app_server']['django_app']['app_name']
 
 package 'git'
 
-directory "/home/#{app_user_item['user']}/sites" do
-  owner app_user_item['user']
+directory "/home/#{app_user}/sites" do
+  owner app_user
   group 'www-data'
   mode '0550'
 end
 
-directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}" do
-  owner app_user_item['user']
+directory "/home/#{app_user}/sites/#{app_name}" do
+  owner app_user
   group 'www-data'
   mode '0550'
 end
 
-directory "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
-  owner app_user_item['user']
-  group app_user_item['user']
+directory "/home/#{app_user}/sites/#{app_name}/source" do
+  owner app_user
+  group app_user
   mode '0500'
 end
 
-git "/home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source" do
-  repository node['django_app_server']['git_repo']
+git "/home/#{app_user}/sites/#{app_name}/source" do
+  repository node['django_app_server']['git']['git_repo']
 end
 
-execute "chown -R #{app_user_item['user']}:#{app_user_item['user']} /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source"
+execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
 
-execute "find /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source -type f -exec chmod 0400 {} +"
+execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
 
-execute "find /home/#{app_user_item['user']}/sites/#{node['django_app_server']['app_name']}/source -type d -exec chmod 0500 {} +"
+execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"

@@ -18,12 +18,7 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
-# Recipe:: python
-#
-# Installs python3.4 runtime, creates venv file structure, creates
-# venv, installs apt package python3-numpy and python package numpy
-# (need to be installed before biopython), changes ownership of venv to
-# app_user
+# Recipe:: uwsgi
 
 include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
@@ -32,34 +27,40 @@ app_user_item = chef_vault_item('app_user', 'app_user')
 app_user = app_user_item['user']
 app_name = node['django_app_server']['django_app']['app_name']
 
-# install python3.4 runtime
-python_runtime '3.4'
+if node['django_app_server']['uwsgi']['socket'] == 'unix'
+  socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
+  chmod_socket = 'chmod-socket = 660'
+else if node['django_app_server']['uwsgi']['socket'] == 'tcp'
+  socket = ':8001'
+  chmod_socket = '# chmod-socket = 660'
+     else
+       socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
+       chmod_socket = '# chmod-socket = 660'
+     end
+end
 
-# create venv file structure
-directory "/home/#{app_user}/.envs" do
+python_package 'uwsgi' do
+  python '/usr/bin/python3.4'
+end
+
+directory '/var/log/uwsgi' do
+  owner 'root'
+  group 'root'
+  mode '0755'
+end
+
+template '/home/app_user/sites/django_base/source/django_base_uwsgi.ini' do
   owner app_user
   group app_user
-  mode '0500'
+  mode '0400'
+  source 'app_name_uwsgi.ini.erb'
+  variables({
+      app_name: node['django_app_server']['django_app']['app_name'],
+      app_user: app_user,
+      processes: node['django_app_server']['uwsgi']['processes'],
+      socket: socket,
+      chmod_socket: chmod_socket,
+      log_file: "/var/log/uwsgi/#{app_name}.log",
+      pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
+            })
 end
-
-directory "/home/#{app_user}/.envs/#{app_name}" do
-  owner app_user
-  group app_user
-  mode '0500'
-end
-
-# create python3.4 venv
-python_virtualenv "/home/#{app_user}/.envs/#{app_name}" do
-  python '3.4'
-end
-
-# install numpy
-package 'python3-numpy'
-
-python_package 'numpy' do
-  version '1.11.0'
-  virtualenv "/home/#{app_user}/.envs/#{app_name}"
-end
-
-# change ownership of venv back to app_user
-execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
