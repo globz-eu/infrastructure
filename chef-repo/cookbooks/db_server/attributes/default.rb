@@ -24,3 +24,5 @@ default['postgresql']['client']['packages'] = ['postgresql-server-dev-9.5', 'pos
 default['postgresql']['server']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-9.5']
 default['postgresql']['server']['service_name'] = 'postgresql'
 default['postgresql']['contrib']['packages'] = ['postgresql-contrib-9.5']
+
+default['db_server']

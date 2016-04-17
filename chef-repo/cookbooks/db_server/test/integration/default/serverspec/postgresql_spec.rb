@@ -26,6 +26,11 @@ expected_apt_key_list = [
     %r{uid\s+PostgreSQL Debian Repository}
 ]
 
+pg_hba = [
+    %r{local\s+all\s+postgres\s+md5},
+    %r{local\s+all\s+all\s+md5}
+]
+
 describe file('/etc/apt/sources.list.d/apt.postgresql.org.list') do
   it { should exist }
   it { should be_file }
@@ -67,10 +72,36 @@ describe file('/etc/postgresql/9.5/main/pg_hba.conf') do
   it { should be_file }
   it { should be_owned_by 'postgres' }
   it { should be_mode 600 }
-  its(:content) { should match %r{local\s+all\s+postgres\s+ident} }
+  pg_hba.each do |p|
+    its(:content) { should match(p) }
+  end
   its(:md5sum) { should eq '9996ac972ded78f610ebb788b0750059' }
 end
 
-describe command( 'sudo -u postgres -p vagrant psql -l' ) do
-    its(:stdout) { should match(/ app_name  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | /) }
+# test that postgres user was created and can login
+describe command( "export PGPASSWORD='postgres_password'; psql -U postgres -l" ) do
+  its(:stdout) { should match(%r(\s*Name\s+|\s+Owner\s+|\s+Encoding\s+|\s+Collate)) }
+end
+
+# test that the user db_user was created
+describe command("export PGPASSWORD='postgres_password'; psql -U postgres -c '\\du'") do
+  its(:stdout) { should match(%r(\s*db_user\s+|\s+|\s+\{\})) }
+end
+
+# test that app database was created
+describe command( "export PGPASSWORD='postgres_password'; psql -U postgres -l" ) do
+  its(:stdout) { should match(
+      %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
+                              ) }
+end
+
+# test that db_user has the right privileges on app_database
+describe command("export PGPASSWORD='postgres_password'; psql -U postgres -d django_base -c '\\ddp'") do
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+tab;e\s+|\s+db_user=arwd/postgres)) }
+end
+
+# test that db_user can login to app database
+describe command( "export PGPASSWORD='db_user_password'; psql -U db_user -h localhost -d django_base -c '\\ddp'" ) do
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
 end
