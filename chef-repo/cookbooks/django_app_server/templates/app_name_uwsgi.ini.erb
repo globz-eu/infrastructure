@@ -25,3 +25,7 @@ socket          = <%= @socket %>
 <%= @chmod_socket %>
 # clear environment on exit
 vacuum          = true
+# background the process & log
+daemonize = <%= @log_file %>
+# create a pidfile
+safe-pidfile = <%= @pid_file %>

@@ -28,6 +28,14 @@ describe command ( 'pip3 list' ) do
   its(:stdout) { should match(/uWSGI/)}
 end
 
+describe file('/var/log/uwsgi') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 755 }
+end
+
 describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
   params = [
       'chdir = /home/app_user/sites/django_base/source',
