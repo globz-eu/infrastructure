@@ -84,15 +84,9 @@ describe 'django_app_server::django_app' do
           mode: '0400',
           source: 'settings_admin.py.erb',
           variables: {
-              secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-              debug: 'False',
-              allowed_host: 'localhost',
-              engine: 'django.db.backends.postgresql_psycopg2',
               app_name: 'django_base',
-              installed_apps: "'django_base'",
               db_admin_user: 'postgres',
               db_admin_password: 'postgres_password',
-              db_host: 'localhost'
           })
         expect(chef_run).to render_file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth')
     end
@@ -126,6 +120,5 @@ describe 'django_app_server::django_app' do
           user: 'root'
           })
     end
-
   end
 end

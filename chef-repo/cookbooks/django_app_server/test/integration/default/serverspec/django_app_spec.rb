@@ -101,15 +101,9 @@ end
 
 describe file('/home/app_user/sites/django_base/source/django_base/settings_admin.py') do
   params = [
-      "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-      "ALLOWED_HOSTS = ['192.168.1.81']",
-      '"PASSWORD": "postgres_password"',
-      'DEBUG = False',
-      "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
-      "'NAME': 'django_base'",
+      'from django_base.settings import *',
       "'USER': 'postgres'",
-      "'HOST': 'localhost'",
-      "'NAME': 'test_django_base'",
+      '"PASSWORD": "postgres_password"',
   ]
   it { should exist }
   it { should be_file }
@@ -119,7 +113,6 @@ describe file('/home/app_user/sites/django_base/source/django_base/settings_admi
   params.each do |p|
     its(:content) { should match(Regexp.escape(p))}
   end
-  its(:content) { should match(/\n'django\.contrib\.staticfiles',\n'django_base',\n'debug_toolbar',\n/)}
 end
 
 describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/manage.py makemigrations'" ) do
