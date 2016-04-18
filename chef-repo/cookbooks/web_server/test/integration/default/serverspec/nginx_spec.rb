@@ -47,3 +47,38 @@ describe service('nginx') do
   it { should be_enabled }
   it { should be_running }
 end
+
+describe file('/etc/nginx/sites-available/django_base.conf') do
+  params = [
+      /^# django_base.conf$/,
+      %r(^\s+server unix:///home/app_user/sites/app_name/sockets/app_name\.sock; # for a file socket$),
+      /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+      /^\s+listen\s+80;$/,
+      /^\s+server_name\s+192\.168\.1\.81;$/,
+      %r(^\s+alias /home/app_user/sites/django_base/media;),
+      %r(^\s+alias /home/app_user/sites/django_base/static;),
+      %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 400 }
+  params.each do |p|
+    its(:content) { should match(p) }
+  end
+end
+
+describe file('/etc/nginx/sites-enabled/django_base.conf') do
+  it { should exist }
+  it { should be_symlink }
+  it { should be_owned_by 'root'}
+  it { should be_grouped_into 'root' }
+  it { should be_mode 400 }
+  its(:content) { should match (/^# django_base.conf$/) }
+end
+
+describe file('/etc/nginx/sites-enabled/default') do
+  it { should_not exist }
+end
+
