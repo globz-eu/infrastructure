@@ -24,5 +24,39 @@ default['postgresql']['client']['packages'] = ['postgresql-server-dev-9.5', 'pos
 default['postgresql']['server']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-9.5']
 default['postgresql']['server']['service_name'] = 'postgresql'
 default['postgresql']['contrib']['packages'] = ['postgresql-contrib-9.5']
+default['postgresql']['pg_hba'] = [
+      {
+          :comment => '# Database administrative login by Unix domain socket',
+          :type => 'local',
+          :db => 'all',
+          :user => 'postgres',
+          :addr => nil,
+          :method => 'ident'
+      },
+      {
+          :comment => '# "local" is for Unix domain socket connections only',
+          :type => 'local',
+          :db => 'all',
+          :user => 'all',
+          :addr => nil,
+          :method => 'md5'
+      },
+      {
+          :comment => '# IPv4 local connections:',
+          :type => 'host',
+          :db => 'all',
+          :user => 'all',
+          :addr => '127.0.0.1/32',
+          :method => 'md5'
+      },
+      {
+          :comment => '# IPv6 local connections:',
+          :type => 'host',
+          :db => 'all',
+          :user => 'all',
+          :addr => '::1/128',
+          :method => 'md5'
+      }
+]
 
-default['db_server']
+default['db_server']['postgresql']['db_name'] = ''

@@ -26,8 +26,9 @@ describe 'db_server::postgresql' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
+      ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04') do |node|  # , step_into: ['postgresql_database']
+        node.set['db_server']['postgresql']['db_name'] = 'django_base'
+      end.converge(described_recipe)
     end
 
     before do
@@ -51,6 +52,29 @@ describe 'db_server::postgresql' do
 
     it 'enables the postgresql service' do
       expect(chef_run).to enable_service( 'postgresql' )
+    end
+
+    it 'renders the pg_hba file' do
+      pg_auth = [
+          /local\s+all\s+postgres\s+ident/,
+          /local\s+all\s+all\s+md5/,
+          %r(host\s+all\s+all\s+127\.0\.0\.1/32\s+md5),
+          %r(host\s+all\s+all\s+::1/128\s+md5)
+      ]
+      pg_auth.each do |p|
+        expect(chef_run).to render_file('/etc/postgresql/9.5/main/pg_hba.conf').with_content(p)
+      end
+    end
+
+    it 'runs default privilege grant code' do
+      expect(chef_run).to_not run_bash('grant_default_db').with({
+        code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
+        user: 'root'
+                                                                                })
+      expect(chef_run).to_not run_bash('grant_default_seq').with({
+        code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
+        user: 'root'
+                                                                                })
     end
 
   end
