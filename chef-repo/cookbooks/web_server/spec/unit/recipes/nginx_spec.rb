@@ -53,7 +53,7 @@ describe 'web_server::nginx' do
     it 'creates or updates django_base.conf file' do
       params = [
           /^# django_base.conf$/,
-          %r(^\s+server unix:///home/app_user/sites/app_name/sockets/app_name\.sock; # for a file socket$),
+          %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
           /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
           /^\s+listen\s+80;$/,
           /^\s+server_name\s+192\.168\.1\.81;$/,
@@ -80,13 +80,17 @@ describe 'web_server::nginx' do
       end
     end
 
-    it 'creates a symlink from sites-available/django_base.conf to sites-enabled' do
-      expect(chef_run).to create_link('/etc/nginx/sites-available/django_base.conf').with({
+    it 'creates a symlink from sites-enabled/django_base.conf to sites-available' do
+      expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base.conf').with({
           owner: 'root',
           group: 'root',
-          mode: '0400',
-          to: '/etc/nginx/sites-enabled/django_base.conf'
+          to: '/etc/nginx/sites-available/django_base.conf'
       })
+    end
+
+    it 'notifies nginx to restart on creation of the symlink to sites-enabled/django_base.conf' do
+      symlink = chef_run.link('/etc/nginx/sites-enabled/django_base.conf')
+      expect(symlink).to notify('service[nginx]').immediately
     end
 
     it 'removes default site file' do

@@ -20,6 +20,13 @@
 # Cookbook Name:: web_server
 # Recipe:: nginx
 
+include_recipe 'chef-vault'
+
+app_user_vault = chef_vault_item('app_user', 'app_user')
+app_user = app_user_vault['user']
+app_name = node['web_server']['nginx']['app_name']
+server_name = node['web_server']['nginx']['server_name']
+
 package 'nginx'
 
 firewall_rule 'http' do
@@ -31,4 +38,30 @@ end
 
 service 'nginx' do
   action [:enable, :start]
+end
+
+template "/etc/nginx/sites-available/#{app_name}.conf" do
+  owner 'root'
+  group 'root'
+  mode '0400'
+  source 'app_name.conf.erb'
+  variables({
+      app_name: app_name,
+      server_unix_socket: "server unix:///home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock;",
+      server_tcp_socket: '# server 127.0.0.1:8001;',
+      listen_port: '80',
+      server_name: server_name,
+      app_user: app_user
+            })
+end
+
+link "/etc/nginx/sites-enabled/#{app_name}.conf" do
+  owner 'root'
+  group 'root'
+  to "/etc/nginx/sites-available/#{app_name}.conf"
+  notifies :restart, 'service[nginx]', :immediately
+end
+
+file '/etc/nginx/sites-enabled/default' do
+  action :delete
 end

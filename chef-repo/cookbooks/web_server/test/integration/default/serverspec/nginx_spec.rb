@@ -51,7 +51,7 @@ end
 describe file('/etc/nginx/sites-available/django_base.conf') do
   params = [
       /^# django_base.conf$/,
-      %r(^\s+server unix:///home/app_user/sites/app_name/sockets/app_name\.sock; # for a file socket$),
+      %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
       /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
       /^\s+listen\s+80;$/,
       /^\s+server_name\s+192\.168\.1\.81;$/,
@@ -74,7 +74,6 @@ describe file('/etc/nginx/sites-enabled/django_base.conf') do
   it { should be_symlink }
   it { should be_owned_by 'root'}
   it { should be_grouped_into 'root' }
-  it { should be_mode 400 }
   its(:content) { should match (/^# django_base.conf$/) }
 end
 
