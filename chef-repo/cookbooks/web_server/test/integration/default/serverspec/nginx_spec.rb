@@ -81,4 +81,3 @@ end
 describe file('/etc/nginx/sites-enabled/default') do
   it { should_not exist }
 end
-

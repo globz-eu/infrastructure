@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: web_server
+# Spec:: nginx
 
 require 'spec_helper'
 
@@ -44,7 +47,50 @@ describe 'web_server::nginx' do
     end
 
     it 'creates firewall rules' do
-      expect( chef_run ).to create_firewall_rule('http')
+      expect(chef_run).to create_firewall_rule('http')
+    end
+
+    it 'creates or updates django_base.conf file' do
+      params = [
+          /^# django_base.conf$/,
+          %r(^\s+server unix:///home/app_user/sites/app_name/sockets/app_name\.sock; # for a file socket$),
+          /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+          /^\s+listen\s+80;$/,
+          /^\s+server_name\s+192\.168\.1\.81;$/,
+          %r(^\s+alias /home/app_user/sites/django_base/media;),
+          %r(^\s+alias /home/app_user/sites/django_base/static;),
+          %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+      ]
+      expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
+          owner: 'root',
+          group: 'root',
+          mode: '0400',
+          source: 'app_name.conf.erb',
+          variables: {
+              app_name: 'django_base',
+              server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
+              server_tcp_socket: '# server 127.0.0.1:8001;',
+              listen_port: '80',
+              server_name: '192.168.1.81',
+              app_user: 'app_user',
+          }
+      })
+      params.each do |p|
+        expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
+      end
+    end
+
+    it 'creates a symlink from sites-available/django_base.conf to sites-enabled' do
+      expect(chef_run).to create_link('/etc/nginx/sites-available/django_base.conf').with({
+          owner: 'root',
+          group: 'root',
+          mode: '0400',
+          to: '/etc/nginx/sites-enabled/django_base.conf'
+      })
+    end
+
+    it 'removes default site file' do
+      expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
     end
   end
 end
