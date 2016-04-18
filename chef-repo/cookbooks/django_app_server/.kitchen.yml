@@ -4,6 +4,7 @@ driver:
 
 provisioner:
   name: chef_solo
+  require_chef_omnibus: 12.9.38
   log_file: "/var/log/chef-kitchen/chef-client.log"
 
 platforms:
