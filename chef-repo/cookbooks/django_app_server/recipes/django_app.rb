@@ -24,7 +24,6 @@
 # requirements, static and media content
 
 include_recipe 'chef-vault'
-include_recipe 'poise-python::default'
 
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']

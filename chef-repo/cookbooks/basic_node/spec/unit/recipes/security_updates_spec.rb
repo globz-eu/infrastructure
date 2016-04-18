@@ -23,7 +23,7 @@ describe 'basic_node::security_updates' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
       runner.converge(described_recipe)
     end
 
@@ -42,6 +42,7 @@ describe 'basic_node::security_updates' do
         mode: '0644',
         variables: { admin_email: 'admin@example.com' }
       )
+      expect(chef_run).to render_file('/etc/apticron/apticron.conf').with_content(/^EMAIL="admin@example\.com"/)
     end
   end
 end

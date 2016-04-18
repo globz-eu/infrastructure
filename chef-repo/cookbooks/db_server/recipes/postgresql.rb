@@ -53,20 +53,20 @@ if db_name
     connection postgresql_connection_info
     password db_user_vault['password']
     action :create
-    notifies :run, 'bash[grant_default_db]', :immediately
-    notifies :run, 'bash[grant_default_seq]', :immediately
   end
 
   bash 'grant_default_db' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO #{db_user};'"
     user 'root'
     action :nothing
+    subscribes :run, "postgresql_database_user[#{db_user}]", :immediately
   end
 
   bash 'grant_default_seq' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO #{db_user};'"
     user 'root'
     action :nothing
+    subscribes :run, "postgresql_database_user[#{db_user}]", :immediately
   end
 
 end

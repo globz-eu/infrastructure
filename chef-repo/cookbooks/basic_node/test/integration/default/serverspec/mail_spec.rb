@@ -36,17 +36,22 @@ describe package('mailutils') do
 end
 
 describe file('/etc/ssmtp/ssmtp.conf') do
+  ssmtp_conf = [
+      /^FromLineOverride=YES/,
+      /^AuthUser=admin@example\.com/,
+      /^AuthPass=password/,
+      /^mailhub=smtp\.mail\.com:587/,
+      /^UseSTARTTLS=YES/
+  ]
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   it { should be_mode 644 }
-  its(:md5sum) { should eq 'b949ecbfacb2e1e26b41faae5f2f25c3' }
-  it { should contain 'FromLineOverride=YES' }
-  it { should contain 'AuthUser=admin@example.com' }
-  it { should contain 'AuthPass=password' }
-  it { should contain 'mailhub=smtp.mail.com:587' }
-  it { should contain 'UseSTARTTLS=YES' }
+  its(:md5sum) { should eq 'e023388b69a2079eeff4e27ce6f94cb3' }
+  ssmtp_conf.each do |s|
+    its(:content) { should match(s) }
+  end
 end
 
 describe command( 'ufw status numbered' ) do

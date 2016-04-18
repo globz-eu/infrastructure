@@ -43,7 +43,8 @@ describe file('/etc/initramfs-tools/root/.ssh/authorized_keys') do
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   it { should be_mode 640 }
-  its(:md5sum) { should eq '99f40d69488f7264e8cf7cf8126fbb37' }
+  its(:content) { should match(%r(ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDV6LFiLYnDGQu/DFgMcuAD1BAqQp9cjKM5872hHS4d3tIeT5kcW7jUhEkJqo5OFtmPChdI4IchlzkuOzUHvNAuwgUkbhp0HSXDUiXCUDJLTkBsCg7iYIBEmqQF/xPHYvYoMmJxx4nS6SuXh9iYAHanGmEnVQtAChzbkEsARGhOG9CpUnqz7v\+35qymNeEaj2Imw7ItQTh3WFZRzD\+vaAh5\+tmgE2JvjiGWt5NQa/5E91VOOj9hfzMzArGoCVDfTmdReyMYHKpVH3vb4uRfXU9/aewPj8ue1VJ25FbA3Z1vb9bjWAF4qwvJpXhWWY3rZeBD2cL4i5uLfDa2uBjb3JmdBR71oD/OiomJWfdC9zKjQTh8FGt32GQxFi35jUthBV2gIiyxAuFkBjyTnXoTXMUtjUoTl6KIwBuOoEvEA337IwyPT7yb4mFbK5giV4KwlXmX8Ju/sL9NYq8Dku95ZtLlz4wyaY2SF8RDPh8GsB/EVE/UYvlOSOZvYYKZkRCHWMGTVHUUmOWlq7UUPD8Pl3hUFaVAHzeRTumeXC3jhntVW1wRpIYDSXvdVzurfxpMrmvA\+HQUxxHm17Kj5aq47Zoh2vZWsIUyPpsHv/mmvumZSoeCw\+0b302XvSVYTy7j73amvewB4UJFI14ocnSH0jAE\+axn7PYJr1WB6QB14FE2Bw== admin@adminPC)) }
+  its(:md5sum) { should eq '77322ef05ceebe1647ba639bf15924cf' }
 end
 
 describe file('/etc/initramfs-tools/hooks/crypt_unlock.sh') do
@@ -52,19 +53,24 @@ describe file('/etc/initramfs-tools/hooks/crypt_unlock.sh') do
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   it { should be_mode 750 }
-  its(:md5sum) { should eq '45293c973630d2cde69dbfe296d0dad0' }
+  its(:md5sum) { should eq 'e10a28b4ec42720debc878897b8d07a8' }
 end
 
 describe file('/etc/initramfs-tools/initramfs.conf') do
+  initramfs_conf = [
+      /^DROPBEAR=y/,
+      /^DEVICE=eth1/,
+      /^IP=10\.10\.10\.10:::255\.255\.255\.0::eth1:off/
+  ]
   it { should exist }
   it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   it { should be_mode 640 }
-  its(:content) { should match(/DROPBEAR=y/)}
-  its(:content) { should match(/DEVICE=eth1/)}
-  its(:content) { should match(/IP=10.10.10.10:::255.255.255.0::eth1:off/)}
-  its(:md5sum) { should eq 'cf40216a4fd2389beb18918f14b27122' }
+  initramfs_conf.each do |i|
+    its(:content) { should match(i) }
+  end
+  its(:md5sum) { should eq 'c488564c6cce94fd9067f7822617cc11' }
 end
 
 describe file('/usr/share/initramfs-tools/scripts/init-bottom/dropbear') do
@@ -74,11 +80,14 @@ describe file('/usr/share/initramfs-tools/scripts/init-bottom/dropbear') do
   it { should be_grouped_into 'root' }
   it { should be_mode 640 }
   its(:content) { should match(/ifconfig eth1 0.0.0.0 down/)}
-  its(:md5sum) { should eq 'cc3205a968593a41088577c64cb3bc06' }
+  its(:md5sum) { should eq 'b79d37bb91e541683935b2ce238f3240' }
 end
 
-describe command ( 'ls -l /boot | grep initrd.img-3.19.0-56-generic' ) do
+describe command ( 'ls -l /boot | grep initrd.img-3.19.0-58-generic' ) do
   day = DateTime.now.strftime("%d")
+  if day.to_i < 10
+    day = '0' + day
+  end
   month = Date::ABBR_MONTHNAMES[Date.today.month]
   time_regex = "#{month} #{day}"
   its(:stdout) { should match(/#{time_regex}/)}

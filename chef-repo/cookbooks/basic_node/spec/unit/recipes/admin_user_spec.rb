@@ -23,7 +23,7 @@ describe 'basic_node::admin_user' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
       runner.converge(described_recipe)
     end
 

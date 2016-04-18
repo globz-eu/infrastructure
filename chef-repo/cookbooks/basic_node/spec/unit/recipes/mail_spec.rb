@@ -23,7 +23,7 @@ describe 'basic_node::mail' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
       runner.converge(described_recipe)
     end
 
@@ -40,6 +40,13 @@ describe 'basic_node::mail' do
     end
 
     it 'manages the ssmtp.conf file' do
+      ssmtp_conf = [
+          /^FromLineOverride=YES/,
+          /^AuthUser=admin@example\.com/,
+          /^AuthPass=password/,
+          /^mailhub=smtp\.mail\.com:587/,
+          /^UseSTARTTLS=YES/
+      ]
       expect(chef_run).to create_template('/etc/ssmtp/ssmtp.conf').with(
           owner: 'root',
           group: 'root',
@@ -52,6 +59,9 @@ describe 'basic_node::mail' do
               port: '587'
           }
       )
+      ssmtp_conf.each do |s|
+        expect(chef_run).to render_file('/etc/ssmtp/ssmtp.conf').with_content(s)
+      end
     end
 
     it 'creates mail firewall rule' do

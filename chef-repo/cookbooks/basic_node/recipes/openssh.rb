@@ -60,5 +60,5 @@ template '/etc/ssh/sshd_config' do
                 rsa_authentication: node['openssh']['sshd']['rsa_authentication'],
                 allowed_users: node_admin_vault_item['user']
             })
-  notifies :restart, 'service[ssh]'
+  notifies :restart, 'service[ssh]', :immediately
 end

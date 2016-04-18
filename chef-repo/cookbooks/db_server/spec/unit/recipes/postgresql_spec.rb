@@ -26,7 +26,7 @@ describe 'db_server::postgresql' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04') do |node|  # , step_into: ['postgresql_database']
+      ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04') do |node|
         node.set['db_server']['postgresql']['db_name'] = 'django_base'
       end.converge(described_recipe)
     end
@@ -37,13 +37,6 @@ describe 'db_server::postgresql' do
 
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
-    end
-
-    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
-      expect(chef_run).to install_package('postgresql-9.5')
-      expect(chef_run).to install_package('postgresql-contrib-9.5')
-      expect(chef_run).to install_package('postgresql-client-9.5')
-      expect(chef_run).to install_package('postgresql-server-dev-9.5')
     end
 
     it 'starts the postgresql service' do
@@ -64,6 +57,43 @@ describe 'db_server::postgresql' do
       pg_auth.each do |p|
         expect(chef_run).to render_file('/etc/postgresql/9.5/main/pg_hba.conf').with_content(p)
       end
+    end
+
+    it 'creates database' do
+      expect(chef_run).to create_postgresql_database('django_base').with({
+          connection: {
+              :host      => '127.0.0.1',
+              :port      => 5432,
+              :username  => 'postgres',
+              :password  => 'postgres_password'
+          }
+                                                                         })
+    end
+
+    it 'creates database user' do
+      expect(chef_run).to create_postgresql_database_user('db_user').with({
+          connection: {
+              :host      => '127.0.0.1',
+              :port      => 5432,
+              :username  => 'postgres',
+              :password  => 'postgres_password'
+          },
+          password: 'db_user_password'
+                                                                          })
+    end
+
+    it 'subscribes grant commands to database user creation' do
+      grant_db = chef_run.bash('grant_default_db')
+      grant_seq = chef_run.bash('grant_default_seq')
+      expect(grant_db).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
+      expect(grant_seq).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
+    end
+
+    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
+      expect(chef_run).to install_package('postgresql-9.5')
+      expect(chef_run).to install_package('postgresql-contrib-9.5')
+      expect(chef_run).to install_package('postgresql-client-9.5')
+      expect(chef_run).to install_package('postgresql-server-dev-9.5')
     end
 
     it 'runs default privilege grant code' do

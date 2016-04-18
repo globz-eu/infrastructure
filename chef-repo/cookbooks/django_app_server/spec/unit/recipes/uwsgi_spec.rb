@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook Name:: django_app_server
-# Spec:: python
+# Spec:: uwsgi
 
 require 'spec_helper'
 
@@ -26,12 +26,16 @@ describe 'django_app_server::uwsgi' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
+      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
       runner.converge(described_recipe)
     end
 
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
+    end
+
+    it 'installs the uwsgi python package' do
+      expect(chef_run).to install_python_package('uwsgi').with({python: '/usr/bin/python3.4'})
     end
 
     it 'creates the /var/log/uwsgi directory' do

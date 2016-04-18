@@ -19,6 +19,9 @@
 #
 # Cookbook Name:: django_app_server
 # Recipe:: uwsgi
+#
+# Installs uwsgi python package globally, generates uwsgi.ini config
+# file
 
 include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
