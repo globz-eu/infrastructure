@@ -47,6 +47,14 @@ describe 'django_app_server::django_app' do
       )
     end
 
+    it 'creates the directory structure for the unix socket' do
+      expect(chef_run).to create_directory('/home/app_user/sites/django_base/sockets').with(
+          owner: 'app_user',
+          group: 'www-data',
+          mode: '0750',
+      )
+    end
+
     it 'adds the app path to the python path' do
       expect(chef_run).to create_template('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth').with(
           owner: 'app_user',

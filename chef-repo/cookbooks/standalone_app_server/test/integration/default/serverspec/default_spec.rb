@@ -99,6 +99,14 @@ describe file('/home/app_user/sites/django_base/media') do
   it { should be_mode 750 }
 end
 
+describe file('/home/app_user/sites/django_base/sockets') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'www-data' }
+  it { should be_mode 750 }
+end
+
 describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
   it { should exist }
   it { should be_file }
@@ -139,7 +147,7 @@ end
 describe file('/home/app_user/sites/django_base/source/configuration.py') do
   params = [
       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-      "ALLOWED_HOSTS = ['192.168.1.81']",
+      "ALLOWED_HOSTS = ['192.168.1.82']",
       '"PASSWORD": "db_user_password"',
       'DEBUG = False',
       "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
@@ -382,7 +390,7 @@ describe file('/etc/nginx/sites-available/django_base.conf') do
       %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
       /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
       /^\s+listen\s+80;$/,
-      /^\s+server_name\s+192\.168\.1\.81;$/,
+      /^\s+server_name\s+192\.168\.1\.82;$/,
       %r(^\s+alias /home/app_user/sites/django_base/media;),
       %r(^\s+alias /home/app_user/sites/django_base/static;),
       %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)

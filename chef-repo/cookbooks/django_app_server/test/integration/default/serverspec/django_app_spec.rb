@@ -40,6 +40,14 @@ describe file('/home/app_user/sites/django_base/media') do
   it { should be_mode 750 }
 end
 
+describe file('/home/app_user/sites/django_base/sockets') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'www-data' }
+  it { should be_mode 750 }
+end
+
 describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
   it { should exist }
   it { should be_file }

@@ -20,3 +20,6 @@
 # Cookbook Name:: standalone_app_server
 # Recipe:: default
 
+include_recipe 'django_app_server::default'
+include_recipe 'db_server::default'
+include_recipe 'web_server::default'

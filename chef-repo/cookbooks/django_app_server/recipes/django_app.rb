@@ -44,6 +44,13 @@ directory "/home/#{app_user}/sites/#{app_name}/media" do
   mode '0750'
 end
 
+# create sockets directory
+directory "/home/#{app_user}/sites/#{app_name}/sockets" do
+  owner app_user
+  group 'www-data'
+  mode '0750'
+end
+
 # add app path to venv python path
 template "/home/#{app_user}/.envs/#{app_name}/lib/python3.4/#{app_name}.pth" do
   source 'app_name.pth.erb'

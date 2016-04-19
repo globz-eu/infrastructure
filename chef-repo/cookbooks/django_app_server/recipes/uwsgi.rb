@@ -52,7 +52,7 @@ directory '/var/log/uwsgi' do
   mode '0755'
 end
 
-template '/home/app_user/sites/django_base/source/django_base_uwsgi.ini' do
+template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
   owner app_user
   group app_user
   mode '0400'

@@ -149,6 +149,14 @@ describe 'standalone_app_server::default' do
       )
     end
 
+    it 'creates the directory structure for the unix socket' do
+      expect(chef_run).to create_directory('/home/app_user/sites/django_base/sockets').with(
+          owner: 'app_user',
+          group: 'www-data',
+          mode: '0750',
+      )
+    end
+
     it 'adds the app path to the python path' do
       expect(chef_run).to create_template('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth').with(
           owner: 'app_user',
@@ -169,7 +177,7 @@ describe 'standalone_app_server::default' do
           variables: {
               secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
               debug: 'False',
-              allowed_host: 'localhost',
+              allowed_host: '192.168.1.82',
               engine: 'django.db.backends.postgresql_psycopg2',
               app_name: 'django_base',
               db_user: 'db_user',
@@ -344,7 +352,7 @@ describe 'standalone_app_server::default' do
           %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
           /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
           /^\s+listen\s+80;$/,
-          /^\s+server_name\s+192\.168\.1\.81;$/,
+          /^\s+server_name\s+192\.168\.1\.82;$/,
           %r(^\s+alias /home/app_user/sites/django_base/media;),
           %r(^\s+alias /home/app_user/sites/django_base/static;),
           %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
@@ -359,7 +367,7 @@ describe 'standalone_app_server::default' do
               server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
               server_tcp_socket: '# server 127.0.0.1:8001;',
               listen_port: '80',
-              server_name: '192.168.1.81',
+              server_name: '192.168.1.82',
               app_user: 'app_user',
           }
                                                                                               })
