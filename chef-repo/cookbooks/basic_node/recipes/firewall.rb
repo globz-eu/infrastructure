@@ -42,3 +42,21 @@ firewall_rule 'ssh' do
   command :allow
   port 22
 end
+
+if node['basic_node']['firewall']['mail']
+  firewall_rule 'mail' do
+    protocol :tcp
+    direction :out
+    command :allow
+    port 587
+  end
+end
+
+if node['basic_node']['firewall']['web_server']
+  firewall_rule 'http' do
+    protocol :tcp
+    direction :in
+    command :allow
+    port 80
+  end
+end

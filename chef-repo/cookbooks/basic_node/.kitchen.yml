@@ -28,4 +28,7 @@ suites:
       - recipe[basic_node::default]
       - recipe[test-helper::default]
     attributes:
+      basic_node:
+        firewall:
+          web_server: true
     excludes: centos-7.1

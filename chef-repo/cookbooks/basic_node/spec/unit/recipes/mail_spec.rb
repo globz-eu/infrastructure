@@ -63,10 +63,5 @@ describe 'basic_node::mail' do
         expect(chef_run).to render_file('/etc/ssmtp/ssmtp.conf').with_content(s)
       end
     end
-
-    it 'creates mail firewall rule' do
-      expect( chef_run ).to create_firewall_rule('mail')
-    end
-
   end
 end

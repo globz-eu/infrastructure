@@ -38,14 +38,8 @@ template '/etc/ssmtp/ssmtp.conf' do
                 auth_user: smtp_auth_vault_item['auth_user'],
                 password: smtp_auth_vault_item['password'],
                 mail_hub: smtp_auth_vault_item['mail_hub'],
-                TLS: node['mail']['ssmtp_conf']['TLS'],
-                port: node['mail']['ssmtp_conf']['port']
+                TLS: node['basic_node']['mail']['ssmtp_conf']['TLS'],
+                port: node['basic_node']['mail']['ssmtp_conf']['port']
             })
 end
 
-firewall_rule 'mail' do
-  protocol :tcp
-  direction :out
-  command :allow
-  port 587
-end

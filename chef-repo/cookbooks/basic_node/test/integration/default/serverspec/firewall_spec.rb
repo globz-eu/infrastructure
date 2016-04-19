@@ -24,6 +24,7 @@ set :backend, :exec
 
 expected_rules = [
     %r{ 22/tcp + ALLOW IN + Anywhere},
+    %r{ 80/tcp + ALLOW IN + Anywhere},
     %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
     %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
     %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},

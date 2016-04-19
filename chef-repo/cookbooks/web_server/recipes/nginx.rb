@@ -21,6 +21,7 @@
 # Recipe:: nginx
 
 include_recipe 'chef-vault'
+include_recipe 'basic_node::firewall'
 
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
@@ -28,13 +29,6 @@ app_name = node['web_server']['nginx']['app_name']
 server_name = node['web_server']['nginx']['server_name']
 
 package 'nginx'
-
-firewall_rule 'http' do
-  protocol :tcp
-  direction :in
-  command :allow
-  port 80
-end
 
 service 'nginx' do
   action [:enable, :start]

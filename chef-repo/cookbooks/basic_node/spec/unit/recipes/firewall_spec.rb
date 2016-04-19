@@ -23,8 +23,9 @@ describe 'basic_node::firewall' do
   context 'When all attributes are default, on an Ubuntu 14.04 platform' do
     include ChefVault::TestFixtures.rspec_shared_context(true)
     let(:chef_run) do
-      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
+      ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04') do |node|
+        node.set['basic_node']['firewall']['web_server'] = true
+      end.converge(described_recipe)
     end
 
     it 'converges successfully' do
@@ -39,6 +40,14 @@ describe 'basic_node::firewall' do
       expect( chef_run ).to create_firewall_rule('min_out_tcp')
       expect( chef_run ).to create_firewall_rule('min_out_udp')
       expect( chef_run ).to create_firewall_rule('ssh')
+    end
+
+    it 'creates mail firewall rule' do
+      expect( chef_run ).to create_firewall_rule('mail')
+    end
+
+    it 'creates http firewall rule' do
+      expect( chef_run ).to create_firewall_rule('http')
     end
 
   end
