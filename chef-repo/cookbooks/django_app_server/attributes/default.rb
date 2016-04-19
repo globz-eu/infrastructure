@@ -24,8 +24,52 @@ default['poise-python']['install_python2'] = false
 default['django_app_server']['git']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
 default['django_app_server']['django_app']['app_name'] = 'django_base'
 default['django_app_server']['django_app']['debug'] = 'False'
-default['django_app_server']['django_app']['allowed_host'] = 'localhost'
+default['django_app_server']['django_app']['allowed_host'] = '192.168.1.82'
 default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'
 default['django_app_server']['django_app']['db_host'] = 'localhost'
 default['django_app_server']['uwsgi']['processes'] = '2'
 default['django_app_server']['uwsgi']['socket'] = 'unix'
+
+default['postgresql']['version'] = '9.5'
+default['postgresql']['enable_pgdg_apt'] = true
+default['postgresql']['dir'] = '/etc/postgresql/9.5/main'
+default['postgresql']['client']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-client-9.5']
+default['postgresql']['server']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-9.5']
+default['postgresql']['server']['service_name'] = 'postgresql'
+default['postgresql']['contrib']['packages'] = ['postgresql-contrib-9.5']
+default['postgresql']['pg_hba'] = [
+    {
+        :comment => '# Database administrative login by Unix domain socket',
+        :type => 'local',
+        :db => 'all',
+        :user => 'postgres',
+        :addr => nil,
+        :method => 'ident'
+    },
+    {
+        :comment => '# "local" is for Unix domain socket connections only',
+        :type => 'local',
+        :db => 'all',
+        :user => 'all',
+        :addr => nil,
+        :method => 'md5'
+    },
+    {
+        :comment => '# IPv4 local connections:',
+        :type => 'host',
+        :db => 'all',
+        :user => 'all',
+        :addr => '127.0.0.1/32',
+        :method => 'md5'
+    },
+    {
+        :comment => '# IPv6 local connections:',
+        :type => 'host',
+        :db => 'all',
+        :user => 'all',
+        :addr => '::1/128',
+        :method => 'md5'
+    }
+]
+
+default['db_server']['postgresql']['db_name'] = 'django_base'

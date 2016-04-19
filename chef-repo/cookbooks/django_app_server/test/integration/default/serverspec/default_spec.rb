@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: django_app_server
+# Server Spec:: default
 
 
 require 'spec_helper'
