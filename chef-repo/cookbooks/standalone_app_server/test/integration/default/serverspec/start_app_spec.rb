@@ -17,45 +17,49 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: django_app_server
-# Server Spec:: python
+# Cookbook:: standalone_app_server
+# Server Spec:: start_app
 
 require 'spec_helper'
 
 set :backend, :exec
 
-describe command ( 'pip3 list' ) do
-  its(:stdout) { should match(/uWSGI/)}
+# manages migrations
+describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/manage.py makemigrations'" ) do
+  its(:stdout) { should match(/No changes detected/)}
 end
 
-describe file('/var/log/uwsgi') do
+describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/manage.py migrate'" ) do
+  its(:stdout) { should match(/No migrations to apply\./)}
+end
+
+# runs app tests
+describe file('/var/log/django_base') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
-  it { should be_mode 755 }
+  it { should be_mode 700 }
 end
 
-describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
-  params = [
-      /^# django_base_uwsgi.ini file$/,
-      %r(^chdir\s+=\s+/home/app_user/sites/django_base/source$),
-      /^module\s+=\s+django_base\.wsgi$/,
-      %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
-      /^uid\s+=\s+app_user$/,
-      /^gid\s+=\s+www-data$/,
-      /^processes\s+=\s+2$/,
-      %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-      /^chmod-socket\s+=\s+660$/,
-      %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
-      %r(^master-fifo\s+=\s+/tmp/fifo0$)
-  ]
+describe file('/var/log/django_base/test_results') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file('/var/log/django_base/test_results/latest.log') do
   it { should exist }
   it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(p)}
-  end
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
+  its(:content) { should_not match(/FAILED/)}
+end
+
+# uwsgi is running
+describe command ( 'pgrep uwsgi' ) do
+  its(:stdout) { should match(/^\d+$/) }
 end

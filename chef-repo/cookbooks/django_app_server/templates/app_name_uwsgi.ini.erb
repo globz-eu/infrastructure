@@ -15,6 +15,10 @@ module = <%= @app_name %>.wsgi
 # the virtualenv (full path)
 home = /home/<%= @app_user %>/.envs/<%= @app_name %>
 
+# User-related settings
+uid = <%= @app_user %>
+gid = <%= @web_user %>
+
 # process-related settings
 # master
 master = true

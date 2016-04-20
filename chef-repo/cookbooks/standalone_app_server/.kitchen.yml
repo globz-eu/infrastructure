@@ -12,6 +12,9 @@ platforms:
     driver:
       provider: libvirt
       box: prod-like
+      provision: true
+      vagrantfiles:
+        - vagrant.rb
       network:
         - ['private_network', {ip: '192.168.121.10'}]
         - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]

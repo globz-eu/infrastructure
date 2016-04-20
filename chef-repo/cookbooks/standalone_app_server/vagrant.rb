@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: standalone_app_server
-# Recipe:: default
 
-include_recipe 'db_server::default'
-include_recipe 'django_app_server::default'
-include_recipe 'web_server::default'
-include_recipe 'standalone_app_server::start_app'
+Vagrant.configure(2) do |config|
+  config.vm.provision 'shell', inline: <<-SHELL
+    route add default gw 192.168.1.1 eth2
+    route del default eth0
+    ip route change to default dev eth2 via 192.168.1.1
+  SHELL
+end

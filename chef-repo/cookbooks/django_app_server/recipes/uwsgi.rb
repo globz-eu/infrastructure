@@ -60,6 +60,7 @@ template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
   variables({
       app_name: node['django_app_server']['django_app']['app_name'],
       app_user: app_user,
+      web_user: 'www-data',
       processes: node['django_app_server']['uwsgi']['processes'],
       socket: socket,
       chmod_socket: chmod_socket,

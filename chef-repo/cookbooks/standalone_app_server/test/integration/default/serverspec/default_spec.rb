@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook Name:: standalone_app_server
-# Server Spec:: defaultrequire 'spec_helper'
+# Server Spec:: default
 
 require 'spec_helper'
 
@@ -33,6 +33,155 @@ describe file('/var/log/chef-kitchen/chef-client.log') do
   it { should be_mode 644 }
   its(:content) { should_not match(/ERROR/)}
   its(:content) { should_not match(/FATAL/)}
+end
+
+# manages postgresql server
+
+# apt repository for postgresql9.5 should be there
+describe file('/etc/apt/sources.list.d/apt.postgresql.org.list') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_mode 644 }
+  its(:content) { should match %r{deb\s+"http://apt.postgresql.org/pub/repos/apt" trusty-pgdg main 9.5} }
+  its(:md5sum) { should eq '1749267b56d79a347cec31e0397f85c5' }
+end
+
+# apt key should be correct for postgresql9.5
+describe command( 'apt-key list' ) do
+  expected_apt_key_list = [
+      %r{pub\s+4096R/ACCC4CF8},
+      %r{uid\s+PostgreSQL Debian Repository}
+  ]
+  expected_apt_key_list.each do |r|
+    its(:stdout) { should match(r) }
+  end
+end
+
+# postgresql9.5 and dev packages should be installed
+describe package('postgresql-9.5') do
+  it { should be_installed }
+end
+
+describe package('postgresql-contrib-9.5') do
+  it { should be_installed }
+end
+
+describe package('postgresql-client-9.5') do
+  it { should be_installed }
+end
+
+describe package('postgresql-server-dev-9.5') do
+  it { should be_installed }
+end
+
+# postgresql should be running
+describe service('postgresql') do
+  it { should be_enabled }
+  it { should be_running }
+end
+
+# postgres should be configured for md5 authentication
+describe file('/etc/postgresql/9.5/main/pg_hba.conf') do
+  pg_hba = [
+      %r{local\s+all\s+postgres\s+ident},
+      %r{local\s+all\s+all\s+md5}
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'postgres' }
+  it { should be_mode 600 }
+  pg_hba.each do |p|
+    its(:content) { should match(p) }
+  end
+  its(:md5sum) { should eq 'de65251e5d5011c6b746d98eed43207e' }
+end
+
+# test that postgres user was created and can login
+describe command( "export PGPASSWORD='postgres_password'; psql -U postgres -h localhost -l" ) do
+  its(:stdout) { should match(%r(\s*Name\s+|\s+Owner\s+|\s+Encoding\s+|\s+Collate)) }
+end
+
+# test that the user db_user was created
+describe command("sudo -u postgres psql -c '\\du'") do
+  its(:stdout) { should match(%r(\s*db_user\s+|\s+|\s+\{\})) }
+end
+
+# test that app database was created
+describe command( "sudo -u postgres psql -l" ) do
+  its(:stdout) { should match(
+                            %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
+                        ) }
+end
+
+# test that db_user has the right privileges on app_database
+describe command("sudo -u postgres psql -d django_base -c '\\ddp'") do
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+table\s+|\s+db_user=arwd/postgres)) }
+end
+
+# test that db_user can login to app database
+describe command( "export PGPASSWORD='db_user_password'; psql -U db_user -h localhost -d django_base -c '\\ddp'" ) do
+  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
+end
+
+# manages nginx server
+describe command( 'ufw status numbered' ) do
+  expected_rules = [
+      %r{ 22/tcp + ALLOW IN + Anywhere},
+      %r{ 80/tcp + ALLOW IN + Anywhere},
+      %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
+      %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
+      %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
+      %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
+      %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+  ]
+  its(:stdout) { should match(/Status: active/) }
+  expected_rules.each do |r|
+    its(:stdout) { should match(r) }
+  end
+end
+
+describe package('nginx') do
+  it { should be_installed }
+end
+
+describe service('nginx') do
+  it { should be_enabled }
+  it { should be_running }
+end
+
+describe file('/etc/nginx/sites-available/django_base.conf') do
+  params = [
+      /^# django_base.conf$/,
+      %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+      /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+      /^\s+listen\s+80;$/,
+      /^\s+server_name\s+192\.168\.1\.82;$/,
+      %r(^\s+alias /home/app_user/sites/django_base/media;),
+      %r(^\s+alias /home/app_user/sites/django_base/static;),
+      %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+  ]
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 400 }
+  params.each do |p|
+    its(:content) { should match(p) }
+  end
+end
+
+describe file('/etc/nginx/sites-enabled/django_base.conf') do
+  it { should exist }
+  it { should be_symlink }
+  it { should be_owned_by 'root'}
+  it { should be_grouped_into 'root' }
+  its(:content) { should match (/^# django_base.conf$/) }
+end
+
+describe file('/etc/nginx/sites-enabled/default') do
+  it { should_not exist }
 end
 
 # manages app_user
@@ -134,10 +283,10 @@ end
 
 describe command ( '/home/app_user/.envs/django_base/bin/pip3 list' ) do
   packages = [
-      'Django (1.9)',
+      'Django (1.9.5)',
       'numpy (1.11.0)',
       'biopython (1.66)',
-      'lxml (3.5.0)',
+      'lxml (3.6.0)',
   ]
   packages.each do |p|
     its(:stdout) { should match(Regexp.escape(p))}
@@ -240,14 +389,17 @@ end
 # configures uwsgi
 describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
   params = [
-      'chdir = /home/app_user/sites/django_base/source',
-      'module = django_base.wsgi',
-      'home = /home/app_user/.envs/django_base',
-      'processes = 2',
-      'socket = /home/app_user/sites/django_base/sockets/django_base.sock',
-      'chmod-socket = 660',
-      'daemonize = /var/log/uwsgi/django_base.log',
-      'master-fifo = /tmp/fifo0'
+      /^# django_base_uwsgi.ini file$/,
+      %r(^chdir\s+=\s+/home/app_user/sites/django_base/source$),
+      /^module\s+=\s+django_base\.wsgi$/,
+      %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
+      /^uid\s+=\s+app_user$/,
+      /^gid\s+=\s+www-data$/,
+      /^processes\s+=\s+2$/,
+      %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+      /^chmod-socket\s+=\s+660$/,
+      %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
+      %r(^master-fifo\s+=\s+/tmp/fifo0$)
   ]
   it { should exist }
   it { should be_file }
@@ -255,166 +407,7 @@ describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') d
   it { should be_grouped_into 'app_user' }
   it { should be_mode 400 }
   params.each do |p|
-    its(:content) { should match(Regexp.escape(p))}
+    its(:content) { should match(p)}
   end
 end
 
-# manages postgresql server
-
-# apt repository for postgresql9.5 should be there
-describe file('/etc/apt/sources.list.d/apt.postgresql.org.list') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'root' }
-  it { should be_mode 644 }
-  its(:content) { should match %r{deb\s+"http://apt.postgresql.org/pub/repos/apt" trusty-pgdg main 9.5} }
-  its(:md5sum) { should eq '1749267b56d79a347cec31e0397f85c5' }
-end
-
-# apt key should be correct for postgresql9.5
-describe command( 'apt-key list' ) do
-  expected_apt_key_list = [
-      %r{pub\s+4096R/ACCC4CF8},
-      %r{uid\s+PostgreSQL Debian Repository}
-  ]
-  expected_apt_key_list.each do |r|
-    its(:stdout) { should match(r) }
-  end
-end
-
-# postgresql9.5 and dev packages should be installed
-describe package('postgresql-9.5') do
-  it { should be_installed }
-end
-
-describe package('postgresql-contrib-9.5') do
-  it { should be_installed }
-end
-
-describe package('postgresql-client-9.5') do
-  it { should be_installed }
-end
-
-describe package('postgresql-server-dev-9.5') do
-  it { should be_installed }
-end
-
-# postgresql should be running
-describe service('postgresql') do
-  it { should be_enabled }
-  it { should be_running }
-end
-
-# postgres should be configured for md5 authentication
-describe file('/etc/postgresql/9.5/main/pg_hba.conf') do
-  pg_hba = [
-      %r{local\s+all\s+postgres\s+ident},
-      %r{local\s+all\s+all\s+md5}
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'postgres' }
-  it { should be_mode 600 }
-  pg_hba.each do |p|
-    its(:content) { should match(p) }
-  end
-  its(:md5sum) { should eq '40e9165df0a97c5bddbd39ba83a38832' }
-end
-
-# test that postgres user was created and can login
-describe command( "export PGPASSWORD='postgres_password'; psql -U postgres -h localhost -l" ) do
-  its(:stdout) { should match(%r(\s*Name\s+|\s+Owner\s+|\s+Encoding\s+|\s+Collate)) }
-end
-
-# test that the user db_user was created
-describe command("sudo -u postgres psql -c '\\du'") do
-  its(:stdout) { should match(%r(\s*db_user\s+|\s+|\s+\{\})) }
-end
-
-# test that app database was created
-describe command( "sudo -u postgres psql -l" ) do
-  its(:stdout) { should match(
-                            %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
-                        ) }
-end
-
-# test that db_user has the right privileges on app_database
-describe command("sudo -u postgres psql -d django_base -c '\\ddp'") do
-  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
-  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+table\s+|\s+db_user=arwd/postgres)) }
-end
-
-# test that db_user can login to app database
-describe command( "export PGPASSWORD='db_user_password'; psql -U db_user -h localhost -d django_base -c '\\ddp'" ) do
-  its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
-end
-
-# manages migrations
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/manage.py makemigrations'" ) do
-  its(:stdout) { should match(/No changes detected/)}
-end
-
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/manage.py migrate'" ) do
-  its(:stdout) { should match(/No migrations to apply\./)}
-end
-
-# manges nginx server
-describe command( 'ufw status numbered' ) do
-  expected_rules = [
-      %r{ 22/tcp + ALLOW IN + Anywhere},
-      %r{ 80/tcp + ALLOW IN + Anywhere},
-      %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
-      %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
-      %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
-      %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
-      %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
-  ]
-  its(:stdout) { should match(/Status: active/) }
-  expected_rules.each do |r|
-    its(:stdout) { should match(r) }
-  end
-end
-
-describe package('nginx') do
-  it { should be_installed }
-end
-
-describe service('nginx') do
-  it { should be_enabled }
-  it { should be_running }
-end
-
-describe file('/etc/nginx/sites-available/django_base.conf') do
-  params = [
-      /^# django_base.conf$/,
-      %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-      /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-      /^\s+listen\s+80;$/,
-      /^\s+server_name\s+192\.168\.1\.82;$/,
-      %r(^\s+alias /home/app_user/sites/django_base/media;),
-      %r(^\s+alias /home/app_user/sites/django_base/static;),
-      %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'root' }
-  it { should be_grouped_into 'root' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(p) }
-  end
-end
-
-describe file('/etc/nginx/sites-enabled/django_base.conf') do
-  it { should exist }
-  it { should be_symlink }
-  it { should be_owned_by 'root'}
-  it { should be_grouped_into 'root' }
-  its(:content) { should match (/^# django_base.conf$/) }
-end
-
-describe file('/etc/nginx/sites-enabled/default') do
-  it { should_not exist }
-end
-
-# TODO: test that uwsgi server is running
