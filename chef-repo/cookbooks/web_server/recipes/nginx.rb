@@ -31,7 +31,7 @@ server_name = node['web_server']['nginx']['server_name']
 package 'nginx'
 
 service 'nginx' do
-  action [:enable, :start]
+  action :nothing
 end
 
 template "/etc/nginx/sites-available/#{app_name}.conf" do

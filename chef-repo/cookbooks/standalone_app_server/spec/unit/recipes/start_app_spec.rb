@@ -41,7 +41,7 @@ describe 'standalone_app_server::start_app' do
     # manages migrations
     it 'manages migrations' do
       expect(chef_run).to run_bash('migrate').with({
-                cwd: '/home/app_user/sites/django_base/source',
+                cwd: '/home/app_user/sites/django_base/source/django_base',
                 code: '/home/app_user/.envs/django_base/bin/python ./manage.py migrate --settings django_base.settings_admin',
                 user: 'root'
             })
@@ -63,8 +63,8 @@ describe 'standalone_app_server::start_app' do
 
     it 'runs app tests' do
       expect(chef_run).to run_bash('test_app').with({
-                cwd: '/home/app_user/sites/django_base/source',
-                code: '/home/app_user/.envs/django_base/bin/python ./manage.py test --settings django_base.settings_admin &> /var/log/django_base/test_results/latest.log',
+                cwd: '/home/app_user/sites/django_base/source/django_base',
+                code: '/home/app_user/.envs/django_base/bin/python ./manage.py test --settings django_base.settings_admin &> /var/log/django_base/test_results/test_$(date +"%d-%m-%y-%H%M%S").log',
                 user: 'root'
              })
     end

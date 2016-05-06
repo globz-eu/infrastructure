@@ -25,41 +25,52 @@
 # (need to be installed before biopython), changes ownership of venv to
 # app_user
 
-include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
 app_user = app_user_item['user']
 app_name = node['django_app_server']['django_app']['app_name']
 
-# install python3.4 runtime
-python_runtime '3.4'
-
-# create venv file structure
-directory "/home/#{app_user}/.envs" do
-  owner app_user
-  group app_user
-  mode '0500'
+if node['platform_version'].include?('14.04')
+  # install python3.4 runtime
+  python_runtime '3.4'
 end
 
-directory "/home/#{app_user}/.envs/#{app_name}" do
-  owner app_user
-  group app_user
-  mode '0500'
+if node['platform_version'].include?('16.04')
+  # install python3.5-dev
+  package ['python3.5-dev', 'python3-pip']
 end
 
-# create python3.4 venv
-python_virtualenv "/home/#{app_user}/.envs/#{app_name}" do
-  python '3.4'
-end
+# TODO move to django_app and replace by script
+# # create venv file structure
+# directory "/home/#{app_user}/.envs" do
+#   owner app_user
+#   group app_user
+#   mode '0500'
+# end
+#
+# if app_name
+#   directory "/home/#{app_user}/.envs/#{app_name}" do
+#     owner app_user
+#     group app_user
+#     mode '0500'
+#   end
+#
+#   # create python3.4 venv
+#   python_virtualenv "/home/#{app_user}/.envs/#{app_name}" do
+#     python '3.4'
+#   end
+#
+#   # install numpy
+#   package 'python3-numpy'
+#
+#   python_package 'numpy' do
+#     version '1.11.0'
+#     virtualenv "/home/#{app_user}/.envs/#{app_name}"
+#   end
+#
+#   # change ownership of venv back to app_user
+#   execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
+#
+# end
 
-# install numpy
-package 'python3-numpy'
-
-python_package 'numpy' do
-  version '1.11.0'
-  virtualenv "/home/#{app_user}/.envs/#{app_name}"
-end
-
-# change ownership of venv back to app_user
-execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"

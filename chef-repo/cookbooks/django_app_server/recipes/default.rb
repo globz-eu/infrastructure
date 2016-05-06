@@ -20,10 +20,18 @@
 # Cookbook Name:: django_app_server
 # Recipe:: default
 
+# TODO: adapt chefspecs
+
+app_name = node['django_app_server']['django_app']['app_name']
+
 include_recipe 'apt::default'
 include_recipe 'chef-vault'
 include_recipe 'django_app_server::app_user'
 include_recipe 'django_app_server::git'
 include_recipe 'django_app_server::python'
-include_recipe 'django_app_server::django_app'
+
+# if app_name
+#   include_recipe 'django_app_server::django_app'
+# end
+
 include_recipe 'django_app_server::uwsgi'

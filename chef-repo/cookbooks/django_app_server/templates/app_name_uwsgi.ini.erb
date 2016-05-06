@@ -9,7 +9,7 @@ master-fifo = /tmp/fifo0
 
 # Django-related settings
 # the base directory (full path)
-chdir = /home/<%= @app_user %>/sites/<%= @app_name %>/source
+chdir = /home/<%= @app_user %>/sites/<%= @app_name %>/source/<%= @app_name %>
 # Django's wsgi file
 module = <%= @app_name %>.wsgi
 # the virtualenv (full path)

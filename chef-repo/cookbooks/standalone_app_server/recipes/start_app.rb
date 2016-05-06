@@ -28,7 +28,7 @@ app_user = app_user_vault['user']
 app_name = node['django_app_server']['django_app']['app_name']
 
 bash 'migrate' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source"
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
   code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py migrate --settings #{app_name}.settings_admin"
   user 'root'
 end
@@ -46,8 +46,8 @@ directory "/var/log/#{app_name}/test_results" do
 end
 
 bash 'test_app' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source"
-  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py test --settings #{app_name}.settings_admin &> /var/log/#{app_name}/test_results/latest.log"
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
+  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py test --settings #{app_name}.settings_admin &> /var/log/#{app_name}/test_results/test_$(date +\"%d-%m-%y-%H%M%S\").log"
   user 'root'
 end
 

@@ -20,72 +20,74 @@
 require 'spec_helper'
 
 describe 'basic_node::admin_user' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
-    end
+  ['14.04', '16.04'].each do |version|
+    context "When all attributes are default, on an Ubuntu #{version} platform" do
+      include ChefVault::TestFixtures.rspec_shared_context(true)
+      let(:chef_run) do
+        runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version)
+        runner.converge(described_recipe)
+      end
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
 
-    it 'creates the admin user' do
-      expect(chef_run).to create_user('node_admin').with(
-                                                  home: '/home/node_admin',
-                                                  shell: '/bin/bash',
-                                                  password: '$6$oWrcKQHI2UL$rrFuhMmBnMpw102eOdNzBWibU7BnQyaT3031KiPpz8VqOqzLbIBiC.wpY8Uw4Z3n3LsgtfxpqaN5b9LuVGCfX.'
-      )
-    end
+      it 'creates the admin user' do
+        expect(chef_run).to create_user('node_admin').with(
+                                                    home: '/home/node_admin',
+                                                    shell: '/bin/bash',
+                                                    password: '$6$oWrcKQHI2UL$rrFuhMmBnMpw102eOdNzBWibU7BnQyaT3031KiPpz8VqOqzLbIBiC.wpY8Uw4Z3n3LsgtfxpqaN5b9LuVGCfX.'
+        )
+      end
 
-    it 'adds admin to group sudo' do
-      expect(chef_run).to manage_group('sudo').with(
-                                                  append: true,
-                                                  members: ['node_admin']
-      )
-    end
+      it 'adds admin to group sudo' do
+        expect(chef_run).to manage_group('sudo').with(
+                                                    append: true,
+                                                    members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group adm' do
-      expect(chef_run).to manage_group('adm').with(
-          append: true,
-          members: ['node_admin']
-      )
-    end
+      it 'adds admin to group adm' do
+        expect(chef_run).to manage_group('adm').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group cdrom' do
-      expect(chef_run).to manage_group('cdrom').with(
-          append: true,
-          members: ['node_admin']
-      )
-    end
+      it 'adds admin to group cdrom' do
+        expect(chef_run).to manage_group('cdrom').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group dip' do
-      expect(chef_run).to manage_group('dip').with(
-          append: true,
-          members: ['node_admin']
-      )
-    end
+      it 'adds admin to group dip' do
+        expect(chef_run).to manage_group('dip').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group plugdev' do
-      expect(chef_run).to manage_group('plugdev').with(
-          append: true,
-          members: ['node_admin']
-      )
-    end
+      it 'adds admin to group plugdev' do
+        expect(chef_run).to manage_group('plugdev').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group lpadmin' do
-      expect(chef_run).to manage_group('lpadmin').with(
-          append: true,
-          members: ['node_admin']
-      )
-    end
+      it 'adds admin to group lpadmin' do
+        expect(chef_run).to manage_group('lpadmin').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
 
-    it 'adds admin to group sambashare' do
-      expect(chef_run).to manage_group('sambashare').with(
-          append: true,
-          members: ['node_admin']
-      )
+      it 'adds admin to group sambashare' do
+        expect(chef_run).to manage_group('sambashare').with(
+            append: true,
+            members: ['node_admin']
+        )
+      end
     end
   end
 end

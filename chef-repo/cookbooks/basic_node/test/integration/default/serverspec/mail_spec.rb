@@ -23,8 +23,8 @@ require 'spec_helper'
 set :backend, :exec
 
 expected_rules = [
-    %r{ 587/tcp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 587/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+    %r{\s+587/tcp\s+ALLOW OUT\s+Anywhere\s+\(out\)},
+    %r{\s+587/tcp\s+\(v6\)\s+ALLOW OUT\s+Anywhere\s+\(v6\)\s+\(out\)}
 ]
 
 describe package('ssmtp') do

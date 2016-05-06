@@ -31,42 +31,61 @@ db_user = db_user_vault['user']
 db_name = node['db_server']['postgresql']['db_name']
 node.default['postgresql']['password']['postgres'] = postgres_vault['password']
 
-include_recipe 'postgresql::default'
-include_recipe 'postgresql::server'
-include_recipe 'postgresql::contrib'
-include_recipe 'database::postgresql'
+if node['platform_version'].include?('14.04')
+  include_recipe 'postgresql::server'
+  include_recipe 'postgresql::contrib'
+elsif node['platform_version'].include?('16.04')
+  package [
+              'postgresql',
+              'postgresql-contrib-9.5',
+              'postgresql-server-dev-9.5'
+          ]
 
-postgresql_connection_info = {
-    :host      => '127.0.0.1',
-    :port      => 5432,
-    :username  => postgres_vault['user'],
-    :password  => postgres_vault['password']
-}
-
-if db_name
-  postgresql_database db_name do
-    connection postgresql_connection_info
-    action :create
+  service 'postgresql' do
+    action :start
   end
 
-  postgresql_database_user db_user do
-    connection postgresql_connection_info
-    password db_user_vault['password']
-    action :create
+  # TODO: check enable postgresql service
+
+  bash 'set_postgres_password' do
+    code "sudo -u #{postgres_vault['user']} psql -c \"ALTER USER #{postgres_vault['user']} WITH PASSWORD '#{postgres_vault['password']}';\""
+    user 'root'
+  end
+
+  template('/etc/postgresql/9.5/main/pg_hba.conf') do
+    owner 'postgres'
+    group 'postgres'
+    mode '0600'
+    source 'pg_hba.conf.erb'
+    variables({
+                  postgres_local: 'ident',
+                  all_local: 'md5',
+                  all_IPv4: 'md5',
+                  all_IPv6: 'md5',
+              })
+    notifies :restart, 'service[postgresql]', :immediately
+  end
+end
+
+# TODO: make script, make idempotent
+if db_name
+  bash 'create_database' do
+    code "sudo -u #{postgres_vault['user']} psql -c 'CREATE DATABASE #{db_name};'"
+    user 'root'
+  end
+
+  bash 'create_user' do
+    code "sudo -u #{postgres_vault['user']} psql -c \"CREATE USER #{db_user} WITH PASSWORD '#{db_user_vault['password']}';\""
+    user 'root'
   end
 
   bash 'grant_default_db' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO #{db_user};'"
     user 'root'
-    action :nothing
-    subscribes :run, "postgresql_database_user[#{db_user}]", :immediately
   end
 
   bash 'grant_default_seq' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO #{db_user};'"
     user 'root'
-    action :nothing
-    subscribes :run, "postgresql_database_user[#{db_user}]", :immediately
   end
-
 end

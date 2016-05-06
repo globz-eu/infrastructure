@@ -1,0 +1,27 @@
+############################################
+# File managed by Chef, please do not edit #
+############################################
+
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+#
+# Refer to the "Client Authentication" section in the PostgreSQL
+# documentation for a complete description of this file.
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+###########
+# Other authentication configurations taken from chef node defaults:
+###########
+
+# Database administrative login by Unix domain socket
+local   all             postgres                                <%= @postgres_local %>
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     <%= @all_local %>
+
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            <%= @all_IPv4 %>
+
+# IPv6 local connections:
+host    all             all             ::1/128                 <%= @all_IPv6 %>

@@ -15,9 +15,6 @@ platforms:
       provision: true
       vagrantfiles:
         - vagrant.rb
-      network:
-        - ['private_network', {ip: '192.168.121.10'}]
-        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
       customize:
         memory: 2048
         cpus: 2
@@ -28,8 +25,35 @@ platforms:
 
 suites:
   - name: default
+    driver:
+      network:
+        - ['private_network', {ip: '10.10.0.13'}]
+        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.83'}]
     run_list:
       - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.1.83'
+      django_app_server:
+        django_app:
+          allowed_host: '192.168.1.83'
+    excludes: centos-7.1
+  - name: reinstall_app
+    driver:
+      network:
+        - ['private_network', {ip: '10.10.0.14'}]
+        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.84'}]
+    run_list:
+      - recipe[standalone_app_server::default]
+      - recipe[standalone_app_server::reinstall_app]
+      - recipe[test-helper::default]
+    attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.1.84'
+      django_app_server:
+        django_app:
+          allowed_host: '192.168.1.84'
     excludes: centos-7.1

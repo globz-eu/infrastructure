@@ -162,7 +162,7 @@ describe file('/etc/nginx/sites-available/django_base.conf') do
       %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
       /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
       /^\s+listen\s+80;$/,
-      /^\s+server_name\s+192\.168\.1\.83;$/,
+      /^\s+server_name\s+192\.168\.1\.84;$/,
       %r(^\s+alias /home/app_user/sites/django_base/media;),
       %r(^\s+alias /home/app_user/sites/django_base/static;),
       %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
@@ -303,7 +303,7 @@ end
 describe file('/home/app_user/sites/django_base/source/django_base/configuration.py') do
   params = [
       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-      "ALLOWED_HOSTS = ['192.168.1.83']",
+      "ALLOWED_HOSTS = ['192.168.1.84']",
       '"PASSWORD": "db_user_password"',
       'DEBUG = False',
       "'ENGINE': 'django.db.backends.postgresql_psycopg2'",

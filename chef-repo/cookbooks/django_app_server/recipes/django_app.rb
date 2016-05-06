@@ -51,6 +51,7 @@ directory "/home/#{app_user}/sites/#{app_name}/sockets" do
   mode '0750'
 end
 
+# TODO: replace add app to python path by script
 # add app path to venv python path
 template "/home/#{app_user}/.envs/#{app_name}/lib/python3.4/#{app_name}.pth" do
   source 'app_name.pth.erb'
@@ -59,12 +60,13 @@ template "/home/#{app_user}/.envs/#{app_name}/lib/python3.4/#{app_name}.pth" do
   group app_user
   mode '0400'
   variables({
-                app_path: "/home/#{app_user}/sites/#{app_name}/source",
+                app_path: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}",
             })
 end
 
+# TODO: create configuration and settings files in config directory
 # create host-specific configuration file for django app
-template "/home/#{app_user}/sites/#{app_name}/source/configuration.py" do
+template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/configuration.py" do
   source 'configuration.py.erb'
   action :create
   owner app_user
@@ -83,7 +85,7 @@ template "/home/#{app_user}/sites/#{app_name}/source/configuration.py" do
 end
 
 # create django settings file for administrative tasks (manage.py)
-template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/settings_admin.py" do
+template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/#{app_name}/settings_admin.py" do
   source 'settings_admin.py.erb'
   action :create
   owner app_user
@@ -96,6 +98,7 @@ template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/settings_admin.
             })
 end
 
+# TODO: replace install dependencies and requirements by script
 # create python script for installation of system dependencies
 template "/home/#{app_user}/sites/#{app_name}/source/install_dependencies.py" do
   source 'install_dependencies.py.erb'
@@ -104,7 +107,7 @@ template "/home/#{app_user}/sites/#{app_name}/source/install_dependencies.py" do
   group app_user
   mode '0500'
   variables({
-              dep_file_path: "/home/#{app_user}/sites/#{app_name}/source/system_dependencies.txt"
+              dep_file_path: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/system_dependencies.txt"
             })
 end
 
@@ -117,7 +120,7 @@ end
 
 # install python packages for app
 bash 'install_requirements' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source"
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
   code "/home/#{app_user}/.envs/#{app_name}/bin/pip3 install -r ./requirements.txt"
   user 'root'
 end

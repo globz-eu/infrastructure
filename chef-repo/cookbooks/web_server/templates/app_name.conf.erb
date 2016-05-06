@@ -33,6 +33,6 @@ server {
   # Finally, send all non-media requests to the Django server.
   location / {
     uwsgi_pass  django;
-    include     /home/<%= @app_user %>/sites/<%= @app_name %>/source/uwsgi_params;
+    include     /home/<%= @app_user %>/sites/<%= @app_name %>/source/<%= @app_name %>/uwsgi_params;
   }
 }

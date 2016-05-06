@@ -24,40 +24,42 @@
 require 'spec_helper'
 
 describe 'basic_node::default' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
-    end
+  ['14.04', '16.04'].each do |version|
+    context "When all attributes are default, on an Ubuntu #{version} platform" do
+      include ChefVault::TestFixtures.rspec_shared_context(true)
+      let(:chef_run) do
+        runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version)
+        runner.converge(described_recipe)
+      end
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
 
-    it 'installs the unattended-upgrades package' do
-      expect(chef_run).to install_package('unattended-upgrades')
-    end
+      it 'installs the unattended-upgrades package' do
+        expect(chef_run).to install_package('unattended-upgrades')
+      end
 
-    it 'does not install the bsd-mailx package' do
-      expect(chef_run).to_not install_package('bsd-mailx')
-    end
+      it 'does not install the bsd-mailx package' do
+        expect(chef_run).to_not install_package('bsd-mailx')
+      end
 
-    it 'manages the 50unattended-upgrades file' do
-      expect(chef_run).to create_template('/etc/apt/apt.conf.d/50unattended-upgrades').with(
-          owner: 'root',
-          group: 'root',
-          mode: '0644'
-      )
-    end
+      it 'manages the 50unattended-upgrades file' do
+        expect(chef_run).to create_template('/etc/apt/apt.conf.d/50unattended-upgrades').with(
+            owner: 'root',
+            group: 'root',
+            mode: '0644'
+        )
+      end
 
-    it 'manages the 20auto-upgrades file' do
-      expect(chef_run).to create_template('/etc/apt/apt.conf.d/20auto-upgrades').with(
-          owner: 'root',
-          group: 'root',
-          mode: '0644'
-      )
-    end
+      it 'manages the 20auto-upgrades file' do
+        expect(chef_run).to create_template('/etc/apt/apt.conf.d/20auto-upgrades').with(
+            owner: 'root',
+            group: 'root',
+            mode: '0644'
+        )
+      end
 
+    end
   end
 end

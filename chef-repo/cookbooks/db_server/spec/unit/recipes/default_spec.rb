@@ -23,21 +23,22 @@
 require 'spec_helper'
 
 describe 'db_server::default' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
-      stub_command("ls /var/lib/postgresql/9.5/main/recovery.conf").and_return('')
-    end
+  ['14.04', '16.04'].each do |version|
+    context "When all attributes are default, on an Ubuntu #{version} platform" do
+      include ChefVault::TestFixtures.rspec_shared_context(true)
+      let(:chef_run) do
+        runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version)
+        runner.converge(described_recipe)
+        stub_command("ls /var/lib/postgresql/9.5/main/recovery.conf").and_return('')
+      end
 
-    before do
-      stub_command(/ls \/.*\/recovery.conf/).and_return(false)
-    end
+      before do
+        stub_command(/ls \/.*\/recovery.conf/).and_return(false)
+      end
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
     end
-
   end
 end

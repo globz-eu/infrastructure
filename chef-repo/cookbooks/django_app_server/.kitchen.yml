@@ -12,12 +12,33 @@ platforms:
     driver:
       provider: libvirt
       box: prod-like
+      provision: true
+      vagrantfiles:
+        - vagrant.rb
       network:
-        - ['private_network', {ip: '192.168.121.10'}]
-#        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
+        - ['private_network', {ip: '10.10.0.14'}]
+        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
       customize:
         memory: 2048
         cpus: 2
+    attributes:
+      django_app_server:
+        django_app:
+          allowed_host: "192.168.1.81"
+  - name: ubuntu-16.04
+    driver:
+     provider: libvirt
+     box: nrclark/xenial64-minimal-libvirt
+     network:
+       - ['private_network', {ip: '10.10.0.15'}]
+       - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
+     customize:
+       memory: 2048
+       cpus: 2
+    attributes:
+      django_app_server:
+        django_app:
+          allowed_host: "192.168.1.82"
   - name: centos-7.1
     driver:
       provider: libvirt
@@ -28,8 +49,4 @@ suites:
     run_list:
       - recipe[django_app_server::default]
       - recipe[test-helper::default]
-    attributes:
-      django_app_server:
-        django_app:
-          allowed_host: "192.168.1.81"
     excludes: centos-7.1

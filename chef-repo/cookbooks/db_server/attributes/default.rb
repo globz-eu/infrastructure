@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
+default['apt']['compile_time_update'] = true
 default['postgresql']['version'] = '9.5'
 default['postgresql']['enable_pgdg_apt'] = true
 default['postgresql']['dir'] = '/etc/postgresql/9.5/main'

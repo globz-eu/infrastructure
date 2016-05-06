@@ -38,12 +38,8 @@ describe 'web_server::nginx' do
       expect(chef_run).to install_package( 'nginx' )
     end
 
-    it 'starts the nginx service' do
-      expect(chef_run).to start_service( 'nginx' )
-    end
-
-    it 'enables the nginx service' do
-      expect(chef_run).to enable_service( 'nginx' )
+    it 'does not start nginx service until notified' do
+      expect(chef_run).to_not start_service( 'nginx' )
     end
 
     it 'creates firewall rules' do
@@ -59,7 +55,7 @@ describe 'web_server::nginx' do
           /^\s+server_name\s+192\.168\.1\.81;$/,
           %r(^\s+alias /home/app_user/sites/django_base/media;),
           %r(^\s+alias /home/app_user/sites/django_base/static;),
-          %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+          %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
       ]
       expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
           owner: 'root',

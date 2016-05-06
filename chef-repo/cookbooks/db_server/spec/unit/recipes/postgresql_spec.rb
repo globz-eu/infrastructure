@@ -23,89 +23,113 @@
 require 'spec_helper'
 
 describe 'db_server::postgresql' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04') do |node|
-        node.set['db_server']['postgresql']['db_name'] = 'django_base'
-      end.converge(described_recipe)
-    end
+  ['14.04', '16.04'].each do |version|
+    context "When all attributes are default, on an Ubuntu #{version} platform" do
+      include ChefVault::TestFixtures.rspec_shared_context(true)
+      let(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
+          node.set['db_server']['postgresql']['db_name'] = 'django_base'
+        end.converge(described_recipe)
+      end
 
-    before do
-      stub_command(/ls \/.*\/recovery.conf/).and_return(false)
-    end
+      before do
+        stub_command(/ls \/.*\/recovery.conf/).and_return(false)
+      end
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
 
-    it 'starts the postgresql service' do
-      expect(chef_run).to start_service( 'postgresql' )
-    end
+      it 'starts the postgresql service' do
+        expect(chef_run).to start_service( 'postgresql' )
+      end
 
-    it 'enables the postgresql service' do
-      expect(chef_run).to enable_service( 'postgresql' )
-    end
+      if version == '14.04'
+        it 'enables the postgresql service' do
+          expect(chef_run).to enable_service( 'postgresql' )
+        end
+      end
 
-    it 'renders the pg_hba file' do
-      pg_auth = [
-          /local\s+all\s+postgres\s+ident/,
-          /local\s+all\s+all\s+md5/,
-          %r(host\s+all\s+all\s+127\.0\.0\.1/32\s+md5),
-          %r(host\s+all\s+all\s+::1/128\s+md5)
-      ]
-      pg_auth.each do |p|
-        expect(chef_run).to render_file('/etc/postgresql/9.5/main/pg_hba.conf').with_content(p)
+      if version == '16.04'
+        it 'manages the pg_hba.conf file' do
+          expect(chef_run).to create_template('/etc/postgresql/9.5/main/pg_hba.conf').with({
+                     owner: 'postgres',
+                     group: 'postgres',
+                     mode: '0600',
+                     source: 'pg_hba.conf.erb',
+                     variables: {
+                         postgres_local: 'ident',
+                         all_local: 'md5',
+                         all_IPv4: 'md5',
+                         all_IPv6: 'md5',
+                     }
+                                                                                           })
+        end
+        it 'restarts postgresql service after creation of pg_hba.conf' do
+          hba_conf = chef_run.template('/etc/postgresql/9.5/main/pg_hba.conf')
+          expect(hba_conf).to notify('service[postgresql]').to(:restart).immediately
+        end
+        it 'sets the postgres password' do
+          expect(chef_run).to run_bash('set_postgres_password').with({
+                     code: "sudo -u postgres psql -c \"ALTER USER postgres WITH PASSWORD 'postgres_password';\"",
+                     user: 'root'
+                                                           })
+        end
+      end
+
+      it 'renders the pg_hba file' do
+        pg_auth = [
+            /local\s+all\s+postgres\s+ident/,
+            /local\s+all\s+all\s+md5/,
+            %r(host\s+all\s+all\s+127\.0\.0\.1/32\s+md5),
+            %r(host\s+all\s+all\s+::1/128\s+md5)
+        ]
+        pg_auth.each do |p|
+          expect(chef_run).to render_file('/etc/postgresql/9.5/main/pg_hba.conf').with_content(p)
+        end
+      end
+
+      it 'creates database' do
+        expect(chef_run).to run_bash('create_database').with({
+            code: "sudo -u postgres psql -c 'CREATE DATABASE django_base;'",
+            user: 'root'
+                                                                           })
+      end
+
+      it 'creates database user' do
+        expect(chef_run).to run_bash('create_user').with({
+             code: "sudo -u postgres psql -c \"CREATE USER db_user WITH PASSWORD 'db_user_password';\"",
+             user: 'root'
+                                                             })
+      end
+
+      if version == '14.04'
+        it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
+          expect(chef_run).to install_package('postgresql-9.5')
+          expect(chef_run).to install_package('postgresql-contrib-9.5')
+          expect(chef_run).to install_package('postgresql-client-9.5')
+          expect(chef_run).to install_package('postgresql-server-dev-9.5')
+        end
+      elsif version == '16.04'
+        it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
+          expect(chef_run).to install_package([
+                                                  'postgresql',
+                                                  'postgresql-contrib-9.5',
+                                                  'postgresql-server-dev-9.5'
+                                              ])
+        end
+      end
+
+      it 'runs default privilege grant code' do
+        expect(chef_run).to run_bash('grant_default_db').with({
+          code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
+          user: 'root'
+                                                                                  })
+        expect(chef_run).to run_bash('grant_default_seq').with({
+          code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
+          user: 'root'
+                                                                                  })
       end
     end
-
-    it 'creates database' do
-      expect(chef_run).to create_postgresql_database('django_base').with({
-          connection: {
-              :host      => '127.0.0.1',
-              :port      => 5432,
-              :username  => 'postgres',
-              :password  => 'postgres_password'
-          }
-                                                                         })
-    end
-
-    it 'creates database user' do
-      expect(chef_run).to create_postgresql_database_user('db_user').with({
-          connection: {
-              :host      => '127.0.0.1',
-              :port      => 5432,
-              :username  => 'postgres',
-              :password  => 'postgres_password'
-          },
-          password: 'db_user_password'
-                                                                          })
-    end
-
-    it 'subscribes grant commands to database user creation' do
-      grant_db = chef_run.bash('grant_default_db')
-      grant_seq = chef_run.bash('grant_default_seq')
-      expect(grant_db).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
-      expect(grant_seq).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
-    end
-
-    it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
-      expect(chef_run).to install_package('postgresql-9.5')
-      expect(chef_run).to install_package('postgresql-contrib-9.5')
-      expect(chef_run).to install_package('postgresql-client-9.5')
-      expect(chef_run).to install_package('postgresql-server-dev-9.5')
-    end
-
-    it 'runs default privilege grant code' do
-      expect(chef_run).to_not run_bash('grant_default_db').with({
-        code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
-        user: 'root'
-                                                                                })
-      expect(chef_run).to_not run_bash('grant_default_seq').with({
-        code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
-        user: 'root'
-                                                                                })
-    end
-
   end
 end

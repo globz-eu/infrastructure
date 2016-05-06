@@ -83,8 +83,12 @@ describe 'standalone_app_server::default' do
       )
     end
 
-    it 'clones or syncs the django app' do
-      expect( chef_run ).to sync_git('/home/app_user/sites/django_base/source').with(repository: 'https://github.com/globz-eu/django_base.git')
+    it 'clones the django app' do
+      expect(chef_run).to run_bash('git_clone_app').with(
+          cwd: '/home/app_user/sites/django_base/source',
+          code: 'git clone https://github.com/globz-eu/django_base.git',
+          user: 'root'
+      )
     end
 
     it 'changes ownership of the django app to app_user:app_user' do
@@ -164,12 +168,12 @@ describe 'standalone_app_server::default' do
           mode: '0400',
           source: 'app_name.pth.erb',
           variables: {
-              app_path: '/home/app_user/sites/django_base/source',
+              app_path: '/home/app_user/sites/django_base/source/django_base',
           })
     end
 
     it 'adds the configuration file' do
-      expect(chef_run).to create_template('/home/app_user/sites/django_base/source/configuration.py').with(
+      expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base/configuration.py').with(
           owner: 'app_user',
           group: 'app_user',
           mode: '0400',
@@ -184,11 +188,11 @@ describe 'standalone_app_server::default' do
               db_user_password: 'db_user_password',
               db_host: 'localhost'
           })
-      expect(chef_run).to render_file('/home/app_user/sites/django_base/source/configuration.py')
+      expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base/configuration.py')
     end
 
     it 'adds the admin settings file' do
-      expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base/settings_admin.py').with(
+      expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py').with(
           owner: 'app_user',
           group: 'app_user',
           mode: '0400',
@@ -208,24 +212,24 @@ describe 'standalone_app_server::default' do
           mode: '0500',
           source: 'install_dependencies.py.erb',
           variables: {
-              dep_file_path: '/home/app_user/sites/django_base/source/system_dependencies.txt'
+              dep_file_path: '/home/app_user/sites/django_base/source/django_base/system_dependencies.txt'
           })
       expect(chef_run).to render_file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth')
     end
 
     it 'runs the install_dependencies script' do
       expect(chef_run).to run_bash('install_dependencies').with({
-                                                                    cwd: '/home/app_user/sites/django_base/source',
-                                                                    code: './install_dependencies.py',
-                                                                    user: 'root'
+                cwd: '/home/app_user/sites/django_base/source',
+                code: './install_dependencies.py',
+                user: 'root'
                                                                 })
     end
 
     it 'installs python packages from requirements.txt' do
       expect(chef_run).to run_bash('install_requirements').with({
-                                                                    cwd: '/home/app_user/sites/django_base/source',
-                                                                    code: '/home/app_user/.envs/django_base/bin/pip3 install -r ./requirements.txt',
-                                                                    user: 'root'
+                cwd: '/home/app_user/sites/django_base/source/django_base',
+                code: '/home/app_user/.envs/django_base/bin/pip3 install -r ./requirements.txt',
+                user: 'root'
                                                                 })
     end
 
@@ -245,7 +249,7 @@ describe 'standalone_app_server::default' do
     it 'adds the django_base_uwsgi.ini file' do
       params = [
           /^# django_base_uwsgi.ini file$/,
-          %r(^chdir\s+=\s+/home/app_user/sites/django_base/source$),
+          %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
           /^module\s+=\s+django_base\.wsgi$/,
           %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
           /^uid\s+=\s+app_user$/,
@@ -320,13 +324,6 @@ describe 'standalone_app_server::default' do
                                                                           })
     end
 
-    it 'subscribes grant commands to database user creation' do
-      grant_db = chef_run.bash('grant_default_db')
-      grant_seq = chef_run.bash('grant_default_seq')
-      expect(grant_db).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
-      expect(grant_seq).to subscribe_to('postgresql_database_user[db_user]').on(:run).immediately
-    end
-
     it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
       expect(chef_run).to install_package('postgresql-9.5')
       expect(chef_run).to install_package('postgresql-contrib-9.5')
@@ -335,11 +332,11 @@ describe 'standalone_app_server::default' do
     end
 
     it 'runs default privilege grant code' do
-      expect(chef_run).to_not run_bash('grant_default_db').with({
+      expect(chef_run).to run_bash('grant_default_db').with({
           code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
           user: 'root'
                                                                 })
-      expect(chef_run).to_not run_bash('grant_default_seq').with({
+      expect(chef_run).to run_bash('grant_default_seq').with({
            code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
            user: 'root'
                                                                  })
@@ -371,7 +368,7 @@ describe 'standalone_app_server::default' do
           /^\s+server_name\s+192\.168\.1\.82;$/,
           %r(^\s+alias /home/app_user/sites/django_base/media;),
           %r(^\s+alias /home/app_user/sites/django_base/static;),
-          %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+          %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
       ]
       expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
           owner: 'root',
@@ -410,9 +407,9 @@ describe 'standalone_app_server::default' do
     end
 
     it 'runs default privilege grant code' do
-      expect(chef_run).to_not run_bash('grant_default_db').with({
-                                                                    code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
-                                                                    user: 'root'
+      expect(chef_run).to run_bash('grant_default_db').with({
+                code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
+                user: 'root'
                                                                 })
     end
 

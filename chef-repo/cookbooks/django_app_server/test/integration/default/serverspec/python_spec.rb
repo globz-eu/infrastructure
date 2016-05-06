@@ -24,44 +24,67 @@ require 'spec_helper'
 
 set :backend, :exec
 
-describe package('python3.4') do
-  it { should be_installed }
+if os[:release] == '14.04'
+  describe package('python3.4') do
+    it { should be_installed }
+  end
+
+  describe file('/usr/bin/python3.4') do
+    it { should exist }
+    it { should be_file }
+  end
+
+  describe command ( 'pip -V' ) do
+    pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/local/lib/python3\.4/dist-packages \(python 3\.4\))
+    its(:stdout) { should match(pip3_version)}
+  end
+
+  describe package('python3.4-dev') do
+    it { should be_installed }
+  end
 end
 
-describe file('/usr/bin/python3.4') do
-  it { should exist }
-  it { should be_file }
+if os[:release] == '16.04'
+  describe package('python3.5') do
+    it { should be_installed }
+  end
+
+  describe file('/usr/bin/python3.5') do
+    it { should exist }
+    it { should be_file }
+  end
+
+  describe command ( 'pip3 -V' ) do
+    pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/lib/python3/dist-packages \(python 3\.5\))
+    its(:stdout) { should match(pip3_version)}
+  end
+
+  describe package('python3.5-dev') do
+    it { should be_installed }
+  end
 end
 
-describe command ( 'pip3 -V' ) do
-  pip3_version = 'pip 8.1.1 from /usr/local/lib/python3.4/dist-packages (python 3.4)'
-  its(:stdout) { should match(Regexp.escape(pip3_version))}
-end
-
-describe package('python3.4-dev') do
-  it { should be_installed }
-end
-
-describe file('/home/app_user/.envs') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 500 }
-end
-
-describe file('/home/app_user/.envs/django_base') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 500 }
-end
-
-describe file('/home/app_user/.envs/django_base/bin') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 755 }
-end
+# TODO: move to django_app
+# describe file('/home/app_user/.envs') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 500 }
+# end
+#
+# describe file('/home/app_user/.envs/django_base') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 500 }
+# end
+#
+# describe file('/home/app_user/.envs/django_base/bin') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 755 }
+# end

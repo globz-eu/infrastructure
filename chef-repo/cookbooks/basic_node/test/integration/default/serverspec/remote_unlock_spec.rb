@@ -83,22 +83,35 @@ describe file('/usr/share/initramfs-tools/scripts/init-bottom/dropbear') do
   its(:md5sum) { should eq 'b79d37bb91e541683935b2ce238f3240' }
 end
 
-describe command ( 'ls -l /boot | grep initrd.img-3.19.0-58-generic' ) do
+describe command ( 'ls -l /boot | grep initrd.img' ) do
   day = DateTime.now.strftime("%d")
   if day.to_i < 10
-    day = '0' + day
+    day = day[1]
   end
   month = Date::ABBR_MONTHNAMES[Date.today.month]
-  time_regex = "#{month} #{day}"
-  its(:stdout) { should match(/#{time_regex}/)}
+  its(:stdout) { should match(/#{month}\s+#{day}/)}
 end
 
-describe command( 'update-initramfs -u' ) do
-  its(:stdout) { should match(/update-initramfs: Generating \/boot\/initrd\.img-3\.\d{2}\.0-\d{2}-generic/) }
-  its(:stdout) { should_not match(/error/) }
+if os[:release] == '14.04'
+  describe command( 'update-initramfs -u' ) do
+    its(:stdout) { should match(/update-initramfs: Generating \/boot\/initrd\.img-3\.\d{2}\.0-\d{2}-generic/) }
+    its(:stdout) { should_not match(/error/) }
+  end
+elsif os[:release] == '16.04'
+  describe command( 'update-initramfs -u' ) do
+    its(:stdout) { should match(/update-initramfs: Generating \/boot\/initrd\.img-4\.\d+\.0-\d{2}-generic/) }
+    its(:stdout) { should_not match(/error/) }
+  end
 end
 
-describe command( 'update-rc.d -n -f dropbear remove') do
-  its(:stdout) { should match(/Removing any system startup links for \/etc\/init.d\/dropbear/) }
-  its(:stdout) { should_not match(/\/etc\/rc\d\.d\/[KS]20dropbear/) }
+if os[:release] == '14.04'
+  describe command( 'update-rc.d -n -f dropbear remove') do
+    its(:stdout) { should match(/Removing any system startup links for \/etc\/init.d\/dropbear/) }
+    its(:stdout) { should_not match(/\/etc\/rc\d\.d\/[KS]20dropbear/) }
+  end
+elsif os[:release] == '16.04'
+  describe command( 'update-rc.d -n -f dropbear remove') do
+    its(:stderr) { should match(/insserv: dryrun, not creating \.depend\.boot, \.depend\.start, and \.depend\.stop/) }
+    its(:stdout) { should_not match(/\/etc\/rc\d\.d\/[KS]20dropbear/) }
+  end
 end

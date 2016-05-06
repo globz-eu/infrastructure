@@ -23,7 +23,6 @@
 # Installs uwsgi python package globally, generates uwsgi.ini config
 # file
 
-include_recipe 'poise-python::default'
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
@@ -42,9 +41,10 @@ else if node['django_app_server']['uwsgi']['socket'] == 'tcp'
      end
 end
 
-python_package 'uwsgi' do
-  python '/usr/bin/python3.4'
-end
+# TODO: install uwsgi
+# python_package 'uwsgi' do
+#   python '/usr/bin/python3.4'
+# end
 
 directory '/var/log/uwsgi' do
   owner 'root'
@@ -52,19 +52,22 @@ directory '/var/log/uwsgi' do
   mode '0755'
 end
 
-template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
-  owner app_user
-  group app_user
-  mode '0400'
-  source 'app_name_uwsgi.ini.erb'
-  variables({
-      app_name: node['django_app_server']['django_app']['app_name'],
-      app_user: app_user,
-      web_user: 'www-data',
-      processes: node['django_app_server']['uwsgi']['processes'],
-      socket: socket,
-      chmod_socket: chmod_socket,
-      log_file: "/var/log/uwsgi/#{app_name}.log",
-      pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
-            })
-end
+# TODO: move to django_app
+# if app_name
+#   template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
+#     owner app_user
+#     group app_user
+#     mode '0400'
+#     source 'app_name_uwsgi.ini.erb'
+#     variables({
+#                   app_name: node['django_app_server']['django_app']['app_name'],
+#                   app_user: app_user,
+#                   web_user: 'www-data',
+#                   processes: node['django_app_server']['uwsgi']['processes'],
+#                   socket: socket,
+#                   chmod_socket: chmod_socket,
+#                   log_file: "/var/log/uwsgi/#{app_name}.log",
+#                   pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
+#               })
+#   end
+# end

@@ -28,34 +28,35 @@ describe package('git') do
   it { should be_installed }
 end
 
-describe file('/home/app_user/sites') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 550 }
-end
-
-describe file('/home/app_user/sites/django_base') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 550 }
-end
-
-describe file('/home/app_user/sites/django_base/source') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 500 }
-end
-
-describe file('/home/app_user/sites/django_base/source/manage.py') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-end
+# TODO: move to django_app
+# describe file('/home/app_user/sites') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'www-data' }
+#   it { should be_mode 550 }
+# end
+#
+# describe file('/home/app_user/sites/django_base') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'www-data' }
+#   it { should be_mode 550 }
+# end
+#
+# describe file('/home/app_user/sites/django_base/source') do
+#   it { should exist }
+#   it { should be_directory }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 500 }
+# end
+#
+# describe file('/home/app_user/sites/django_base/source/django_base/manage.py') do
+#   it { should exist }
+#   it { should be_file }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 400 }
+# end

@@ -24,9 +24,10 @@ require 'spec_helper'
 
 set :backend, :exec
 
-describe command ( 'pip3 list' ) do
-  its(:stdout) { should match(/uWSGI/)}
-end
+# TODO: move to django_app and install in venv
+# describe command ( 'pip3 list' ) do
+#   its(:stdout) { should match(/uWSGI/)}
+# end
 
 describe file('/var/log/uwsgi') do
   it { should exist }
@@ -36,26 +37,27 @@ describe file('/var/log/uwsgi') do
   it { should be_mode 755 }
 end
 
-describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
-  params = [
-      /^# django_base_uwsgi.ini file$/,
-      %r(^chdir\s+=\s+/home/app_user/sites/django_base/source$),
-      /^module\s+=\s+django_base\.wsgi$/,
-      %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
-      /^uid\s+=\s+app_user$/,
-      /^gid\s+=\s+www-data$/,
-      /^processes\s+=\s+2$/,
-      %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-      /^chmod-socket\s+=\s+660$/,
-      %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
-      %r(^master-fifo\s+=\s+/tmp/fifo0$)
-  ]
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-  params.each do |p|
-    its(:content) { should match(p)}
-  end
-end
+# TODO: move to django_app
+# describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
+#   params = [
+#       /^# django_base_uwsgi.ini file$/,
+#       %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
+#       /^module\s+=\s+django_base\.wsgi$/,
+#       %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
+#       /^uid\s+=\s+app_user$/,
+#       /^gid\s+=\s+www-data$/,
+#       /^processes\s+=\s+2$/,
+#       %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+#       /^chmod-socket\s+=\s+660$/,
+#       %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
+#       %r(^master-fifo\s+=\s+/tmp/fifo0$)
+#   ]
+#   it { should exist }
+#   it { should be_file }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 400 }
+#   params.each do |p|
+#     its(:content) { should match(p)}
+#   end
+# end

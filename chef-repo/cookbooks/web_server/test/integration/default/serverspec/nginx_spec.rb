@@ -26,13 +26,14 @@ require 'serverspec'
 set :backend, :exec
 
 expected_rules = [
-    %r{ 22/tcp + ALLOW IN + Anywhere},
-    %r{ 80/tcp + ALLOW IN + Anywhere},
-    %r{ 22/tcp \(v6\) + ALLOW IN + Anywhere \(v6\)},
-    %r{ 22,53,80,443/tcp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 53,67,68/udp + ALLOW OUT + Anywhere \(out\)},
-    %r{ 22,53,80,443/tcp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)},
-    %r{ 53,67,68/udp \(v6\) + ALLOW OUT + Anywhere \(v6\) \(out\)}
+    %r{^\[(\s|\d)\d\]\s+22/tcp\s+ALLOW IN\s+Anywhere\s+$},
+    %r{^\[(\s|\d)\d\]\s+80/tcp\s+ALLOW IN\s+Anywhere\s+$},
+    %r{^\[(\s|\d)\d\]\s+22/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s+$},
+    %r{^\[(\s|\d)\d\]\s+80/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s+$},
+    %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
+    %r{^\[(\s|\d)\d\]\s+53,67,68/udp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
+    %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+\(v6\)\s+ALLOW OUT\s+Anywhere\s+\(v6\)\s+\(out\)$},
+    %r{^\[(\s|\d)\d\]\s+53,67,68/udp\s+\(v6\)\s+ALLOW OUT\s+Anywhere\s+\(v6\)\s+\(out\)$}
 ]
 
 describe command( 'ufw status numbered' ) do
@@ -48,7 +49,8 @@ end
 
 describe service('nginx') do
   it { should be_enabled }
-  it { should be_running }
+  # service should fail to restart since django_base.conf contains references to files that do not exist
+  it { should_not be_running }
 end
 
 describe file('/etc/nginx/sites-available/django_base.conf') do
@@ -60,7 +62,7 @@ describe file('/etc/nginx/sites-available/django_base.conf') do
       /^\s+server_name\s+192\.168\.1\.81;$/,
       %r(^\s+alias /home/app_user/sites/django_base/media;),
       %r(^\s+alias /home/app_user/sites/django_base/static;),
-      %r(^\s+include\s+/home/app_user/sites/django_base/source/uwsgi_params;$)
+      %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
   ]
   it { should exist }
   it { should be_file }

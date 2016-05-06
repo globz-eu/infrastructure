@@ -20,6 +20,8 @@
 # Cookbook Name:: django_app_server
 # Recipe:: git
 
+# TODO move to django_app
+
 include_recipe 'chef-vault'
 
 app_user_item = chef_vault_item('app_user', 'app_user')
@@ -34,24 +36,29 @@ directory "/home/#{app_user}/sites" do
   mode '0550'
 end
 
-directory "/home/#{app_user}/sites/#{app_name}" do
-  owner app_user
-  group 'www-data'
-  mode '0550'
-end
-
-directory "/home/#{app_user}/sites/#{app_name}/source" do
-  owner app_user
-  group app_user
-  mode '0500'
-end
-
-git "/home/#{app_user}/sites/#{app_name}/source" do
-  repository node['django_app_server']['git']['git_repo']
-end
-
-execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
-
-execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
-
-execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
+# if app_name
+#   directory "/home/#{app_user}/sites/#{app_name}" do
+#     owner app_user
+#     group 'www-data'
+#     mode '0550'
+#   end
+#
+#   directory "/home/#{app_user}/sites/#{app_name}/source" do
+#     owner app_user
+#     group app_user
+#     mode '0500'
+#   end
+#
+#   # TODO: replace git clone by script
+#   bash 'git_clone_app' do
+#     cwd "/home/#{app_user}/sites/#{app_name}/source"
+#     code "git clone #{node['django_app_server']['git']['git_repo']}"
+#     user 'root'
+#   end
+#
+#   execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
+#
+#   execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
+#
+#   execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
+# end
