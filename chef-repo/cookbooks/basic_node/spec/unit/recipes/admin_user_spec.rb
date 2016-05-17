@@ -54,40 +54,6 @@ describe 'basic_node::admin_user' do
         )
       end
 
-      it 'adds admin to group cdrom' do
-        expect(chef_run).to manage_group('cdrom').with(
-            append: true,
-            members: ['node_admin']
-        )
-      end
-
-      it 'adds admin to group dip' do
-        expect(chef_run).to manage_group('dip').with(
-            append: true,
-            members: ['node_admin']
-        )
-      end
-
-      it 'adds admin to group plugdev' do
-        expect(chef_run).to manage_group('plugdev').with(
-            append: true,
-            members: ['node_admin']
-        )
-      end
-
-      it 'adds admin to group lpadmin' do
-        expect(chef_run).to manage_group('lpadmin').with(
-            append: true,
-            members: ['node_admin']
-        )
-      end
-
-      it 'adds admin to group sambashare' do
-        expect(chef_run).to manage_group('sambashare').with(
-            append: true,
-            members: ['node_admin']
-        )
-      end
     end
   end
 end

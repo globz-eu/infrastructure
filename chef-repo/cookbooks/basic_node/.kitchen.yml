@@ -11,7 +11,7 @@ platforms:
   - name: ubuntu-14.04
     driver:
       provider: libvirt
-      box: prod-like
+      box: alxgrh/ubuntu-trusty-x86_64
       network:
         - ['private_network', {ip: '10.10.0.10'}]
       customize:

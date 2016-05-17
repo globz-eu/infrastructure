@@ -47,7 +47,7 @@ suites:
         - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.84'}]
     run_list:
       - recipe[standalone_app_server::default]
-      - recipe[standalone_app_server::reinstall_app]
+#      - recipe[standalone_app_server::reinstall_app]
       - recipe[test-helper::default]
     attributes:
       web_server:

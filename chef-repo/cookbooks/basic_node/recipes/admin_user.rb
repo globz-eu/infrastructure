@@ -42,33 +42,3 @@ group 'adm' do
   members node_admin_item['user']
   append true
 end
-
-group 'cdrom' do
-  action :manage
-  members node_admin_item['user']
-  append true
-end
-
-group 'dip' do
-  action :manage
-  members node_admin_item['user']
-  append true
-end
-
-group 'plugdev' do
-  action :manage
-  members node_admin_item['user']
-  append true
-end
-
-group 'lpadmin' do
-  action :manage
-  members node_admin_item['user']
-  append true
-end
-
-group 'sambashare' do
-  action :manage
-  members node_admin_item['user']
-  append true
-end
