@@ -38,9 +38,9 @@ describe 'web_server::nginx' do
       expect(chef_run).to install_package( 'nginx' )
     end
 
-    it 'does not start nginx service until notified' do
-      expect(chef_run).to_not start_service( 'nginx' )
-    end
+    # it 'does not start nginx service until notified' do
+    #   expect(chef_run).to_not start_service( 'nginx' )
+    # end
 
     it 'creates firewall rules' do
       expect(chef_run).to create_firewall_rule('http')
@@ -76,21 +76,21 @@ describe 'web_server::nginx' do
       end
     end
 
-    it 'creates a symlink from sites-enabled/django_base.conf to sites-available' do
-      expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base.conf').with({
-          owner: 'root',
-          group: 'root',
-          to: '/etc/nginx/sites-available/django_base.conf'
-      })
-    end
-
-    it 'notifies nginx to restart on creation of the symlink to sites-enabled/django_base.conf' do
-      symlink = chef_run.link('/etc/nginx/sites-enabled/django_base.conf')
-      expect(symlink).to notify('service[nginx]').immediately
-    end
-
-    it 'removes default site file' do
-      expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
-    end
+    # it 'creates a symlink from sites-enabled/django_base.conf to sites-available' do
+    #   expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base.conf').with({
+    #       owner: 'root',
+    #       group: 'root',
+    #       to: '/etc/nginx/sites-available/django_base.conf'
+    #   })
+    # end
+    #
+    # it 'notifies nginx to restart on creation of the symlink to sites-enabled/django_base.conf' do
+    #   symlink = chef_run.link('/etc/nginx/sites-enabled/django_base.conf')
+    #   expect(symlink).to notify('service[nginx]').immediately
+    # end
+    #
+    # it 'removes default site file' do
+    #   expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
+    # end
   end
 end
