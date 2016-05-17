@@ -34,6 +34,7 @@ service 'nginx' do
   action :nothing
 end
 
+# TODO: adapt to tcp sockets option
 template "/etc/nginx/sites-available/#{app_name}.conf" do
   owner 'root'
   group 'root'
@@ -49,13 +50,16 @@ template "/etc/nginx/sites-available/#{app_name}.conf" do
             })
 end
 
-link "/etc/nginx/sites-enabled/#{app_name}.conf" do
-  owner 'root'
-  group 'root'
-  to "/etc/nginx/sites-available/#{app_name}.conf"
-  notifies :restart, 'service[nginx]', :immediately
-end
+# TODO: add activation of site to script
+# TODO: add default server down page
 
-file '/etc/nginx/sites-enabled/default' do
-  action :delete
-end
+# link "/etc/nginx/sites-enabled/#{app_name}.conf" do
+#   owner 'root'
+#   group 'root'
+#   to "/etc/nginx/sites-available/#{app_name}.conf"
+#   notifies :restart, 'service[nginx]', :immediately
+# end
+
+# file '/etc/nginx/sites-enabled/default' do
+#   action :delete
+# end
