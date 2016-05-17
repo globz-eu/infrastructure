@@ -20,8 +20,6 @@
 # Cookbook Name:: django_app_server
 # Recipe:: default
 
-# TODO: adapt chefspecs
-
 app_name = node['django_app_server']['django_app']['app_name']
 
 include_recipe 'apt::default'

@@ -65,16 +65,18 @@ elsif node['platform_version'].include?('16.04')
   end
 end
 
-# TODO: make script, make idempotent
+# TODO: make idempotent
 if db_name
   bash 'create_database' do
     code "sudo -u #{postgres_vault['user']} psql -c 'CREATE DATABASE #{db_name};'"
     user 'root'
+    not_if "sudo -u #{postgres_vault['user']} psql -c '\\l' | grep #{db_name}", :user => 'root'
   end
 
   bash 'create_user' do
     code "sudo -u #{postgres_vault['user']} psql -c \"CREATE USER #{db_user} WITH PASSWORD '#{db_user_vault['password']}';\""
     user 'root'
+    not_if "sudo -u #{postgres_vault['user']} psql -c '\\du' | grep #{db_user}", :user => 'root'
   end
 
   bash 'grant_default_db' do
