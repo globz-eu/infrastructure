@@ -92,7 +92,7 @@ if os[:family] == 'ubuntu'
       its(:content) { should match(p) }
     end
     if os[:release] == '14.04'
-      its(:md5sum) { should eq '40e9165df0a97c5bddbd39ba83a38832' }
+      its(:md5sum) { should eq 'de65251e5d5011c6b746d98eed43207e' }
     elsif os[:release] == '16.04'
       its(:md5sum) { should eq 'f21a82388ac74e4919408bf8d5a1415b' }
     end

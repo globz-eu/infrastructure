@@ -45,8 +45,6 @@ elsif node['platform_version'].include?('16.04')
     action :start
   end
 
-  # TODO: check enable postgresql service
-
   bash 'set_postgres_password' do
     code "sudo -u #{postgres_vault['user']} psql -c \"ALTER USER #{postgres_vault['user']} WITH PASSWORD '#{postgres_vault['password']}';\""
     user 'root'
