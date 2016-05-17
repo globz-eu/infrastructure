@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
+# Use for public network
 Vagrant.configure(2) do |config|
   config.vm.provision 'shell', inline: <<-SHELL
     route add default gw 192.168.1.1 eth2

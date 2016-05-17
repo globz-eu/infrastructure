@@ -11,13 +11,15 @@ platforms:
   - name: ubuntu-14.04
     driver:
       provider: libvirt
-      box: prod-like
-      provision: true
-      vagrantfiles:
-        - vagrant.rb
+      box: alxgrh/ubuntu-trusty-x86_64
+# Use for public network
+#      provision: true
+#      vagrantfiles:
+#        - vagrant.rb
       network:
         - ['private_network', {ip: '10.10.0.14'}]
-        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
+        - ['private_network', {ip: '192.168.122.11'}]
+#        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
       customize:
         memory: 2048
         cpus: 2
@@ -31,7 +33,8 @@ platforms:
      box: nrclark/xenial64-minimal-libvirt
      network:
        - ['private_network', {ip: '10.10.0.15'}]
-       - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
+       - ['private_network', {ip: '192.168.122.12'}]
+#       - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
      customize:
        memory: 2048
        cpus: 2
