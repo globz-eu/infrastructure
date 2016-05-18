@@ -60,4 +60,4 @@ default['postgresql']['pg_hba'] = [
       }
 ]
 
-default['db_server']['postgresql']['db_name'] = ''
+default['db_server']['postgresql']['db_name'] = false

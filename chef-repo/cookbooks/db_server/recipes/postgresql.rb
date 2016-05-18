@@ -65,7 +65,6 @@ elsif node['platform_version'].include?('16.04')
   end
 end
 
-# TODO: make idempotent
 if db_name
   bash 'create_database' do
     code "sudo -u #{postgres_vault['user']} psql -c 'CREATE DATABASE #{db_name};'"
@@ -82,10 +81,12 @@ if db_name
   bash 'grant_default_db' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO #{db_user};'"
     user 'root'
+    not_if "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c '\\ddp' | egrep 'table.*#{db_user}'", :user => 'root'
   end
 
   bash 'grant_default_seq' do
     code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO #{db_user};'"
     user 'root'
+    not_if "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c '\\ddp' | egrep 'sequence.*#{db_user}'", :user => 'root'
   end
 end
