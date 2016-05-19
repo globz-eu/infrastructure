@@ -20,10 +20,7 @@
 # Cookbook Name:: django_app_server
 # Recipe:: python
 #
-# Installs python3.4 runtime, creates venv file structure, creates
-# venv, installs apt package python3-numpy and python package numpy
-# (need to be installed before biopython), changes ownership of venv to
-# app_user
+# Installs python3.4 or python 3.5 runtime
 
 include_recipe 'chef-vault'
 
@@ -40,37 +37,3 @@ if node['platform_version'].include?('16.04')
   # install python3.5-dev
   package ['python3.5-dev', 'python3-pip']
 end
-
-# TODO move to django_app and replace by script
-# # create venv file structure
-# directory "/home/#{app_user}/.envs" do
-#   owner app_user
-#   group app_user
-#   mode '0500'
-# end
-#
-# if app_name
-#   directory "/home/#{app_user}/.envs/#{app_name}" do
-#     owner app_user
-#     group app_user
-#     mode '0500'
-#   end
-#
-#   # create python3.4 venv
-#   python_virtualenv "/home/#{app_user}/.envs/#{app_name}" do
-#     python '3.4'
-#   end
-#
-#   # install numpy
-#   package 'python3-numpy'
-#
-#   python_package 'numpy' do
-#     version '1.11.0'
-#     virtualenv "/home/#{app_user}/.envs/#{app_name}"
-#   end
-#
-#   # change ownership of venv back to app_user
-#   execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
-#
-# end
-

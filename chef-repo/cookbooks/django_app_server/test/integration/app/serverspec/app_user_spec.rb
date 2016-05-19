@@ -17,18 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: django_app_server
-# Recipe:: default
+# Cookbook:: django_app_server
+# Spec:: app_user
 
-app_name = node['django_app_server']['django_app']['app_name']
+require 'spec_helper'
 
-include_recipe 'apt::default'
-include_recipe 'chef-vault'
-include_recipe 'django_app_server::app_user'
-include_recipe 'django_app_server::python'
+set :backend, :exec
 
-if app_name
-  include_recipe 'django_app_server::django_app'
-  include_recipe 'django_app_server::uwsgi'
+describe user( 'app_user' ) do
+  it { should exist }
+  it { should belong_to_group 'app_user' }
+  it { should belong_to_group 'www-data' }
+  it { should have_home_directory '/home/app_user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) { should match('$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/') }
 end
-

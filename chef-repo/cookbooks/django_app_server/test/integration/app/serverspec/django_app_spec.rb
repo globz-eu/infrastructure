@@ -24,6 +24,42 @@ require 'spec_helper'
 
 set :backend, :exec
 
+describe package('git') do
+  it { should be_installed }
+end
+
+describe file('/home/app_user/sites') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'www-data' }
+  it { should be_mode 550 }
+end
+
+describe file('/home/app_user/sites/django_base') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'www-data' }
+  it { should be_mode 550 }
+end
+
+describe file('/home/app_user/sites/django_base/source') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'app_user' }
+  it { should be_mode 500 }
+end
+
+describe file('/home/app_user/sites/django_base/source/django_base/manage.py') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'app_user' }
+  it { should be_grouped_into 'app_user' }
+  it { should be_mode 400 }
+end
+
 # describe file('/home/app_user/sites/django_base/static') do
 #   it { should exist }
 #   it { should be_directory }
@@ -140,4 +176,28 @@ set :backend, :exec
 # describe command ( 'cd /home/app_user/sites/django_base/source/django_base && /home/app_user/.envs/django_base/bin/python ./manage.py migrate --settings django_base.settings_admin' ) do
 #   # should return Connection refused since postgresql is not installed and database is not configured
 #   its(:stderr) { should match(/could not connect to server: Connection refused/)}
+# end
+
+# describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
+#   params = [
+#       /^# django_base_uwsgi.ini file$/,
+#       %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
+#       /^module\s+=\s+django_base\.wsgi$/,
+#       %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
+#       /^uid\s+=\s+app_user$/,
+#       /^gid\s+=\s+www-data$/,
+#       /^processes\s+=\s+2$/,
+#       %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+#       /^chmod-socket\s+=\s+660$/,
+#       %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
+#       %r(^master-fifo\s+=\s+/tmp/fifo0$)
+#   ]
+#   it { should exist }
+#   it { should be_file }
+#   it { should be_owned_by 'app_user' }
+#   it { should be_grouped_into 'app_user' }
+#   it { should be_mode 400 }
+#   params.each do |p|
+#     its(:content) { should match(p)}
+#   end
 # end

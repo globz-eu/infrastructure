@@ -26,7 +26,7 @@ platforms:
     attributes:
       django_app_server:
         django_app:
-          allowed_host: "192.168.1.81"
+          allowed_host: "192.168.122.11"
   - name: ubuntu-16.04
     driver:
      provider: libvirt
@@ -41,7 +41,7 @@ platforms:
     attributes:
       django_app_server:
         django_app:
-          allowed_host: "192.168.1.82"
+          allowed_host: "192.168.122.12"
   - name: centos-7.1
     driver:
       provider: libvirt
@@ -52,4 +52,15 @@ suites:
     run_list:
       - recipe[django_app_server::default]
       - recipe[test-helper::default]
+    excludes: centos-7.1
+  - name: app
+    run_list:
+      - recipe[django_app_server::default]
+      - recipe[test-helper::default]
+    attributes:
+      django_app_server:
+        git:
+          git_repo: 'https://github.com/globz-eu/django_base.git'
+        django_app:
+          app_name: 'django_base'
     excludes: centos-7.1

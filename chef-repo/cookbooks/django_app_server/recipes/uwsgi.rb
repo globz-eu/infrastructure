@@ -25,22 +25,6 @@
 
 include_recipe 'chef-vault'
 
-app_user_item = chef_vault_item('app_user', 'app_user')
-app_user = app_user_item['user']
-app_name = node['django_app_server']['django_app']['app_name']
-
-if node['django_app_server']['uwsgi']['socket'] == 'unix'
-  socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
-  chmod_socket = 'chmod-socket = 660'
-else if node['django_app_server']['uwsgi']['socket'] == 'tcp'
-  socket = ':8001'
-  chmod_socket = '# chmod-socket = 660'
-     else
-       socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
-       chmod_socket = '# chmod-socket = 660'
-     end
-end
-
 # TODO: install uwsgi
 # python_package 'uwsgi' do
 #   python '/usr/bin/python3.4'
@@ -52,22 +36,3 @@ directory '/var/log/uwsgi' do
   mode '0755'
 end
 
-# TODO: move to django_app
-# if app_name
-#   template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
-#     owner app_user
-#     group app_user
-#     mode '0400'
-#     source 'app_name_uwsgi.ini.erb'
-#     variables({
-#                   app_name: node['django_app_server']['django_app']['app_name'],
-#                   app_user: app_user,
-#                   web_user: 'www-data',
-#                   processes: node['django_app_server']['uwsgi']['processes'],
-#                   socket: socket,
-#                   chmod_socket: chmod_socket,
-#                   log_file: "/var/log/uwsgi/#{app_name}.log",
-#                   pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
-#               })
-#   end
-# end

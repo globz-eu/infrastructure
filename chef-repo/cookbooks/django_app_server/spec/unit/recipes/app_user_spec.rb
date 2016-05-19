@@ -23,30 +23,31 @@
 require 'spec_helper'
 
 describe 'django_app_server::app_user' do
-  context 'When all attributes are default, on an Ubuntu 14.04 platform' do
-    include ChefVault::TestFixtures.rspec_shared_context(true)
-    let(:chef_run) do
-      runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04')
-      runner.converge(described_recipe)
-    end
+  ['14.04', '16.04'].each do |version|
+    context "When app user is specified, on an Ubuntu #{version} platform" do
+      include ChefVault::TestFixtures.rspec_shared_context(true)
+      let(:chef_run) do
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '14.04').converge(described_recipe)
+      end
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
 
-    it 'creates the admin user' do
-      expect(chef_run).to create_user('app_user').with(
-          home: '/home/app_user',
-          shell: '/bin/bash',
-          password: '$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/'
-      )
-    end
+      it 'creates the admin user' do
+        expect(chef_run).to create_user('app_user').with(
+            home: '/home/app_user',
+            shell: '/bin/bash',
+            password: '$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/'
+        )
+      end
 
-    it 'adds app_user to group www-data' do
-      expect(chef_run).to manage_group('www-data').with(
-          append: true,
-          members: ['app_user']
-      )
+      it 'adds app_user to group www-data' do
+        expect(chef_run).to manage_group('www-data').with(
+            append: true,
+            members: ['app_user']
+        )
+      end
     end
   end
 end
