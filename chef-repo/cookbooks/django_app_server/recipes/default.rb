@@ -26,9 +26,9 @@ include_recipe 'apt::default'
 include_recipe 'chef-vault'
 include_recipe 'django_app_server::app_user'
 include_recipe 'django_app_server::python'
+include_recipe 'django_app_server::uwsgi'
 
 if app_name
   include_recipe 'django_app_server::django_app'
-  include_recipe 'django_app_server::uwsgi'
 end
 

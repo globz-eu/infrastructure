@@ -25,10 +25,11 @@
 
 include_recipe 'chef-vault'
 
-# TODO: install uwsgi
-# python_package 'uwsgi' do
-#   python '/usr/bin/python3.4'
-# end
+bash 'uwsgi' do
+  code 'pip3 install uwsgi'
+  user 'root'
+  not_if 'pip3 list | grep uWSGI', :user => 'root'
+end
 
 directory '/var/log/uwsgi' do
   owner 'root'
