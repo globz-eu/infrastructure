@@ -30,12 +30,22 @@ describe 'django_app_server::python' do
       runner.converge(described_recipe)
     end
 
+    before do
+      stub_command('pip list | grep virtualenv').and_return(false)
+    end
+
     it 'converges successfully' do
       expect { chef_run }.to_not raise_error
     end
 
     it 'creates a python 3.4 runtime' do
       expect(chef_run).to install_python_runtime('3.4')
+    end
+
+    it 'installs virtualenv' do
+      expect(chef_run).to run_bash('install_virtualenv').with(
+
+      )
     end
   end
 end
@@ -53,7 +63,7 @@ describe 'django_app_server::python' do
       end
 
       it 'installs python3.5-dev and python3-pip' do
-        expect(chef_run).to install_package(['python3.5-dev', 'python3-pip'])
+        expect(chef_run).to install_package(['python3.5-dev', 'python3-pip', 'python3-venv'])
       end
     end
   end

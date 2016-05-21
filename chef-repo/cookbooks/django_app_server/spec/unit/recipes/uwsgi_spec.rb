@@ -33,6 +33,10 @@ describe 'django_app_server::uwsgi' do
         end.converge(described_recipe)
       end
 
+      before do
+        stub_command('pip3 list | grep uWSGI').and_return(false)
+      end
+
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
       end
