@@ -20,20 +20,20 @@
 # Cookbook Name:: django_app_server
 # Recipe:: python
 #
-# Installs python3.4 or python 3.5 runtime
-
-include_recipe 'chef-vault'
-
-app_user_item = chef_vault_item('app_user', 'app_user')
-app_user = app_user_item['user']
-app_name = node['django_app_server']['django_app']['app_name']
+# Installs python3.4 or python3.5 runtime
 
 if node['platform_version'].include?('14.04')
   # install python3.4 runtime
   python_runtime '3.4'
+
+  bash 'install_virtualenv' do
+    code 'pip install virtualenv'
+    user 'root'
+    not_if 'pip list | grep virtualenv', :user => 'root'
+  end
 end
 
 if node['platform_version'].include?('16.04')
-  # install python3.5-dev
-  package ['python3.5-dev', 'python3-pip']
+  # install python3.5 runtime
+  package ['python3.5-dev', 'python3-pip', 'python3-venv']
 end

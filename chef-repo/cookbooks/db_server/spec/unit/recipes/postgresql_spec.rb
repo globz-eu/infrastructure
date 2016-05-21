@@ -67,10 +67,12 @@ describe 'db_server::postgresql' do
                      }
                                                                                            })
         end
+
         it 'restarts postgresql service after creation of pg_hba.conf' do
           hba_conf = chef_run.template('/etc/postgresql/9.5/main/pg_hba.conf')
           expect(hba_conf).to notify('service[postgresql]').to(:restart).immediately
         end
+
         it 'sets the postgres password' do
           expect(chef_run).to run_bash('set_postgres_password').with({
                      code: "sudo -u postgres psql -c \"ALTER USER postgres WITH PASSWORD 'postgres_password';\"",

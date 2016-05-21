@@ -24,7 +24,7 @@ require 'spec_helper'
 
 set :backend, :exec
 
-# TODO: move to django_app and install in venv
+# TODO: move to django_app
 # describe command ( 'pip3 list' ) do
 #   its(:stdout) { should match(/uWSGI/)}
 # end

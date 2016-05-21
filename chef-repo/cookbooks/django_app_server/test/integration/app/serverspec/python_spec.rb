@@ -42,6 +42,10 @@ if os[:release] == '14.04'
   describe package('python3.4-dev') do
     it { should be_installed }
   end
+
+  describe command ('pip list | grep virtualenv') do
+    its(:stdout) { should match(/virtualenv\s+\(\d+\.\d+\.\d+\)/)}
+  end
 end
 
 if os[:release] == '16.04'
@@ -60,6 +64,14 @@ if os[:release] == '16.04'
   end
 
   describe package('python3.5-dev') do
+    it { should be_installed }
+  end
+
+  describe package('python3-pip') do
+    it { should be_installed }
+  end
+
+  describe package('python3-venv') do
     it { should be_installed }
   end
 end

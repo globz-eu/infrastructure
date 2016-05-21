@@ -24,180 +24,228 @@ require 'spec_helper'
 
 set :backend, :exec
 
-describe package('git') do
-  it { should be_installed }
+if os[:family] == 'ubuntu'
+  describe package('git') do
+    it { should be_installed }
+  end
+
+  # File structure for app should be present
+  describe file('/home/app_user/sites') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 550 }
+  end
+
+  describe file('/home/app_user/sites/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 550 }
+  end
+
+  describe file('/home/app_user/sites/django_base/source') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
+  end
+
+  # App should be installed
+  describe file('/home/app_user/sites/django_base/source/django_base/manage.py') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+  end
+
+  # Install scripts should be present
+  describe file('/home/app_user/sites/django_base/scripts') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
+  end
+
+  # App log directory should be present
+  describe file('/var/log/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 755 }
+  end
+
+  # Virtual environment directory structure should be present
+  describe file('/home/app_user/.envs') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
+  end
+
+  # Config file for for installation scripts should be present
+  describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+    its(:content) { should match(%r(^DEBUG = False$))}
+    its(:content) { should match(%r(^VENV = '/home/app_user/\.envs/django_base'$))}
+    its(:content) { should match(%r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$))}
+    its(:content) { should match(%r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$))}
+    its(:content) { should match(%r(^LOG_FILE = '/var/log/django_base/install\.log'$))}
+  end
+
+  # Static and media directories for django app should be present
+  describe file('/home/app_user/sites/django_base/static') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 750 }
+  end
+
+  describe file('/home/app_user/sites/django_base/media') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 750 }
+  end
+
+  # Sockets directory for uWSGI should be present
+  describe file('/home/app_user/sites/django_base/sockets') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 750 }
+  end
+
+  # describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
+  #   it { should exist }
+  #   it { should be_file }
+  #   it { should be_owned_by 'app_user' }
+  #   it { should be_grouped_into 'app_user' }
+  #   it { should be_mode 400 }
+  #   its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
+  # end
+
+  # System dependencies should be installed
+  describe package('libxml2-dev') do
+    it { should be_installed }
+  end
+
+  describe package('libxslt1-dev') do
+    it { should be_installed }
+  end
+
+  describe package('zlib1g-dev') do
+    it { should be_installed }
+  end
+
+  describe package('python3-numpy') do
+    it { should be_installed }
+  end
+
+  # Python packages should be installed
+  describe command ( '/home/app_user/.envs/django_base/bin/pip3 list' ) do
+    packages = [
+        /^Django \(1\.9\.5\)$/,
+        /^numpy \(1\.11\.0\)$/,
+        /^biopython \(1\.66\)$/,
+        /^lxml \(3\.6\.0\)$/,
+        /^psycopg2 \(2\.6\.1\)$/,
+    ]
+    packages.each do |p|
+      its(:stdout) { should match(p)}
+    end
+  end
+
+  # Django app configuration file should be present
+  describe file('/home/app_user/sites/django_base/source/django_base/configuration.py') do
+    if os[:release] == '14.04'
+      params = [
+          %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
+          %r(ALLOWED_HOSTS = \['192\.168\.122\.11'\]$),
+          %r(^\s+'PASSWORD': "db_user_password",$),
+          %r(^DEBUG = False$),
+          %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
+          %r(^\s+'NAME': 'django_base',$),
+          %r(^\s+'USER': 'db_user',$),
+          %r(^\s+'HOST': 'localhost',$),
+          %r(^\s+'NAME': 'test_django_base',$)
+      ]
+    elsif os[:release] == '16.04'
+      params = [
+          %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
+          %r(ALLOWED_HOSTS = \['192\.168\.122\.12'\]$),
+          %r(^\s+'PASSWORD': "db_user_password",$),
+          %r(^DEBUG = False$),
+          %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
+          %r(^\s+'NAME': 'django_base',$),
+          %r(^\s+'USER': 'db_user',$),
+          %r(^\s+'HOST': 'localhost',$),
+          %r(^\s+'NAME': 'test_django_base',$)
+      ]
+    end
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
+
+  # Django app configuration file for admin tasks should be present
+  describe file('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py') do
+    params = [
+        %r(^from django_base.settings import \*$),
+        %r(^\s+'USER': 'postgres',$),
+        %r(^\s+'PASSWORD': "postgres_password",$),
+    ]
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
+
+  # uWSGI ini file should be present
+  describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
+    params = [
+        /^# django_base_uwsgi.ini file$/,
+        %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
+        /^module\s+=\s+django_base\.wsgi$/,
+        %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
+        /^uid\s+=\s+app_user$/,
+        /^gid\s+=\s+www-data$/,
+        /^processes\s+=\s+2$/,
+        %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+        /^chmod-socket\s+=\s+660$/,
+        %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
+        %r(^master-fifo\s+=\s+/tmp/fifo0$)
+    ]
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
 end
-
-describe file('/home/app_user/sites') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 550 }
-end
-
-describe file('/home/app_user/sites/django_base') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'www-data' }
-  it { should be_mode 550 }
-end
-
-describe file('/home/app_user/sites/django_base/source') do
-  it { should exist }
-  it { should be_directory }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 500 }
-end
-
-describe file('/home/app_user/sites/django_base/source/django_base/manage.py') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'app_user' }
-  it { should be_grouped_into 'app_user' }
-  it { should be_mode 400 }
-end
-
-# describe file('/home/app_user/sites/django_base/static') do
-#   it { should exist }
-#   it { should be_directory }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'www-data' }
-#   it { should be_mode 750 }
-# end
-#
-# describe file('/home/app_user/sites/django_base/media') do
-#   it { should exist }
-#   it { should be_directory }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'www-data' }
-#   it { should be_mode 750 }
-# end
-#
-# describe file('/home/app_user/sites/django_base/sockets') do
-#   it { should exist }
-#   it { should be_directory }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'www-data' }
-#   it { should be_mode 750 }
-# end
-#
-# describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
-#   it { should exist }
-#   it { should be_file }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'app_user' }
-#   it { should be_mode 400 }
-#   its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
-# end
-#
-# describe package('libxml2-dev') do
-#   it { should be_installed }
-# end
-#
-# describe package('libxslt1-dev') do
-#   it { should be_installed }
-# end
-#
-# describe package('zlib1g-dev') do
-#   it { should be_installed }
-# end
-#
-# describe package('python3-numpy') do
-#   it { should be_installed }
-# end
-#
-# describe command ( '/home/app_user/.envs/django_base/bin/pip3 list' ) do
-#   packages = [
-#       /^Django \(1\.9\.5\)$/,
-#       /^numpy \(1\.11\.0\)$/,
-#       /^biopython \(1\.66\)$/,
-#       /^lxml \(3\.6\.0\)$/,
-#       /^psycopg2 \(2\.6\.1\)$/,
-#   ]
-#   packages.each do |p|
-#     its(:stdout) { should match(p)}
-#   end
-# end
-#
-# describe file('/home/app_user/sites/django_base/source/django_base/configuration.py') do
-#   params = [
-#       "SECRET_KEY = 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!'",
-#       "ALLOWED_HOSTS = ['192.168.1.81']",
-#       '"PASSWORD": "db_user_password"',
-#       'DEBUG = False',
-#       "'ENGINE': 'django.db.backends.postgresql_psycopg2'",
-#       "'NAME': 'django_base'",
-#       "'USER': 'db_user'",
-#       "'HOST': 'localhost'",
-#       "'NAME': 'test_django_base'"
-#   ]
-#   it { should exist }
-#   it { should be_file }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'app_user' }
-#   it { should be_mode 400 }
-#   params.each do |p|
-#     its(:content) { should match(Regexp.escape(p))}
-#   end
-# end
-#
-# describe file('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py') do
-#   params = [
-#       'from django_base.settings import *',
-#       "'USER': 'postgres'",
-#       '"PASSWORD": "postgres_password"',
-#   ]
-#   it { should exist }
-#   it { should be_file }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'app_user' }
-#   it { should be_mode 400 }
-#   params.each do |p|
-#     its(:content) { should match(Regexp.escape(p))}
-#   end
-# end
-#
-# describe file('/home/app_user/sites/django_base/source/install_dependencies.py') do
-#   it { should exist }
-#   it { should be_file }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'app_user' }
-#   it { should be_mode 500 }
-#   its(:content) { should match(%r(^path = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$))}
-# end
-#
-# describe command ( 'cd /home/app_user/sites/django_base/source/django_base && /home/app_user/.envs/django_base/bin/python ./manage.py makemigrations --settings django_base.settings_admin' ) do
-#   its(:stdout) { should match(/No changes detected/)}
-# end
-#
-# describe command ( 'cd /home/app_user/sites/django_base/source/django_base && /home/app_user/.envs/django_base/bin/python ./manage.py migrate --settings django_base.settings_admin' ) do
-#   # should return Connection refused since postgresql is not installed and database is not configured
-#   its(:stderr) { should match(/could not connect to server: Connection refused/)}
-# end
-
-# describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
-#   params = [
-#       /^# django_base_uwsgi.ini file$/,
-#       %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
-#       /^module\s+=\s+django_base\.wsgi$/,
-#       %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
-#       /^uid\s+=\s+app_user$/,
-#       /^gid\s+=\s+www-data$/,
-#       /^processes\s+=\s+2$/,
-#       %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-#       /^chmod-socket\s+=\s+660$/,
-#       %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
-#       %r(^master-fifo\s+=\s+/tmp/fifo0$)
-#   ]
-#   it { should exist }
-#   it { should be_file }
-#   it { should be_owned_by 'app_user' }
-#   it { should be_grouped_into 'app_user' }
-#   it { should be_mode 400 }
-#   params.each do |p|
-#     its(:content) { should match(p)}
-#   end
-# end

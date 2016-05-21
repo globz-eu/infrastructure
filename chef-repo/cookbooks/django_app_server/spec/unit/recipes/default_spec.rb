@@ -31,6 +31,11 @@ describe 'django_app_server::default' do
         runner.converge(described_recipe)
       end
 
+      before do
+        stub_command('pip list | grep virtualenv').and_return(false)
+        stub_command("pip3 list | grep uWSGI").and_return(false)
+      end
+
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
       end
