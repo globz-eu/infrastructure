@@ -269,14 +269,6 @@ describe 'django_app_server::django_app' do
         end
       end
 
-      it 'clones the django app' do
-        expect( chef_run ).to run_bash('git_clone_app').with(
-            cwd: '/home/app_user/sites/django_base/source',
-            code: 'git clone https://github.com/globz-eu/django_base.git',
-            user: 'root'
-        )
-      end
-
       it 'changes ownership of the django app to app_user:app_user' do
         expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/sites/django_base/source')
       end
@@ -317,6 +309,8 @@ describe 'django_app_server::django_app' do
             source: 'install_django_app_conf.py.erb',
             variables: {
                 debug: 'False',
+                git_repo: 'https://github.com/globz-eu/django_base.git',
+                app_folder: '/home/app_user/sites/django_base/source',
                 venv: '/home/app_user/.envs/django_base',
                 reqs_file: '/home/app_user/sites/django_base/source/django_base/requirements.txt',
                 sys_deps_file: '/home/app_user/sites/django_base/source/django_base/system_dependencies.txt',
