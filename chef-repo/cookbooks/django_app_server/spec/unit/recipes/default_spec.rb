@@ -42,5 +42,3 @@ describe 'django_app_server::default' do
     end
   end
 end
-
-# TODO: make render_file tests for templates

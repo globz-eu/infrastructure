@@ -104,22 +104,8 @@ directory "/home/#{app_user}/sites/#{app_name}/sockets" do
   mode '0750'
 end
 
-# if git repo is specified clone from git repo
+# when git repo is specified clone from git repo
 if git_repo
-  # TODO: replace by script
-  bash 'git_clone_app' do
-    cwd "/home/#{app_user}/sites/#{app_name}/source"
-    code "git clone #{git_repo}/#{app_name}.git"
-    user 'root'
-    not_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}", :user => 'root'
-  end
-
-  execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
-
-  execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
-
-  execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
-
   bash 'git_clone_scripts' do
     cwd "/home/#{app_user}/sites/#{app_name}"
     code "git clone #{git_repo}/scripts.git"
@@ -142,6 +128,8 @@ if git_repo
     mode '0400'
     variables({
         debug: 'False',
+        git_repo: "#{git_repo}/#{app_name}.git",
+        app_folder: "/home/#{app_user}/sites/#{app_name}/source",
         venv: "/home/#{app_user}/.envs/#{app_name}",
         reqs_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/requirements.txt",
         sys_deps_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/system_dependencies.txt",
@@ -164,6 +152,13 @@ if git_repo
       user 'root'
     end
   end
+
+  # TODO: move to script
+  execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
+
+  execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
+
+  execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
 
   # change ownership of venv back to app_user
   execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
@@ -201,19 +196,6 @@ if git_repo
               })
   end
 end
-
-# TODO: replace add app to python path by script
-# # add app path to venv python path
-# template "/home/#{app_user}/.envs/#{app_name}/lib/python3.4/#{app_name}.pth" do
-#   source 'app_name.pth.erb'
-#   action :create
-#   owner app_user
-#   group app_user
-#   mode '0400'
-#   variables({
-#                 app_path: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}",
-#             })
-# end
 
 # make the uwsgi.ini file
 if app_name

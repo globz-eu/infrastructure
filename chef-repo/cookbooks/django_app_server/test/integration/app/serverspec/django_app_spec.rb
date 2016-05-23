@@ -92,16 +92,23 @@ if os[:family] == 'ubuntu'
 
   # Config file for for installation scripts should be present
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
+    params = [
+        %r(^DEBUG = False$),
+        %r(^APP_FOLDER = '/home/app_user/sites/django_base/source'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^VENV = '/home/app_user/\.envs/django_base'$),
+        %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
+        %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
+        %r(^LOG_FILE = '/var/log/django_base/install\.log'$)
+    ]
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'app_user' }
     it { should be_grouped_into 'app_user' }
     it { should be_mode 400 }
-    its(:content) { should match(%r(^DEBUG = False$))}
-    its(:content) { should match(%r(^VENV = '/home/app_user/\.envs/django_base'$))}
-    its(:content) { should match(%r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$))}
-    its(:content) { should match(%r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$))}
-    its(:content) { should match(%r(^LOG_FILE = '/var/log/django_base/install\.log'$))}
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
   end
 
   # Static and media directories for django app should be present
@@ -130,14 +137,27 @@ if os[:family] == 'ubuntu'
     it { should be_mode 750 }
   end
 
-  # describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
-  #   it { should exist }
-  #   it { should be_file }
-  #   it { should be_owned_by 'app_user' }
-  #   it { should be_grouped_into 'app_user' }
-  #   it { should be_mode 400 }
-  #   its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
-  # end
+  if os[:release] == '14.04'
+    describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 644 }
+      its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
+    end
+  end
+
+  if os[:release] == '16.04'
+    describe file('/home/app_user/.envs/django_base/lib/python3.5/django_base.pth') do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 644 }
+      its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
+    end
+  end
 
   # System dependencies should be installed
   describe package('libxml2-dev') do
