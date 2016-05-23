@@ -13,19 +13,27 @@ platforms:
       provider: libvirt
       box: alxgrh/ubuntu-trusty-x86_64
       network:
-        - ['private_network', {ip: '10.10.0.14'}]
+        - ['private_network', {ip: '192.168.122.14'}]
       customize:
         memory: 2048
         cpus: 2
+    attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.122.14'
   - name: ubuntu-16.04
     driver:
      provider: libvirt
      box: nrclark/xenial64-minimal-libvirt
      network:
-       - ['private_network', {ip: '10.10.0.15'}]
+       - ['private_network', {ip: '192.168.122.15'}]
      customize:
        memory: 2048
        cpus: 2
+    attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.122.15'
   - name: centos-7.1
     driver:
       provider: libvirt

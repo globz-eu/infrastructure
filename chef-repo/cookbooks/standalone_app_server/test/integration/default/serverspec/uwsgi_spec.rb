@@ -16,22 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: django_app_server
+# Server Spec:: python
 
-name 'standalone_app_server'
-maintainer 'Stefan Dieterle'
-maintainer_email 'golgoths@yahoo.fr'
-license 'GNU General Public License'
-description 'Installs/Configures standalone_app_server'
-long_description 'Installs/Configures standalone_app_server'
-version '0.1.0'
+require 'spec_helper'
 
-depends 'basic_node', '~> 0.1.20'
-depends 'django_app_server', '~> 0.1.2'
-depends 'chef-vault', '~> 1.3.2'
-depends 'apt', '~> 3.0.0'
-depends 'test-helper'
-depends 'firewall', '~> 2.4.0'
-depends 'postgresql', '~> 4.0.0'
-depends 'database', '~> 4.0.9'
-depends 'db_server', '~> 0.1.6'
-depends 'web_server', '~> 0.1.3'
+set :backend, :exec
+
+describe command ( 'pip3 list' ) do
+  its(:stdout) { should match(/uWSGI/)}
+end
+
+describe file('/var/log/uwsgi') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 755 }
+end
+

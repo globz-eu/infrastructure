@@ -11,13 +11,43 @@ platforms:
   - name: ubuntu-14.04
     driver:
       provider: libvirt
-      box: prod-like
-      provision: true
-      vagrantfiles:
-        - vagrant.rb
+      box: alxgrh/ubuntu-trusty-x86_64
+# Use for public network
+#      provision: true
+#      vagrantfiles:
+#        - vagrant.rb
+      network:
+        - ['private_network', {ip: '10.10.0.15'}]
+        - ['private_network', {ip: '192.168.122.13'}]
+#        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
       customize:
         memory: 2048
         cpus: 2
+    attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.122.13'
+      django_app_server:
+        django_app:
+          allowed_host: "192.168.122.13"
+  - name: ubuntu-16.04
+    driver:
+      provider: libvirt
+      box: nrclark/xenial64-minimal-libvirt
+      network:
+        - ['private_network', {ip: '10.10.0.16'}]
+        - ['private_network', {ip: '192.168.122.14'}]
+#        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
+      customize:
+        memory: 2048
+        cpus: 2
+    attributes:
+      web_server:
+        nginx:
+          server_name: '192.168.122.14'
+      django_app_server:
+        django_app:
+          allowed_host: "192.168.122.14"
   - name: centos-7.1
     driver:
       provider: libvirt
@@ -25,35 +55,22 @@ platforms:
 
 suites:
   - name: default
-    driver:
-      network:
-        - ['private_network', {ip: '10.10.0.13'}]
-        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.83'}]
     run_list:
       - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
-      web_server:
-        nginx:
-          server_name: '192.168.1.83'
+      db_server:
+        postgresql:
+          db_name: 'django_base'
       django_app_server:
+        git:
+          git_repo: 'https://github.com/globz-eu'
         django_app:
-          allowed_host: '192.168.1.83'
+          app_name: 'django_base'
     excludes: centos-7.1
-  - name: reinstall_app
-    driver:
-      network:
-        - ['private_network', {ip: '10.10.0.14'}]
-        - ['public_network', {dev: 'br0', mode: 'bridge', type: 'bridge', ip: '192.168.1.84'}]
-    run_list:
-      - recipe[standalone_app_server::default]
-#      - recipe[standalone_app_server::reinstall_app]
-      - recipe[test-helper::default]
-    attributes:
-      web_server:
-        nginx:
-          server_name: '192.168.1.84'
-      django_app_server:
-        django_app:
-          allowed_host: '192.168.1.84'
-    excludes: centos-7.1
+#  - name: reinstall_app
+#    run_list:
+#      - recipe[standalone_app_server::default]
+##      - recipe[standalone_app_server::reinstall_app]
+#      - recipe[test-helper::default]
+#    excludes: centos-7.1

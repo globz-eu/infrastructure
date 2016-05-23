@@ -20,15 +20,18 @@
 # Cookbook:: standalone_app_server
 # Attributes:: default
 
-default['django_app_server']['git']['git_repo'] = 'https://github.com/globz-eu/django_base.git'
-default['django_app_server']['django_app']['app_name'] = 'django_base'
+default['poise-python']['install_python2'] = false
+
+default['django_app_server']['git']['git_repo'] = false
+default['django_app_server']['django_app']['app_name'] = false
 default['django_app_server']['django_app']['debug'] = 'False'
-default['django_app_server']['django_app']['allowed_host'] = '192.168.1.82'
+default['django_app_server']['django_app']['allowed_host'] = 'localhost'
 default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'
 default['django_app_server']['django_app']['db_host'] = 'localhost'
 default['django_app_server']['uwsgi']['processes'] = '2'
 default['django_app_server']['uwsgi']['socket'] = 'unix'
 
+default['apt']['compile_time_update'] = true
 default['postgresql']['version'] = '9.5'
 default['postgresql']['enable_pgdg_apt'] = true
 default['postgresql']['dir'] = '/etc/postgresql/9.5/main'
@@ -71,7 +74,7 @@ default['postgresql']['pg_hba'] = [
     }
 ]
 
-default['db_server']['postgresql']['db_name'] = 'django_base'
+default['db_server']['postgresql']['db_name'] = false
 
 
 default['web_server']['nginx']['app_name'] = 'django_base'

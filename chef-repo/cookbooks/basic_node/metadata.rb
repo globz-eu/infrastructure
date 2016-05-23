@@ -23,7 +23,7 @@ maintainer_email 'golgoths@yahoo.fr'
 license 'GNU General Public License'
 description 'Installs/Configures basic_node'
 long_description 'Installs/Configures basic_node'
-version '0.1.19'
+version '0.1.20'
 
 depends 'apt', '~> 3.0.0'
 depends 'test-helper'

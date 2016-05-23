@@ -16,22 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: django_app_server
+# Spec:: app_user
 
-name 'standalone_app_server'
-maintainer 'Stefan Dieterle'
-maintainer_email 'golgoths@yahoo.fr'
-license 'GNU General Public License'
-description 'Installs/Configures standalone_app_server'
-long_description 'Installs/Configures standalone_app_server'
-version '0.1.0'
+require 'spec_helper'
 
-depends 'basic_node', '~> 0.1.20'
-depends 'django_app_server', '~> 0.1.2'
-depends 'chef-vault', '~> 1.3.2'
-depends 'apt', '~> 3.0.0'
-depends 'test-helper'
-depends 'firewall', '~> 2.4.0'
-depends 'postgresql', '~> 4.0.0'
-depends 'database', '~> 4.0.9'
-depends 'db_server', '~> 0.1.6'
-depends 'web_server', '~> 0.1.3'
+set :backend, :exec
+
+describe user( 'app_user' ) do
+  it { should exist }
+  it { should belong_to_group 'app_user' }
+  it { should belong_to_group 'www-data' }
+  it { should have_home_directory '/home/app_user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) { should match('$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/') }
+end

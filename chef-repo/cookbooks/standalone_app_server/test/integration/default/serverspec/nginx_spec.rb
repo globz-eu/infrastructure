@@ -54,27 +54,27 @@ if os[:family] == 'ubuntu'
 
   describe file('/etc/nginx/sites-available/django_base.conf') do
     if os[:release] == '14.04'
-    params = [
-        /^# django_base.conf$/,
-        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-        /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-        /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.14;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
-    ]
-    elsif os[:release] == '16.04'
-    params = [
-        /^# django_base.conf$/,
-        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-        /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-        /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.15;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
-    ]
+      params = [
+          /^# django_base.conf$/,
+          %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+          /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+          /^\s+listen\s+80;$/,
+          /^\s+server_name\s+192\.168\.122\.13;$/,
+          %r(^\s+alias /home/app_user/sites/django_base/media;),
+          %r(^\s+alias /home/app_user/sites/django_base/static;),
+          %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+      ]
+      elsif os[:release] == '16.04'
+        params = [
+            /^# django_base.conf$/,
+            %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+            /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.122\.14;$/,
+            %r(^\s+alias /home/app_user/sites/django_base/media;),
+            %r(^\s+alias /home/app_user/sites/django_base/static;),
+            %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+        ]
     end
     it { should exist }
     it { should be_file }
@@ -84,18 +84,5 @@ if os[:family] == 'ubuntu'
     params.each do |p|
       its(:content) { should match(p) }
     end
-  end
-
-  # describe file('/etc/nginx/sites-enabled/django_base.conf') do
-  #   it { should exist }
-  #   it { should be_symlink }
-  #   it { should be_owned_by 'root'}
-  #   it { should be_grouped_into 'root' }
-  #   its(:content) { should match (/^# django_base.conf$/) }
-  # end
-
-  describe file('/etc/nginx/sites-enabled/default') do
-    it { should exist }
-    it { should be_symlink }
   end
 end

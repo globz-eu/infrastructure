@@ -39,7 +39,7 @@ describe file('/var/log/django_base') do
   it { should be_directory }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
-  it { should be_mode 700 }
+  it { should be_mode 755 }
 end
 
 describe file('/var/log/django_base/test_results') do
@@ -56,6 +56,24 @@ end
 
 describe command('cat $(ls /var/log/django_base/test_results | head -1) | grep FAILED') do
   its(:stdout) { should_not match(/FAILED/)}
+end
+
+# nginx is running and site is enabled
+describe file('/etc/nginx/sites-enabled/django_base.conf') do
+  it { should exist }
+  it { should be_symlink }
+  it { should be_owned_by 'root'}
+  it { should be_grouped_into 'root' }
+  its(:content) { should match (/^# django_base.conf$/) }
+end
+
+describe file('/etc/nginx/sites-enabled/default') do
+  it { should_not exist }
+end
+
+describe service('nginx') do
+  it { should be_enabled }
+  it { should be_running }
 end
 
 # uwsgi is running

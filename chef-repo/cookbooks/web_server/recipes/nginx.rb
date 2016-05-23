@@ -30,9 +30,9 @@ server_name = node['web_server']['nginx']['server_name']
 
 package 'nginx'
 
-# service 'nginx' do
-#   action :nothing
-# end
+service 'nginx' do
+  action :nothing
+end
 
 # TODO: adapt to tcp sockets option
 template "/etc/nginx/sites-available/#{app_name}.conf" do

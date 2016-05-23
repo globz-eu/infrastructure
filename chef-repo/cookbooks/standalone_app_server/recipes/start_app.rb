@@ -27,16 +27,11 @@ app_user = app_user_vault['user']
 
 app_name = node['django_app_server']['django_app']['app_name']
 
+# TODO: replace by script
 bash 'migrate' do
   cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
   code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py migrate --settings #{app_name}.settings_admin"
   user 'root'
-end
-
-directory "/var/log/#{app_name}" do
-  owner 'root'
-  group 'root'
-  mode '0700'
 end
 
 directory "/var/log/#{app_name}/test_results" do
@@ -49,6 +44,19 @@ bash 'test_app' do
   cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
   code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py test --settings #{app_name}.settings_admin &> /var/log/#{app_name}/test_results/test_$(date +\"%d-%m-%y-%H%M%S\").log"
   user 'root'
+end
+
+# TODO: move static content to static folder
+
+link "/etc/nginx/sites-enabled/#{app_name}.conf" do
+  owner 'root'
+  group 'root'
+  to "/etc/nginx/sites-available/#{app_name}.conf"
+  notifies :restart, 'service[nginx]', :immediately
+end
+
+file '/etc/nginx/sites-enabled/default' do
+  action :delete
 end
 
 bash 'start_uwsgi' do

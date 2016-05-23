@@ -23,7 +23,7 @@ maintainer_email 'golgoths@yahoo.fr'
 license 'GNU General Public License'
 description 'Installs/Configures db_server'
 long_description 'Installs/Configures db_server'
-version '0.1.5'
+version '0.1.6'
 
 depends 'test-helper'
 depends 'chef-vault', '~> 1.3.2'
