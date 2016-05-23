@@ -226,12 +226,75 @@ describe 'django_app_server::django_app' do
         )
       end
 
+      it 'creates the /home/app_user/sites/django_base/conf.d directory' do
+        expect(chef_run).to create_directory('/home/app_user/sites/django_base/conf.d').with(
+            owner: 'app_user',
+            group: 'www-data',
+            mode: '0750',
+        )
+      end
+
       it 'creates the /home/app_user/sites/django_base/sockets directory' do
         expect(chef_run).to create_directory('/home/app_user/sites/django_base/sockets').with(
             owner: 'app_user',
             group: 'www-data',
             mode: '0750',
         )
+      end
+
+      it 'creates the /home/app_user/sites/django_base/conf.d/configuration.py file' do
+        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/configuration.py').with(
+            owner: 'app_user',
+            group: 'app_user',
+            mode: '0400',
+            source: 'configuration.py.erb',
+            variables: {
+                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+                debug: 'False',
+                allowed_host: 'localhost',
+                engine: 'django.db.backends.postgresql_psycopg2',
+                app_name: 'django_base',
+                db_user: 'db_user',
+                db_user_password: 'db_user_password',
+                db_host: 'localhost'
+            }
+        )
+        config = [
+            %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
+            %r(^DEBUG = False$),
+            %r(^ALLOWED_HOSTS = \['localhost'\]$),
+            %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
+            %r(^\s+'NAME': 'django_base',$),
+            %r(^\s+'USER': 'db_user',$),
+            %r(^\s+'PASSWORD': "db_user_password",$),
+            %r(^\s+'HOST': 'localhost',$),
+            %r(^\s+'NAME': 'test_django_base',$)
+        ]
+        config.each do |u|
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/configuration.py').with_content(u)
+        end
+      end
+
+      it 'creates the /home/app_user/sites/django_base/conf.d/settings_admin.py file' do
+        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/settings_admin.py').with(
+            owner: 'app_user',
+            group: 'app_user',
+            mode: '0400',
+            source: 'settings_admin.py.erb',
+            variables: {
+                app_name: 'django_base',
+                db_admin_user: 'postgres',
+                db_admin_password: 'postgres_password',
+            }
+        )
+        install_app_conf = [
+            %r(^from django_base\.settings import \*$),
+            %r(^\s+'USER': 'postgres',$),
+            %r(^\s+'PASSWORD': "postgres_password",$)
+        ]
+        install_app_conf.each do |u|
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/settings_admin.py').with_content(u)
+        end
       end
 
       it 'creates the /home/app_user/sites/django_base/source/django_base_uwsgi.ini file' do
@@ -289,16 +352,23 @@ describe 'django_app_server::django_app' do
         )
       end
 
+      it 'notifies script ownership and permission commands' do
+        clone_scripts = chef_run.bash('git_clone_scripts')
+        expect(clone_scripts).to notify('bash[own_scripts]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[scripts_dir_permissions]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[make_scripts_executable]').to(:run).immediately
+      end
+
       it 'changes ownership of the script directory to app_user:app_user' do
-        expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/sites/django_base/scripts')
+        expect(chef_run).to_not run_bash('own_scripts')
       end
 
       it 'changes permissions the scripts directory to 0500' do
-        expect(chef_run).to run_execute('chmod 0500 /home/app_user/sites/django_base/scripts')
+        expect(chef_run).to_not run_bash('scritps_dir_permissions')
       end
 
       it 'makes scripts executable' do
-        expect(chef_run).to run_execute('chmod +x /home/app_user/sites/django_base/scripts/*.py')
+        expect(chef_run).to_not run_bash('make_scripts_executable')
       end
 
       it 'creates the /home/app_user/sites/django_base/scripts/install_django_app_conf.py file' do
@@ -319,6 +389,8 @@ describe 'django_app_server::django_app' do
         )
         install_app_conf = [
             %r(^DEBUG = False$),
+            %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
+            %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
             %r(^VENV = '/home/app_user/\.envs/django_base'$),
             %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
             %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
@@ -353,61 +425,6 @@ describe 'django_app_server::django_app' do
 
       it 'changes ownership of the virtual environment back to app_user' do
         expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/.envs/django_base')
-      end
-
-      it 'creates the /home/app_user/sites/django_base/source/django_base/configuration.py file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base/configuration.py').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0400',
-            source: 'configuration.py.erb',
-            variables: {
-                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-                debug: 'False',
-                allowed_host: 'localhost',
-                engine: 'django.db.backends.postgresql_psycopg2',
-                app_name: 'django_base',
-                db_user: 'db_user',
-                db_user_password: 'db_user_password',
-                db_host: 'localhost'
-            }
-        )
-        config = [
-            %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(^DEBUG = False$),
-            %r(^ALLOWED_HOSTS = \['localhost'\]$),
-            %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-            %r(^\s+'NAME': 'django_base',$),
-            %r(^\s+'USER': 'db_user',$),
-            %r(^\s+'PASSWORD': "db_user_password",$),
-            %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_django_base',$)
-        ]
-        config.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base/configuration.py').with_content(u)
-        end
-      end
-
-      it 'creates the /home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0400',
-            source: 'settings_admin.py.erb',
-            variables: {
-                app_name: 'django_base',
-                db_admin_user: 'postgres',
-                db_admin_password: 'postgres_password',
-            }
-        )
-        install_app_conf = [
-            %r(^from django_base\.settings import \*$),
-            %r(^\s+'USER': 'postgres',$),
-            %r(^\s+'PASSWORD': "postgres_password",$)
-        ]
-        install_app_conf.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py').with_content(u)
-        end
       end
 
       it 'adds the django_base_uwsgi.ini file' do

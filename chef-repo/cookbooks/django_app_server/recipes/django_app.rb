@@ -97,6 +97,13 @@ directory "/home/#{app_user}/sites/#{app_name}/media" do
   mode '0750'
 end
 
+# create conf.d directory
+directory "/home/#{app_user}/sites/#{app_name}/conf.d" do
+  owner app_user
+  group 'www-data'
+  mode '0750'
+end
+
 # create sockets directory
 directory "/home/#{app_user}/sites/#{app_name}/sockets" do
   owner app_user
@@ -106,19 +113,66 @@ end
 
 # when git repo is specified clone from git repo
 if git_repo
+  # create host-specific configuration file for django app
+  template "/home/#{app_user}/sites/#{app_name}/conf.d/configuration.py" do
+    source 'configuration.py.erb'
+    action :create
+    owner app_user
+    group app_user
+    mode '0400'
+    variables({
+                  secret_key: django_app_vault['secret_key'],
+                  debug: node['django_app_server']['django_app']['debug'],
+                  allowed_host: node['django_app_server']['django_app']['allowed_host'],
+                  engine: node['django_app_server']['django_app']['engine'],
+                  app_name: app_name,
+                  db_user: django_app_vault['db_user'],
+                  db_user_password: django_app_vault['db_user_password'],
+                  db_host: node['django_app_server']['django_app']['db_host']
+              })
+  end
+
+  # create django settings file for administrative tasks (manage.py)
+  template "/home/#{app_user}/sites/#{app_name}/conf.d/settings_admin.py" do
+    source 'settings_admin.py.erb'
+    action :create
+    owner app_user
+    group app_user
+    mode '0400'
+    variables({
+                  app_name: app_name,
+                  db_admin_user: django_app_vault['db_admin_user'],
+                  db_admin_password: django_app_vault['db_admin_password'],
+              })
+  end
+
   bash 'git_clone_scripts' do
     cwd "/home/#{app_user}/sites/#{app_name}"
     code "git clone #{git_repo}/scripts.git"
     user 'root'
     not_if "ls /home/#{app_user}/sites/#{app_name}/scripts", :user => 'root'
+    notifies :run, 'bash[own_scripts]', :immediately
+    notifies :run, 'bash[scripts_dir_permissions]', :immediately
+    notifies :run, 'bash[make_scripts_executable]', :immediately
   end
 
-  # TODO: only execute when git_clone_scripts is executed
-  execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/scripts"
+  bash 'own_scripts' do
+    code "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
 
-  execute "chmod 0500 /home/#{app_user}/sites/#{app_name}/scripts"
+  bash 'scripts_dir_permissions' do
+    code "chmod 0500 /home/#{app_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
 
-  execute "chmod +x /home/#{app_user}/sites/#{app_name}/scripts/*.py"
+  bash 'make_scripts_executable' do
+    code "chmod 0500 /home/#{app_user}/sites/#{app_name}/scripts/*.py"
+    user 'root'
+    action :nothing
+  end
 
   template "/home/#{app_user}/sites/#{app_name}/scripts/install_django_app_conf.py" do
     source 'install_django_app_conf.py.erb'
@@ -163,38 +217,6 @@ if git_repo
   # change ownership of venv back to app_user
   execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
 
-  # create host-specific configuration file for django app
-  template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/configuration.py" do
-    source 'configuration.py.erb'
-    action :create
-    owner app_user
-    group app_user
-    mode '0400'
-    variables({
-                  secret_key: django_app_vault['secret_key'],
-                  debug: node['django_app_server']['django_app']['debug'],
-                  allowed_host: node['django_app_server']['django_app']['allowed_host'],
-                  engine: node['django_app_server']['django_app']['engine'],
-                  app_name: app_name,
-                  db_user: django_app_vault['db_user'],
-                  db_user_password: django_app_vault['db_user_password'],
-                  db_host: node['django_app_server']['django_app']['db_host']
-              })
-  end
-
-  # create django settings file for administrative tasks (manage.py)
-  template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/#{app_name}/settings_admin.py" do
-    source 'settings_admin.py.erb'
-    action :create
-    owner app_user
-    group app_user
-    mode '0400'
-    variables({
-                  app_name: app_name,
-                  db_admin_user: django_app_vault['db_admin_user'],
-                  db_admin_password: django_app_vault['db_admin_password'],
-              })
-  end
 end
 
 # make the uwsgi.ini file

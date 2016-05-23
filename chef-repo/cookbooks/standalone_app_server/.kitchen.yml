@@ -68,9 +68,3 @@ suites:
         django_app:
           app_name: 'django_base'
     excludes: centos-7.1
-#  - name: reinstall_app
-#    run_list:
-#      - recipe[standalone_app_server::default]
-##      - recipe[standalone_app_server::reinstall_app]
-#      - recipe[test-helper::default]
-#    excludes: centos-7.1

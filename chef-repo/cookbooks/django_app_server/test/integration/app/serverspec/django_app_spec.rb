@@ -72,6 +72,20 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
+  files = [
+      '/home/app_user/sites/django_base/scripts/install_django_app_trusty.py',
+      '/home/app_user/sites/django_base/scripts/install_django_app_xenial.py'
+  ]
+  files.each do |f|
+    describe file(f) do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 500 }
+    end
+  end
+
   # App log directory should be present
   describe file('/var/log/django_base') do
     it { should exist }
@@ -94,7 +108,7 @@ if os[:family] == 'ubuntu'
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
     params = [
         %r(^DEBUG = False$),
-        %r(^APP_FOLDER = '/home/app_user/sites/django_base/source'$),
+        %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
         %r(^VENV = '/home/app_user/\.envs/django_base'$),
         %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
@@ -111,7 +125,7 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  # Static and media directories for django app should be present
+  # Static, media and conf.d directories for django app should be present
   describe file('/home/app_user/sites/django_base/static') do
     it { should exist }
     it { should be_directory }
@@ -121,6 +135,14 @@ if os[:family] == 'ubuntu'
   end
 
   describe file('/home/app_user/sites/django_base/media') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 750 }
+  end
+
+  describe file('/home/app_user/sites/django_base/conf.d') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -191,56 +213,68 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file should be present
-  describe file('/home/app_user/sites/django_base/source/django_base/configuration.py') do
-    if os[:release] == '14.04'
-      params = [
-          %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-          %r(ALLOWED_HOSTS = \['192\.168\.122\.11'\]$),
-          %r(^\s+'PASSWORD': "db_user_password",$),
-          %r(^DEBUG = False$),
-          %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-          %r(^\s+'NAME': 'django_base',$),
-          %r(^\s+'USER': 'db_user',$),
-          %r(^\s+'HOST': 'localhost',$),
-          %r(^\s+'NAME': 'test_django_base',$)
-      ]
-    elsif os[:release] == '16.04'
-      params = [
-          %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-          %r(ALLOWED_HOSTS = \['192\.168\.122\.12'\]$),
-          %r(^\s+'PASSWORD': "db_user_password",$),
-          %r(^DEBUG = False$),
-          %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-          %r(^\s+'NAME': 'django_base',$),
-          %r(^\s+'USER': 'db_user',$),
-          %r(^\s+'HOST': 'localhost',$),
-          %r(^\s+'NAME': 'test_django_base',$)
-      ]
-    end
-    it { should exist }
-    it { should be_file }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'app_user' }
-    it { should be_mode 400 }
-    params.each do |p|
-      its(:content) { should match(p)}
+  configuration_files = [
+      '/home/app_user/sites/django_base/conf.d/configuration.py',
+      '/home/app_user/sites/django_base/source/django_base/configuration.py'
+  ]
+  configuration_files.each do |f|
+    describe file(f) do
+      if os[:release] == '14.04'
+        params = [
+            %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
+            %r(ALLOWED_HOSTS = \['192\.168\.122\.11'\]$),
+            %r(^\s+'PASSWORD': "db_user_password",$),
+            %r(^DEBUG = False$),
+            %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
+            %r(^\s+'NAME': 'django_base',$),
+            %r(^\s+'USER': 'db_user',$),
+            %r(^\s+'HOST': 'localhost',$),
+            %r(^\s+'NAME': 'test_django_base',$)
+        ]
+      elsif os[:release] == '16.04'
+        params = [
+            %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
+            %r(ALLOWED_HOSTS = \['192\.168\.122\.12'\]$),
+            %r(^\s+'PASSWORD': "db_user_password",$),
+            %r(^DEBUG = False$),
+            %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
+            %r(^\s+'NAME': 'django_base',$),
+            %r(^\s+'USER': 'db_user',$),
+            %r(^\s+'HOST': 'localhost',$),
+            %r(^\s+'NAME': 'test_django_base',$)
+        ]
+      end
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 400 }
+      params.each do |p|
+        its(:content) { should match(p)}
+      end
     end
   end
 
   # Django app configuration file for admin tasks should be present
-  describe file('/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py') do
-    params = [
-        %r(^from django_base.settings import \*$),
-        %r(^\s+'USER': 'postgres',$),
-        %r(^\s+'PASSWORD': "postgres_password",$),
-    ]
-    it { should exist }
-    it { should be_file }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'app_user' }
-    it { should be_mode 400 }
-    params.each do |p|
-      its(:content) { should match(p)}
+  settings_admin_files = [
+      '/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py',
+      '/home/app_user/sites/django_base/conf.d/settings_admin.py'
+  ]
+  settings_admin_files.each do |f|
+    describe file(f) do
+      params = [
+          %r(^from django_base.settings import \*$),
+          %r(^\s+'USER': 'postgres',$),
+          %r(^\s+'PASSWORD': "postgres_password",$),
+      ]
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 400 }
+      params.each do |p|
+        its(:content) { should match(p)}
+      end
     end
   end
 

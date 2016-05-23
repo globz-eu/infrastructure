@@ -24,7 +24,6 @@ include_recipe 'chef-vault'
 
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
-
 app_name = node['django_app_server']['django_app']['app_name']
 
 # TODO: replace by script
@@ -48,15 +47,15 @@ end
 
 # TODO: move static content to static folder
 
+file '/etc/nginx/sites-enabled/default' do
+  action :delete
+end
+
 link "/etc/nginx/sites-enabled/#{app_name}.conf" do
   owner 'root'
   group 'root'
   to "/etc/nginx/sites-available/#{app_name}.conf"
   notifies :restart, 'service[nginx]', :immediately
-end
-
-file '/etc/nginx/sites-enabled/default' do
-  action :delete
 end
 
 bash 'start_uwsgi' do
