@@ -86,13 +86,33 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  # describe file('/etc/nginx/sites-enabled/django_base.conf') do
-  #   it { should exist }
-  #   it { should be_symlink }
-  #   it { should be_owned_by 'root'}
-  #   it { should be_grouped_into 'root' }
-  #   its(:content) { should match (/^# django_base.conf$/) }
-  # end
+  describe file('/etc/nginx/sites-available/django_base_down.conf') do
+    if os[:release] == '14.04'
+      params = [
+          /^# django_base_down.conf$/,
+          %r(^\s+index index.html;$),
+          /^\s+listen\s+80;$/,
+          /^\s+server_name\s+192\.168\.122\.14;$/,
+          %r(^\s+root /home/app_user/sites/django_base/down;)
+      ]
+    elsif os[:release] == '16.04'
+      params = [
+          /^# django_base_down.conf$/,
+          %r(^\s+index index.html;$),
+          /^\s+listen\s+80;$/,
+          /^\s+server_name\s+192\.168\.122\.15;$/,
+          %r(^\s+root /home/app_user/sites/django_base/down;)
+      ]
+    end
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p) }
+    end
+  end
 
   describe file('/etc/nginx/sites-enabled/default') do
     it { should exist }

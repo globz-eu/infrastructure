@@ -53,13 +53,15 @@ end
 # TODO: add activation of site to script
 # TODO: add default server down page
 
-# link "/etc/nginx/sites-enabled/#{app_name}.conf" do
-#   owner 'root'
-#   group 'root'
-#   to "/etc/nginx/sites-available/#{app_name}.conf"
-#   notifies :restart, 'service[nginx]', :immediately
-# end
-
-# file '/etc/nginx/sites-enabled/default' do
-#   action :delete
-# end
+template "/etc/nginx/sites-available/#{app_name}_down.conf" do
+  owner 'root'
+  group 'root'
+  mode '0400'
+  source 'app_name_down.conf.erb'
+  variables({
+                app_name: app_name,
+                listen_port: '80',
+                server_name: server_name,
+                app_user: app_user
+            })
+end

@@ -1,0 +1,21 @@
+# <%= @app_name %>_down.conf
+#
+############################################
+# File managed by Chef, please do not edit #
+############################################
+#
+# Configuration of the server
+
+http {
+  index index.html;
+  server {
+    # the port your site will be served on
+    listen      <%= @listen_port %>;
+    # the domain name it will serve for
+    server_name <%= @server_name %>;
+    charset     utf-8;
+
+    # root directory
+    root /home/<%= @app_user %>/sites/<%= @app_name %>/down;
+  }
+}

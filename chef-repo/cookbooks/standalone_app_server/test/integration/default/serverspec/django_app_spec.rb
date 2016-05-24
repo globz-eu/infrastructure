@@ -94,7 +94,7 @@ if os[:family] == 'ubuntu'
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
     params = [
         %r(^DEBUG = False$),
-        %r(^APP_FOLDER = '/home/app_user/sites/django_base/source'$),
+        %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
         %r(^VENV = '/home/app_user/\.envs/django_base'$),
         %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),

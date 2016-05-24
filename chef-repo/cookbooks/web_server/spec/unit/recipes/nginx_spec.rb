@@ -76,6 +76,31 @@ describe 'web_server::nginx' do
           expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
         end
       end
+
+      it 'creates or updates django_base_down.conf file' do
+        params = [
+            /^# django_base_down.conf$/,
+            %r(^\s+index index.html;$),
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.1\.81;$/,
+            %r(^\s+root /home/app_user/sites/django_base/down;)
+        ]
+        expect(chef_run).to create_template('/etc/nginx/sites-available/django_base_down.conf').with({
+                  owner: 'root',
+                  group: 'root',
+                  mode: '0400',
+                  source: 'app_name_down.conf.erb',
+                  variables: {
+                      app_name: 'django_base',
+                      listen_port: '80',
+                      server_name: '192.168.1.81',
+                      app_user: 'app_user',
+                  }
+                                                                                                })
+        params.each do |p|
+          expect(chef_run).to render_file('/etc/nginx/sites-available/django_base_down.conf').with_content(p)
+        end
+      end
     end
   end
 end
