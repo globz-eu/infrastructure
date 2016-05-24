@@ -59,7 +59,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.14;$/,
+        /^\s+server_name\s+192\.168\.122\.15;$/,
         %r(^\s+alias /home/app_user/sites/django_base/media;),
         %r(^\s+alias /home/app_user/sites/django_base/static;),
         %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
@@ -70,7 +70,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.15;$/,
+        /^\s+server_name\s+192\.168\.122\.16;$/,
         %r(^\s+alias /home/app_user/sites/django_base/media;),
         %r(^\s+alias /home/app_user/sites/django_base/static;),
         %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
@@ -97,7 +97,7 @@ if os[:family] == 'ubuntu'
             /^# django_base_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.122\.14;$/,
+            /^\s+server_name\s+192\.168\.122\.15;$/,
             %r(^\s+root /var/www/django_base_down;)
         ]
       elsif os[:release] == '16.04'
@@ -105,7 +105,7 @@ if os[:family] == 'ubuntu'
             /^# django_base_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.122\.15;$/,
+            /^\s+server_name\s+192\.168\.122\.16;$/,
             %r(^\s+root /var/www/django_base_down;)
         ]
       end

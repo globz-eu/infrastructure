@@ -66,8 +66,8 @@ describe 'standalone_app_server::start_app' do
                })
       end
 
-      it 'disables the default site' do
-        expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
+      it 'disables the app down site' do
+        expect(chef_run).to delete_file('/etc/nginx/sites-enabled/django_base_down.conf')
       end
 
       it 'enables app site in nginx' do

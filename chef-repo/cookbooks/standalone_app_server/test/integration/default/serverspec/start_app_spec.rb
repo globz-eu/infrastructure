@@ -67,7 +67,7 @@ describe file('/etc/nginx/sites-enabled/django_base.conf') do
   its(:content) { should match (/^# django_base.conf$/) }
 end
 
-describe file('/etc/nginx/sites-enabled/default') do
+describe file('/etc/nginx/sites-enabled/django_base_down.conf') do
   it { should_not exist }
 end
 

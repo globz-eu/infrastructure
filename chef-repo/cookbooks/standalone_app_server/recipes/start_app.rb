@@ -47,7 +47,7 @@ end
 
 # TODO: move static content to static folder
 
-file '/etc/nginx/sites-enabled/default' do
+file "/etc/nginx/sites-enabled/#{app_name}_down.conf" do
   action :delete
 end
 

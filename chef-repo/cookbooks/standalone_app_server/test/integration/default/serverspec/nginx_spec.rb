@@ -54,27 +54,27 @@ if os[:family] == 'ubuntu'
 
   describe file('/etc/nginx/sites-available/django_base.conf') do
     if os[:release] == '14.04'
-      params = [
-          /^# django_base.conf$/,
-          %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-          /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-          /^\s+listen\s+80;$/,
-          /^\s+server_name\s+192\.168\.122\.13;$/,
-          %r(^\s+alias /home/app_user/sites/django_base/media;),
-          %r(^\s+alias /home/app_user/sites/django_base/static;),
-          %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
-      ]
-      elsif os[:release] == '16.04'
-        params = [
-            /^# django_base.conf$/,
-            %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-            /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-            /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.122\.14;$/,
-            %r(^\s+alias /home/app_user/sites/django_base/media;),
-            %r(^\s+alias /home/app_user/sites/django_base/static;),
-            %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
-        ]
+    params = [
+        /^# django_base.conf$/,
+        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+        /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+        /^\s+listen\s+80;$/,
+        /^\s+server_name\s+192\.168\.122\.13;$/,
+        %r(^\s+alias /home/app_user/sites/django_base/media;),
+        %r(^\s+alias /home/app_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+    ]
+    elsif os[:release] == '16.04'
+    params = [
+        /^# django_base.conf$/,
+        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+        /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+        /^\s+listen\s+80;$/,
+        /^\s+server_name\s+192\.168\.122\.14;$/,
+        %r(^\s+alias /home/app_user/sites/django_base/media;),
+        %r(^\s+alias /home/app_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+    ]
     end
     it { should exist }
     it { should be_file }
@@ -84,5 +84,76 @@ if os[:family] == 'ubuntu'
     params.each do |p|
       its(:content) { should match(p) }
     end
+  end
+
+  site_down_conf = [
+      '/etc/nginx/sites-available/django_base_down.conf',
+      '/etc/nginx/sites-enabled/django_base_down.conf'
+  ]
+  site_down_conf.each() do |f|
+    describe file(f) do
+      if os[:release] == '14.04'
+        params = [
+            /^# django_base_down.conf$/,
+            %r(^\s+index index.html;$),
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.122\.13;$/,
+            %r(^\s+root /var/www/django_base_down;)
+        ]
+      elsif os[:release] == '16.04'
+        params = [
+            /^# django_base_down.conf$/,
+            %r(^\s+index index.html;$),
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.122\.14;$/,
+            %r(^\s+root /var/www/django_base_down;)
+        ]
+      end
+      if f == '/etc/nginx/sites-available/django_base_down.conf'
+        it { should exist }
+        it { should be_file }
+        it { should be_mode 400 }
+        it { should be_owned_by 'root' }
+        it { should be_grouped_into 'root' }
+        params.each do |p|
+          its(:content) { should match(p) }
+        end
+      elsif f == '/etc/nginx/sites-enabled/django_base_down.conf'
+        it {should_not exist}
+      end
+    end
+  end
+
+  site_down_dirs = ['/var/www', '/var/www/django_base_down']
+  site_down_dirs.each do |f|
+    describe file(f) do
+      it {should exist}
+      it {should be_directory}
+      it {should be_owned_by 'root'}
+      it {should be_grouped_into 'www-data'}
+      it {should be_mode 750}
+    end
+  end
+
+  describe file('/var/www/django_base_down/index.html') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+    its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
+  end
+
+  if os[:release] == '14.04'
+    host = '192.168.122.13'
+  elsif os[:release] == '16.04'
+    host = '192.168.122.14'
+  end
+  describe command("curl #{host}") do
+    its(:stdout) {should match(%r(^\s+<title>Index</title>$))}
+  end
+
+  describe file('/etc/nginx/sites-enabled/default') do
+    it { should_not exist }
   end
 end
