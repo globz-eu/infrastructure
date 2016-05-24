@@ -86,36 +86,69 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  describe file('/etc/nginx/sites-available/django_base_down.conf') do
-    if os[:release] == '14.04'
-      params = [
-          /^# django_base_down.conf$/,
-          %r(^\s+index index.html;$),
-          /^\s+listen\s+80;$/,
-          /^\s+server_name\s+192\.168\.122\.14;$/,
-          %r(^\s+root /home/app_user/sites/django_base/down;)
-      ]
-    elsif os[:release] == '16.04'
-      params = [
-          /^# django_base_down.conf$/,
-          %r(^\s+index index.html;$),
-          /^\s+listen\s+80;$/,
-          /^\s+server_name\s+192\.168\.122\.15;$/,
-          %r(^\s+root /home/app_user/sites/django_base/down;)
-      ]
-    end
-    it { should exist }
-    it { should be_file }
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
-    it { should be_mode 400 }
-    params.each do |p|
-      its(:content) { should match(p) }
+  site_down_conf = [
+      '/etc/nginx/sites-available/django_base_down.conf',
+      '/etc/nginx/sites-enabled/django_base_down.conf'
+  ]
+  site_down_conf.each() do |f|
+    describe file(f) do
+      if os[:release] == '14.04'
+        params = [
+            /^# django_base_down.conf$/,
+            %r(^\s+index index.html;$),
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.122\.14;$/,
+            %r(^\s+root /var/www/django_base_down;)
+        ]
+      elsif os[:release] == '16.04'
+        params = [
+            /^# django_base_down.conf$/,
+            %r(^\s+index index.html;$),
+            /^\s+listen\s+80;$/,
+            /^\s+server_name\s+192\.168\.122\.15;$/,
+            %r(^\s+root /var/www/django_base_down;)
+        ]
+      end
+      it { should exist }
+      if f == '/etc/nginx/sites-available/django_base_down.conf'
+        it { should be_file }
+        it { should be_mode 400 }
+      elsif f == '/etc/nginx/sites-enabled/django_base_down.conf'
+        it {should be_symlink}
+      end
+      it { should be_owned_by 'root' }
+      it { should be_grouped_into 'root' }
+      params.each do |p|
+        its(:content) { should match(p) }
+      end
     end
   end
 
-  describe file('/etc/nginx/sites-enabled/default') do
+  site_down_dirs = ['/var/www', '/var/www/django_base_down']
+  site_down_dirs.each do |f|
+    describe file(f) do
+      it {should exist}
+      it {should be_directory}
+      it {should be_owned_by 'root'}
+      it {should be_grouped_into 'www-data'}
+      it {should be_mode 750}
+    end
+  end
+
+  describe file('/var/www/django_base_down/index.html') do
     it { should exist }
-    it { should be_symlink }
+    it { should be_file }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+    its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
+  end
+
+  describe command('curl localhost') do
+    its(:stdout) {should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$))}
+  end
+
+  describe file('/etc/nginx/sites-enabled/default') do
+    it { should_not exist }
   end
 end

@@ -50,8 +50,24 @@ template "/etc/nginx/sites-available/#{app_name}.conf" do
             })
 end
 
-# TODO: add activation of site to script
-# TODO: add default server down page
+site_down_dirs = ['/var/www', "/var/www/#{app_name}_down"]
+site_down_dirs.each do |s|
+  directory s do
+    owner 'root'
+    group 'www-data'
+    mode '0750'
+  end
+end
+
+template "/var/www/#{app_name}_down/index.html" do
+  owner 'root'
+  group 'www-data'
+  mode '0440'
+  source 'index_down.html.erb'
+  variables({
+      app_name: app_name
+            })
+end
 
 template "/etc/nginx/sites-available/#{app_name}_down.conf" do
   owner 'root'
@@ -62,6 +78,16 @@ template "/etc/nginx/sites-available/#{app_name}_down.conf" do
                 app_name: app_name,
                 listen_port: '80',
                 server_name: server_name,
-                app_user: app_user
             })
+end
+
+file '/etc/nginx/sites-enabled/default' do
+  action :delete
+end
+
+link "/etc/nginx/sites-enabled/#{app_name}_down.conf" do
+  owner 'root'
+  group 'root'
+  to "/etc/nginx/sites-available/#{app_name}_down.conf"
+  notifies :restart, 'service[nginx]', :immediately
 end
