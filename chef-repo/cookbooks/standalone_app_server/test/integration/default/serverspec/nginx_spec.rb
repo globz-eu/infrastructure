@@ -150,7 +150,7 @@ if os[:family] == 'ubuntu'
     host = '192.168.122.14'
   end
   describe command("curl #{host}") do
-    its(:stdout) {should match(%r(^\s+<title>Index</title>$))}
+    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
   end
 
   describe file('/etc/nginx/sites-enabled/default') do

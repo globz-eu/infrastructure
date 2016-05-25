@@ -332,18 +332,6 @@ describe 'django_app_server::django_app' do
         end
       end
 
-      it 'changes ownership of the django app to app_user:app_user' do
-        expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/sites/django_base/source')
-      end
-
-      it 'changes permissions for all files in django app to 0400' do
-        expect(chef_run).to run_execute('find /home/app_user/sites/django_base/source -type f -exec chmod 0400 {} +')
-      end
-
-      it 'changes permissions for all directories in django app to 0500' do
-        expect(chef_run).to run_execute('find /home/app_user/sites/django_base/source -type d -exec chmod 0500 {} +')
-      end
-
       it 'clones the scripts' do
         expect( chef_run ).to run_bash('git_clone_scripts').with(
             cwd: '/home/app_user/sites/django_base',
@@ -380,7 +368,8 @@ describe 'django_app_server::django_app' do
             variables: {
                 debug: 'False',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
-                app_folder: '/home/app_user/sites/django_base/source',
+                app_home: '/home/app_user/sites/django_base/source',
+                app_user: 'app_user',
                 venv: '/home/app_user/.envs/django_base',
                 reqs_file: '/home/app_user/sites/django_base/source/django_base/requirements.txt',
                 sys_deps_file: '/home/app_user/sites/django_base/source/django_base/system_dependencies.txt',
@@ -390,6 +379,7 @@ describe 'django_app_server::django_app' do
         install_app_conf = [
             %r(^DEBUG = False$),
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
+            %r(^APP_USER = 'app_user'$),
             %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
             %r(^VENV = '/home/app_user/\.envs/django_base'$),
             %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
@@ -421,10 +411,6 @@ describe 'django_app_server::django_app' do
               user: 'root'
           )
         end
-      end
-
-      it 'changes ownership of the virtual environment back to app_user' do
-        expect(chef_run).to run_execute('chown -R app_user:app_user /home/app_user/.envs/django_base')
       end
 
       it 'adds the django_base_uwsgi.ini file' do
@@ -460,17 +446,6 @@ describe 'django_app_server::django_app' do
           expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(p)
         end
       end
-
-      # it 'adds the app path to the python path' do
-      #   expect(chef_run).to create_template('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth').with(
-      #       owner: 'app_user',
-      #       group: 'app_user',
-      #       mode: '0400',
-      #       source: 'app_name.pth.erb',
-      #       variables: {
-      #           app_path: '/home/app_user/sites/django_base/source/django_base',
-      #       })
-      # end
     end
   end
 end

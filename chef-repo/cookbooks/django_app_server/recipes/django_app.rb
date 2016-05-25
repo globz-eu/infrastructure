@@ -183,7 +183,8 @@ if git_repo
     variables({
         debug: 'False',
         git_repo: "#{git_repo}/#{app_name}.git",
-        app_folder: "/home/#{app_user}/sites/#{app_name}/source",
+        app_home: "/home/#{app_user}/sites/#{app_name}/source",
+        app_user: app_user,
         venv: "/home/#{app_user}/.envs/#{app_name}",
         reqs_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/requirements.txt",
         sys_deps_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/system_dependencies.txt",
@@ -208,14 +209,15 @@ if git_repo
   end
 
   # TODO: move to script
-  execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
-
-  execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
-
-  execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
-
-  # change ownership of venv back to app_user
-  execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
+  # rectify ownership and permissions of django app
+  # execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
+  #
+  # execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
+  #
+  # execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
+  #
+  # # change ownership of venv back to app_user
+  # execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
 
 end
 
