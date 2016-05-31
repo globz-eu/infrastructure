@@ -27,12 +27,17 @@ app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
 server_name = node['web_server']['nginx']['server_name']
+static_path = node['web_server']['nginx']['static_path']
 
 package 'nginx'
 
 service 'nginx' do
   action :nothing
 end
+
+# TODO: clone scripts from github to /opt/scripts
+# TODO: create serve_static conf file
+# TODO: run serve_static script to move static content to appropriate directory
 
 # TODO: adapt to tcp sockets option
 template "/etc/nginx/sites-available/#{app_name}.conf" do
@@ -46,7 +51,8 @@ template "/etc/nginx/sites-available/#{app_name}.conf" do
       server_tcp_socket: '# server 127.0.0.1:8001;',
       listen_port: '80',
       server_name: server_name,
-      app_user: app_user
+      app_user: app_user,
+      static_path: static_path
             })
 end
 

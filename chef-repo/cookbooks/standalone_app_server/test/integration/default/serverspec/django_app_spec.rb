@@ -63,8 +63,6 @@ if os[:family] == 'ubuntu'
     it { should be_mode 400 }
   end
 
-  # TODO: verify source/file and source/directory permissions
-
   # Install scripts should be present
   describe file('/home/app_user/sites/django_base/scripts') do
     it { should exist }
@@ -91,8 +89,6 @@ if os[:family] == 'ubuntu'
     it { should be_grouped_into 'app_user' }
     it { should be_mode 500 }
   end
-
-  # TODO: verify presence of venv and ownership and permissions
 
   # Config file for for installation scripts should be present
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do

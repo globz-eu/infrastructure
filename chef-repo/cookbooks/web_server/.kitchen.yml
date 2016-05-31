@@ -21,6 +21,7 @@ platforms:
       web_server:
         nginx:
           server_name: '192.168.122.15'
+          static_path: '/home/app_user/sites/django_base/static'
   - name: ubuntu-16.04
     driver:
      provider: libvirt
@@ -34,6 +35,7 @@ platforms:
       web_server:
         nginx:
           server_name: '192.168.122.16'
+          static_path: '/home/app_user/sites/django_base/static'
   - name: centos-7.1
     driver:
       provider: libvirt

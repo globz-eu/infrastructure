@@ -83,6 +83,7 @@ directory "/var/log/#{app_name}" do
   mode '0755'
 end
 
+# TODO: move to serve_static script
 # create static content directory
 directory "/home/#{app_user}/sites/#{app_name}/static" do
   owner app_user
@@ -156,6 +157,8 @@ if git_repo
     notifies :run, 'bash[make_scripts_executable]', :immediately
   end
 
+  # TODO: remove unused files from scripts folder
+
   bash 'own_scripts' do
     code "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/scripts"
     user 'root'
@@ -174,6 +177,7 @@ if git_repo
     action :nothing
   end
 
+  # create install_django_app configuration file
   template "/home/#{app_user}/sites/#{app_name}/scripts/install_django_app_conf.py" do
     source 'install_django_app_conf.py.erb'
     action :create
@@ -181,7 +185,8 @@ if git_repo
     group app_user
     mode '0400'
     variables({
-        debug: 'False',
+        dist_version: node['platform_version'],
+        debug: "'DEBUG'",
         git_repo: "#{git_repo}/#{app_name}.git",
         app_home: "/home/#{app_user}/sites/#{app_name}/source",
         app_user: app_user,
@@ -192,33 +197,11 @@ if git_repo
               })
   end
 
-  if node['platform_version'].include?('14.04')
-    bash 'install_django_app' do
-      cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-      code './install_django_app_trusty.py'
-      user 'root'
-    end
+  bash 'install_django_app' do
+    cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+    code './installdjangoapp.py'
+    user 'root'
   end
-
-  if node['platform_version'].include?('16.04')
-    bash 'install_django_app' do
-      cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-      code './install_django_app_xenial.py'
-      user 'root'
-    end
-  end
-
-  # TODO: move to script
-  # rectify ownership and permissions of django app
-  # execute "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/source"
-  #
-  # execute "find /home/#{app_user}/sites/#{app_name}/source -type f -exec chmod 0400 {} +"
-  #
-  # execute "find /home/#{app_user}/sites/#{app_name}/source -type d -exec chmod 0500 {} +"
-  #
-  # # change ownership of venv back to app_user
-  # execute "chown -R #{app_user}:#{app_user} /home/app_user/.envs/#{app_name}"
-
 end
 
 # make the uwsgi.ini file

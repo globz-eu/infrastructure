@@ -27,7 +27,7 @@ server {
   }
 
   location /static {
-    alias /home/<%= @app_user %>/sites/<%= @app_name %>/static;
+    alias <%= @static_path %>;
   }
 
   # Finally, send all non-media requests to the Django server.

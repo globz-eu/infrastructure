@@ -366,6 +366,7 @@ describe 'django_app_server::django_app' do
             mode: '0400',
             source: 'install_django_app_conf.py.erb',
             variables: {
+                dist_version: version,
                 debug: 'False',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '/home/app_user/sites/django_base/source',
@@ -377,6 +378,7 @@ describe 'django_app_server::django_app' do
             }
         )
         install_app_conf = [
+            %r(^DIST_VERSION = #{version}$),
             %r(^DEBUG = False$),
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
             %r(^APP_USER = 'app_user'$),

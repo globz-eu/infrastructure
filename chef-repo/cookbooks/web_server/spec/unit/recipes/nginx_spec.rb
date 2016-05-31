@@ -62,7 +62,7 @@ describe 'web_server::nginx' do
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.81;$/,
             %r(^\s+alias /home/app_user/sites/django_base/media;),
-            %r(^\s+alias /home/app_user/sites/django_base/static;),
+            %r(^\s+alias /var/www/django_base/static;),
             %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
         ]
         expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
@@ -77,6 +77,7 @@ describe 'web_server::nginx' do
                 listen_port: '80',
                 server_name: '192.168.1.81',
                 app_user: 'app_user',
+                static_path: '/var/www/django_base/static'
             }
         })
         params.each do |p|

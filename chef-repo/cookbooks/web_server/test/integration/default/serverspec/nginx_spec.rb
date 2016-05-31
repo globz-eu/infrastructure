@@ -124,8 +124,8 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  site_down_dirs = ['/var/www', '/var/www/django_base_down']
-  site_down_dirs.each do |f|
+  site_dirs = ['/var/www', '/var/www/django_base_down']
+  site_dirs.each do |f|
     describe file(f) do
       it {should exist}
       it {should be_directory}

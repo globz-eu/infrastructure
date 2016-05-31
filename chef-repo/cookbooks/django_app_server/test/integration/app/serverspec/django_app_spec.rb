@@ -21,6 +21,7 @@
 # Server Spec:: django_app
 
 require 'spec_helper'
+require 'find'
 
 set :backend, :exec
 
@@ -63,7 +64,26 @@ if os[:family] == 'ubuntu'
     it { should be_mode 400 }
   end
 
-  # TODO: verify source/file and source/directory permissions
+  # check django_base/source ownership and permissions
+  Find.find('/home/app_user/sites/django_base/source/django_base') do |f|
+    unless f =~ %r(/home/app_user/sites/django_base/source/django_base/\.git/.*)
+      if FileTest.directory?(f)
+        describe file(f) do
+          it { should be_directory }
+          it { should be_owned_by 'app_user' }
+          it { should be_grouped_into 'app_user' }
+          it { should be_mode 500 }
+        end
+      else
+        describe file(f) do
+          it { should be_file }
+          it { should be_owned_by 'app_user' }
+          it { should be_grouped_into 'app_user' }
+          it { should be_mode 400 }
+        end
+      end
+    end
+  end
 
   # Install scripts should be present
   describe file('/home/app_user/sites/django_base/scripts') do
@@ -74,18 +94,12 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  files = [
-      '/home/app_user/sites/django_base/scripts/install_django_app_trusty.py',
-      '/home/app_user/sites/django_base/scripts/install_django_app_xenial.py'
-  ]
-  files.each do |f|
-    describe file(f) do
-      it { should exist }
-      it { should be_file }
-      it { should be_owned_by 'app_user' }
-      it { should be_grouped_into 'app_user' }
-      it { should be_mode 500 }
-    end
+  describe file '/home/app_user/sites/django_base/scripts/installdjangoapp.py' do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
   end
 
   # App log directory should be present
@@ -106,12 +120,39 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  # TODO: verify presence of venv and ownership and permissions
+  describe file('/home/app_user/.envs/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
+  end
+
+  # check .envs/django_base ownership and permissions
+  Find.find('/home/app_user/.envs/django_base') do |f|
+    unless f =~ %r(/home/app_user/.envs/django_base/lib/.*)
+      unless File.symlink?(f)
+        if FileTest.directory?(f)
+          describe file(f) do
+            it { should be_directory }
+            it { should be_owned_by 'app_user' }
+            it { should be_grouped_into 'app_user' }
+          end
+        else
+          describe file(f) do
+            it { should be_file }
+            it { should be_owned_by 'app_user' }
+            it { should be_grouped_into 'app_user' }
+          end
+        end
+      end
+    end
+  end
 
   # Config file for for installation scripts should be present
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
     params = [
-        %r(^DEBUG = False$),
+        %r(^DEBUG = 'DEBUG'$),
         %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^APP_USER = 'app_user'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
