@@ -23,7 +23,7 @@ server {
 
   # Django media
   location /media  {
-    alias /home/<%= @app_user %>/sites/<%= @app_name %>/media;
+    alias <%= @media_path %>;
   }
 
   location /static {
@@ -33,6 +33,6 @@ server {
   # Finally, send all non-media requests to the Django server.
   location / {
     uwsgi_pass  django;
-    include     /home/<%= @app_user %>/sites/<%= @app_name %>/source/<%= @app_name %>/uwsgi_params;
+    include     <%= @uwsgi_path %>/uwsgi_params;
   }
 }

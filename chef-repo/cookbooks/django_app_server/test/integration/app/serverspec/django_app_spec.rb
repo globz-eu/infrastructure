@@ -171,23 +171,7 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  # Static, media and conf.d directories for django app should be present
-  describe file('/home/app_user/sites/django_base/static') do
-    it { should exist }
-    it { should be_directory }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'www-data' }
-    it { should be_mode 750 }
-  end
-
-  describe file('/home/app_user/sites/django_base/media') do
-    it { should exist }
-    it { should be_directory }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'www-data' }
-    it { should be_mode 750 }
-  end
-
+  # conf.d directory for django app should be present
   describe file('/home/app_user/sites/django_base/conf.d') do
     it { should exist }
     it { should be_directory }

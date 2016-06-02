@@ -23,11 +23,16 @@
 include_recipe 'chef-vault'
 include_recipe 'basic_node::firewall'
 
+web_user_vault = chef_vault_item('web_user', 'web_user')
+web_user = web_user_vault['user']
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
 server_name = node['web_server']['nginx']['server_name']
-static_path = node['web_server']['nginx']['static_path']
+static_path = "/home/#{web_user}/sites/#{app_name}/static"
+media_path = "/home/#{web_user}/sites/#{app_name}/media"
+uwsgi_path = "/home/#{web_user}/sites/#{app_name}/uwsgi"
+down_path = "/home/#{web_user}/sites/#{app_name}/down"
 
 package 'nginx'
 
@@ -38,6 +43,39 @@ end
 # TODO: clone scripts from github to /opt/scripts
 # TODO: create serve_static conf file
 # TODO: run serve_static script to move static content to appropriate directory
+# # create site file structure
+# directory "/home/#{web_user}/sites" do
+#   owner app_user
+#   group 'www-data'
+#   mode '0750'
+# end
+#
+# directory "/home/#{web_user}/sites/#{app_name}" do
+#   owner app_user
+#   group 'www-data'
+#   mode '0750'
+# end
+#
+# # create static content directory
+# directory static_path do
+#   owner app_user
+#   group 'www-data'
+#   mode '0750'
+# end
+#
+# # create media directory
+# directory media_path do
+#   owner app_user
+#   group 'www-data'
+#   mode '0750'
+# end
+#
+# # create uwsgi directory
+# directory uwsgi_path do
+#   owner app_user
+#   group 'www-data'
+#   mode '0750'
+# end
 
 # TODO: adapt to tcp sockets option
 template "/etc/nginx/sites-available/#{app_name}.conf" do
@@ -51,22 +89,21 @@ template "/etc/nginx/sites-available/#{app_name}.conf" do
       server_tcp_socket: '# server 127.0.0.1:8001;',
       listen_port: '80',
       server_name: server_name,
-      app_user: app_user,
-      static_path: static_path
+      web_user: web_user,
+      static_path: static_path,
+      media_path: media_path,
+      uwsgi_path: uwsgi_path
             })
 end
 
-site_down_dirs = ['/var/www', "/var/www/#{app_name}_down"]
-site_down_dirs.each do |s|
-  directory s do
-    owner 'root'
-    group 'www-data'
-    mode '0750'
-  end
+directory down_path do
+  owner web_user
+  group 'www-data'
+  mode '0750'
 end
 
-template "/var/www/#{app_name}_down/index.html" do
-  owner 'root'
+template "#{down_path}/index.html" do
+  owner web_user
   group 'www-data'
   mode '0440'
   source 'index_down.html.erb'
@@ -84,6 +121,7 @@ template "/etc/nginx/sites-available/#{app_name}_down.conf" do
                 app_name: app_name,
                 listen_port: '80',
                 server_name: server_name,
+                down_path: down_path
             })
 end
 

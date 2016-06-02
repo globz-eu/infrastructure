@@ -18,11 +18,11 @@
 # =====================================================================
 #
 # Cookbook:: django_app_server
-# Spec:: app_user
+# Spec:: web_user
 
 require 'spec_helper'
 
-describe 'django_app_server::app_user' do
+describe 'web_server::web_user' do
   ['14.04', '16.04'].each do |version|
     context "When app user is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
@@ -34,18 +34,18 @@ describe 'django_app_server::app_user' do
         expect { chef_run }.to_not raise_error
       end
 
-      it 'creates the app user' do
-        expect(chef_run).to create_user('app_user').with(
-            home: '/home/app_user',
+      it 'creates the web user' do
+        expect(chef_run).to create_user('web_user').with(
+            home: '/home/web_user',
             shell: '/bin/bash',
-            password: '$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/'
+            password: '$6$yVU4DyvxK$eA6SgYYkMjB11XavwzqLAvCfEuhYKmxElVHmxq/OszdU31ZjfukGZtJivTwwyHMt8DmiFv9NDvHRCWBNCcwKK.'
         )
       end
 
-      it 'adds app_user to group www-data' do
+      it 'adds web_user to group www-data' do
         expect(chef_run).to manage_group('www-data').with(
             append: true,
-            members: ['app_user']
+            members: ['web_user']
         )
       end
     end

@@ -84,22 +84,6 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /home/app_user/sites/django_base/static directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/static').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0750',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/media directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/media').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0750',
-        )
-      end
-
       it 'creates the /home/app_user/sites/django_base/sockets directory' do
         expect(chef_run).to create_directory('/home/app_user/sites/django_base/sockets').with(
             owner: 'app_user',
@@ -207,22 +191,6 @@ describe 'django_app_server::django_app' do
             owner: 'root',
             group: 'root',
             mode: '0755',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/static directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/static').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0750',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/media directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/media').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0750',
         )
       end
 
@@ -367,7 +335,7 @@ describe 'django_app_server::django_app' do
             source: 'install_django_app_conf.py.erb',
             variables: {
                 dist_version: version,
-                debug: 'False',
+                debug: "'DEBUG'",
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '/home/app_user/sites/django_base/source',
                 app_user: 'app_user',
@@ -378,8 +346,8 @@ describe 'django_app_server::django_app' do
             }
         )
         install_app_conf = [
-            %r(^DIST_VERSION = #{version}$),
-            %r(^DEBUG = False$),
+            %r(^DIST_VERSION = '#{version}'$),
+            %r(^DEBUG = 'DEBUG'$),
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
             %r(^APP_USER = 'app_user'$),
             %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
@@ -393,26 +361,12 @@ describe 'django_app_server::django_app' do
         end
       end
 
-
-
-      if version == '14.04'
-        it 'runs the install_django_app script' do
-          expect(chef_run).to run_bash('install_django_app').with(
-                      cwd: '/home/app_user/sites/django_base/scripts',
-                      code: './install_django_app_trusty.py',
-                      user: 'root'
-          )
-        end
-      end
-
-      if version == '16.04'
-        it 'runs the install_django_app script' do
-          expect(chef_run).to run_bash('install_django_app').with(
-              cwd: '/home/app_user/sites/django_base/scripts',
-              code: './install_django_app_xenial.py',
-              user: 'root'
-          )
-        end
+      it 'runs the install_django_app script' do
+        expect(chef_run).to run_bash('install_django_app').with(
+                    cwd: '/home/app_user/sites/django_base/scripts',
+                    code: './installdjangoapp.py',
+                    user: 'root'
+        )
       end
 
       it 'adds the django_base_uwsgi.ini file' do

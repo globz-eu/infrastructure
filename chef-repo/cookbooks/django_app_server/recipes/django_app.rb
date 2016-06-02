@@ -83,21 +83,6 @@ directory "/var/log/#{app_name}" do
   mode '0755'
 end
 
-# TODO: move to serve_static script
-# create static content directory
-directory "/home/#{app_user}/sites/#{app_name}/static" do
-  owner app_user
-  group 'www-data'
-  mode '0750'
-end
-
-# create media directory
-directory "/home/#{app_user}/sites/#{app_name}/media" do
-  owner app_user
-  group 'www-data'
-  mode '0750'
-end
-
 # create conf.d directory
 directory "/home/#{app_user}/sites/#{app_name}/conf.d" do
   owner app_user
