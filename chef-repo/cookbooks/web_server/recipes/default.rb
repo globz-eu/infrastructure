@@ -22,4 +22,5 @@
 
 
 include_recipe 'apt::default'
+include_recipe 'web_server::web_user'
 include_recipe 'web_server::nginx'

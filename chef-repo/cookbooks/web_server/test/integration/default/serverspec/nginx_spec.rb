@@ -60,9 +60,9 @@ if os[:family] == 'ubuntu'
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.122\.15;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
     ]
     elsif os[:release] == '16.04'
     params = [
@@ -71,9 +71,9 @@ if os[:family] == 'ubuntu'
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.122\.16;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
     ]
     end
     it { should exist }
@@ -98,7 +98,7 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.15;$/,
-            %r(^\s+root /var/www/django_base_down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       elsif os[:release] == '16.04'
         params = [
@@ -106,7 +106,7 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.16;$/,
-            %r(^\s+root /var/www/django_base_down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       end
       it { should exist }
@@ -124,21 +124,37 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  site_dirs = ['/var/www', '/var/www/django_base_down']
-  site_dirs.each do |f|
-    describe file(f) do
+  describe file('/home/web_user/sites') do
+    it {should exist}
+    it {should be_directory}
+    it {should be_owned_by 'web_user'}
+    it {should be_grouped_into 'www-data'}
+    it {should be_mode 750}
+  end
+
+  describe file('/home/web_user/sites/django_base') do
+    it {should exist}
+    it {should be_directory}
+    it {should be_owned_by 'web_user'}
+    it {should be_grouped_into 'www-data'}
+    it {should be_mode 750}
+  end
+
+  site_paths = ['static', 'media', 'uwsgi', 'down']
+  site_paths.each do |s|
+    describe file("/home/web_user/sites/django_base/#{s}") do
       it {should exist}
       it {should be_directory}
-      it {should be_owned_by 'root'}
+      it {should be_owned_by 'web_user'}
       it {should be_grouped_into 'www-data'}
       it {should be_mode 750}
     end
   end
 
-  describe file('/var/www/django_base_down/index.html') do
+  describe file('/home/web_user/sites/django_base/down/index.html') do
     it { should exist }
     it { should be_file }
-    it { should be_owned_by 'root' }
+    it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
     its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }

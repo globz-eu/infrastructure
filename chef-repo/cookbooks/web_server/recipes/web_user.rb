@@ -23,7 +23,7 @@
 include_recipe 'chef-vault'
 
 web_user_item = chef_vault_item('web_user', 'web_user')
-web_user = app_user_item['user']
+web_user = web_user_item['user']
 
 user web_user do
   home "/home/#{web_user}"

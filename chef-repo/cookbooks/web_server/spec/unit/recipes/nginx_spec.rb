@@ -61,9 +61,9 @@ describe 'web_server::nginx' do
             /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.81;$/,
-            %r(^\s+alias /home/app_user/sites/django_base/media;),
-            %r(^\s+alias /var/www/django_base/static;),
-            %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+            %r(^\s+alias /home/web_user/sites/django_base/media;),
+            %r(^\s+alias /home/web_user/sites/django_base/static;),
+            %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
         ]
         expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
             owner: 'root',
@@ -76,8 +76,10 @@ describe 'web_server::nginx' do
                 server_tcp_socket: '# server 127.0.0.1:8001;',
                 listen_port: '80',
                 server_name: '192.168.1.81',
-                app_user: 'app_user',
-                static_path: '/var/www/django_base/static'
+                web_user: 'web_user',
+                static_path: '/home/web_user/sites/django_base/static',
+                media_path: '/home/web_user/sites/django_base/media',
+                uwsgi_path: '/home/web_user/sites/django_base/uwsgi'
             }
         })
         params.each do |p|
@@ -85,25 +87,33 @@ describe 'web_server::nginx' do
         end
       end
 
-      it 'creates the server down site file structure' do
-        expect(chef_run).to create_directory('/var/www').with(
-            owner: 'root',
+      it 'creates the site file structure' do
+        sites_paths = ['static', 'media', 'uwsgi', 'down']
+        expect(chef_run).to create_directory('/home/web_user/sites').with(
+            owner: 'web_user',
             group: 'www-data',
             mode: '0750',
         )
-        expect(chef_run).to create_directory('/var/www/django_base_down').with(
-            owner: 'root',
+        expect(chef_run).to create_directory('/home/web_user/sites/django_base').with(
+            owner: 'web_user',
             group: 'www-data',
             mode: '0750',
         )
+        sites_paths.each do |s|
+          expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
+              owner: 'web_user',
+              group: 'www-data',
+              mode: '0750',
+          )
+        end
       end
 
       it 'creates the server down index page' do
         params = [
             %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
         ]
-        expect(chef_run).to create_template('/var/www/django_base_down/index.html').with(
-             owner: 'root',
+        expect(chef_run).to create_template('/home/web_user/sites/django_base/down/index.html').with(
+             owner: 'web_user',
              group: 'www-data',
              mode: '0440',
              source: 'index_down.html.erb',
@@ -112,7 +122,7 @@ describe 'web_server::nginx' do
              }
         )
         params.each do |p|
-          expect(chef_run).to render_file('/var/www/django_base_down/index.html').with_content(p)
+          expect(chef_run).to render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
         end
       end
 
@@ -122,7 +132,7 @@ describe 'web_server::nginx' do
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.81;$/,
-            %r(^\s+root /var/www/django_base_down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
         expect(chef_run).to create_template('/etc/nginx/sites-available/django_base_down.conf').with({
                   owner: 'root',
@@ -133,6 +143,7 @@ describe 'web_server::nginx' do
                       app_name: 'django_base',
                       listen_port: '80',
                       server_name: '192.168.1.81',
+                      down_path: '/home/web_user/sites/django_base/down'
                   }
                                                                                                 })
         params.each do |p|

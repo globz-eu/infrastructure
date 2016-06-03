@@ -33,6 +33,7 @@ static_path = "/home/#{web_user}/sites/#{app_name}/static"
 media_path = "/home/#{web_user}/sites/#{app_name}/media"
 uwsgi_path = "/home/#{web_user}/sites/#{app_name}/uwsgi"
 down_path = "/home/#{web_user}/sites/#{app_name}/down"
+paths = [static_path, media_path, uwsgi_path, down_path]
 
 package 'nginx'
 
@@ -43,39 +44,27 @@ end
 # TODO: clone scripts from github to /opt/scripts
 # TODO: create serve_static conf file
 # TODO: run serve_static script to move static content to appropriate directory
-# # create site file structure
-# directory "/home/#{web_user}/sites" do
-#   owner app_user
-#   group 'www-data'
-#   mode '0750'
-# end
-#
-# directory "/home/#{web_user}/sites/#{app_name}" do
-#   owner app_user
-#   group 'www-data'
-#   mode '0750'
-# end
-#
-# # create static content directory
-# directory static_path do
-#   owner app_user
-#   group 'www-data'
-#   mode '0750'
-# end
-#
-# # create media directory
-# directory media_path do
-#   owner app_user
-#   group 'www-data'
-#   mode '0750'
-# end
-#
-# # create uwsgi directory
-# directory uwsgi_path do
-#   owner app_user
-#   group 'www-data'
-#   mode '0750'
-# end
+
+# create site file structure
+directory "/home/#{web_user}/sites" do
+  owner web_user
+  group 'www-data'
+  mode '0750'
+end
+
+directory "/home/#{web_user}/sites/#{app_name}" do
+  owner web_user
+  group 'www-data'
+  mode '0750'
+end
+
+paths.each do |p|
+  directory p do
+    owner web_user
+    group 'www-data'
+    mode '0750'
+  end
+end
 
 # TODO: adapt to tcp sockets option
 template "/etc/nginx/sites-available/#{app_name}.conf" do
@@ -94,12 +83,6 @@ template "/etc/nginx/sites-available/#{app_name}.conf" do
       media_path: media_path,
       uwsgi_path: uwsgi_path
             })
-end
-
-directory down_path do
-  owner web_user
-  group 'www-data'
-  mode '0750'
 end
 
 template "#{down_path}/index.html" do
