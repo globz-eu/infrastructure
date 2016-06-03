@@ -21,8 +21,8 @@
 
 default['poise-python']['install_python2'] = false
 
-default['django_app_server']['git']['git_repo'] = false
-default['django_app_server']['django_app']['app_name'] = false
+default['django_app_server']['git']['app_repo'] = false
+default['django_app_server']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
 default['django_app_server']['django_app']['debug'] = 'False'
 default['django_app_server']['django_app']['allowed_host'] = 'localhost'
 default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'

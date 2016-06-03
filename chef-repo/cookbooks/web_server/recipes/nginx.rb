@@ -29,6 +29,7 @@ app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
 server_name = node['web_server']['nginx']['server_name']
+git_repo = node['web_server']['git']['git_repo']
 static_path = "/home/#{web_user}/sites/#{app_name}/static"
 media_path = "/home/#{web_user}/sites/#{app_name}/media"
 uwsgi_path = "/home/#{web_user}/sites/#{app_name}/uwsgi"

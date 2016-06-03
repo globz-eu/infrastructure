@@ -31,20 +31,9 @@ include_recipe 'chef-vault'
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
 django_app_vault = chef_vault_item('django_app', 'app')
-app_name = node['django_app_server']['django_app']['app_name']
-git_repo = node['django_app_server']['git']['git_repo']
 
-if node['django_app_server']['uwsgi']['socket'] == 'unix'
-  socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
-  chmod_socket = 'chmod-socket = 660'
-else if node['django_app_server']['uwsgi']['socket'] == 'tcp'
-       socket = ':8001'
-       chmod_socket = '# chmod-socket = 660'
-     else
-       socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
-       chmod_socket = '# chmod-socket = 660'
-     end
-end
+app_repo = node['django_app_server']['git']['app_repo']
+scripts_repo = node['django_app_server']['git']['scripts_repo']
 
 # install git
 package 'git'
@@ -56,19 +45,6 @@ directory "/home/#{app_user}/sites" do
   mode '0550'
 end
 
-# create app directory structure
-directory "/home/#{app_user}/sites/#{app_name}" do
-  owner app_user
-  group 'www-data'
-  mode '0550'
-end
-
-directory "/home/#{app_user}/sites/#{app_name}/source" do
-  owner app_user
-  group app_user
-  mode '0500'
-end
-
 # create venv file structure
 directory "/home/#{app_user}/.envs" do
   owner app_user
@@ -76,29 +52,59 @@ directory "/home/#{app_user}/.envs" do
   mode '0500'
 end
 
-# create app log directory
-directory "/var/log/#{app_name}" do
-  owner 'root'
-  group 'root'
-  mode '0755'
-end
-
-# create conf.d directory
-directory "/home/#{app_user}/sites/#{app_name}/conf.d" do
-  owner app_user
-  group 'www-data'
-  mode '0750'
-end
-
-# create sockets directory
-directory "/home/#{app_user}/sites/#{app_name}/sockets" do
-  owner app_user
-  group 'www-data'
-  mode '0750'
-end
-
 # when git repo is specified clone from git repo
-if git_repo
+if app_repo
+  /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
+  unless name == nil
+    app_name = name
+  end
+
+  if node['django_app_server']['uwsgi']['socket'] == 'unix'
+    socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
+    chmod_socket = 'chmod-socket = 660'
+  else if node['django_app_server']['uwsgi']['socket'] == 'tcp'
+         socket = ':8001'
+         chmod_socket = '# chmod-socket = 660'
+       else
+         socket = "/home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock"
+         chmod_socket = '# chmod-socket = 660'
+       end
+  end
+
+  # create app directory structure
+  directory "/home/#{app_user}/sites/#{app_name}" do
+    owner app_user
+    group 'www-data'
+    mode '0550'
+  end
+
+  directory "/home/#{app_user}/sites/#{app_name}/source" do
+    owner app_user
+    group app_user
+    mode '0500'
+  end
+
+  # create app log directory
+  directory "/var/log/#{app_name}" do
+    owner 'root'
+    group 'root'
+    mode '0755'
+  end
+
+  # create conf.d directory
+  directory "/home/#{app_user}/sites/#{app_name}/conf.d" do
+    owner app_user
+    group 'www-data'
+    mode '0750'
+  end
+
+  # create sockets directory
+  directory "/home/#{app_user}/sites/#{app_name}/sockets" do
+    owner app_user
+    group 'www-data'
+    mode '0750'
+  end
+
   # create host-specific configuration file for django app
   template "/home/#{app_user}/sites/#{app_name}/conf.d/configuration.py" do
     source 'configuration.py.erb'
@@ -134,12 +140,13 @@ if git_repo
 
   bash 'git_clone_scripts' do
     cwd "/home/#{app_user}/sites/#{app_name}"
-    code "git clone #{git_repo}/scripts.git"
+    code "git clone #{scripts_repo}"
     user 'root'
     not_if "ls /home/#{app_user}/sites/#{app_name}/scripts", :user => 'root'
     notifies :run, 'bash[own_scripts]', :immediately
     notifies :run, 'bash[scripts_dir_permissions]', :immediately
     notifies :run, 'bash[make_scripts_executable]', :immediately
+    notifies :run, 'bash[make_scripts_utilities_readable]', :immediately
   end
 
   # TODO: remove unused files from scripts folder
@@ -162,6 +169,12 @@ if git_repo
     action :nothing
   end
 
+  bash 'make_scripts_utilities_readable' do
+    code "chmod 0400 /home/#{app_user}/sites/#{app_name}/scripts/utilities/*.py"
+    user 'root'
+    action :nothing
+  end
+
   # create install_django_app configuration file
   template "/home/#{app_user}/sites/#{app_name}/scripts/install_django_app_conf.py" do
     source 'install_django_app_conf.py.erb'
@@ -172,7 +185,7 @@ if git_repo
     variables({
         dist_version: node['platform_version'],
         debug: "'DEBUG'",
-        git_repo: "#{git_repo}/#{app_name}.git",
+        git_repo: app_repo,
         app_home: "/home/#{app_user}/sites/#{app_name}/source",
         app_user: app_user,
         venv: "/home/#{app_user}/.envs/#{app_name}",
@@ -187,17 +200,15 @@ if git_repo
     code './installdjangoapp.py'
     user 'root'
   end
-end
 
-# make the uwsgi.ini file
-if app_name
+  # make the uwsgi.ini file
   template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
     owner app_user
     group app_user
     mode '0400'
     source 'app_name_uwsgi.ini.erb'
     variables({
-                  app_name: node['django_app_server']['django_app']['app_name'],
+                  app_name: app_name,
                   app_user: app_user,
                   web_user: 'www-data',
                   processes: node['django_app_server']['uwsgi']['processes'],

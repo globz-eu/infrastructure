@@ -60,7 +60,5 @@ suites:
     attributes:
       django_app_server:
         git:
-          git_repo: 'https://github.com/globz-eu'
-        django_app:
-          app_name: 'django_base'
+          app_repo: 'https://github.com/globz-eu/django_base.git'
     excludes: centos-7.1

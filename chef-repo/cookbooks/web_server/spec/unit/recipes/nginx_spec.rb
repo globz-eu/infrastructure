@@ -24,11 +24,13 @@ require 'spec_helper'
 
 describe 'web_server::nginx' do
   ['14.04', '16.04'].each do |version|
-    context "When all attributes are default, on an Ubuntu #{version} platform" do
+    context "When app name and git repo are specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
-        runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version)
-        runner.converge(described_recipe)
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
+          node.set['web_server']['django_app']['app_name'] = 'django_base'
+          node.set['web_server']['git']['git_repo'] = 'https://github.com/globz-eu'
+        end.converge(described_recipe)
       end
 
       it 'converges successfully' do
@@ -87,6 +89,18 @@ describe 'web_server::nginx' do
         end
       end
 
+      it 'installs the git package' do
+        expect( chef_run ).to install_package('git')
+      end
+
+      it 'creates the /var/log/django_base directory' do
+        expect(chef_run).to create_directory('/var/log/django_base').with(
+            owner: 'root',
+            group: 'root',
+            mode: '0755',
+        )
+      end
+
       it 'creates the site file structure' do
         sites_paths = ['static', 'media', 'uwsgi', 'down']
         expect(chef_run).to create_directory('/home/web_user/sites').with(
@@ -106,6 +120,78 @@ describe 'web_server::nginx' do
               mode: '0750',
           )
         end
+      end
+
+      # installs scripts for serving static content
+      it 'clones the scripts' do
+        expect( chef_run ).to run_bash('git_clone_static_scripts').with(
+            cwd: '/home/web_user/sites/django_base',
+            code: 'git clone https://github.com/globz-eu/scripts.git',
+            user: 'root'
+        )
+      end
+
+      it 'notifies script ownership and permission commands' do
+        clone_scripts = chef_run.bash('git_clone_scripts')
+        expect(clone_scripts).to notify('bash[own_scripts]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[scripts_dir_permissions]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[make_scripts_executable]').to(:run).immediately
+      end
+
+      it 'changes ownership of the script directory to app_user:app_user' do
+        expect(chef_run).to_not run_bash('own_scripts')
+      end
+
+      it 'changes permissions the scripts directory to 0500' do
+        expect(chef_run).to_not run_bash('scritps_dir_permissions')
+      end
+
+      it 'makes scripts executable' do
+        expect(chef_run).to_not run_bash('make_scripts_executable')
+      end
+
+      it 'creates the /home/app_user/sites/django_base/scripts/serve_static_conf.py file' do
+        expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/serve_static_conf.py').with(
+            owner: 'app_user',
+            group: 'app_user',
+            mode: '0400',
+            source: 'install_django_app_conf.py.erb',
+            variables: {
+                dist_version: version,
+                debug: "'DEBUG'",
+                git_repo: 'https://github.com/globz-eu/django_base.git',
+                app_home_tmp: '/home/web_user/sites/django_base/source',
+                web_user: 'web_user',
+                static_path: '/home/web_user/sites/django_base/static',
+                media_path: '/home/web_user/sites/django_base/media',
+                uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
+                log_file: '/var/log/django_base/install.log'
+            }
+        )
+        install_app_conf = [
+            %r(^DIST_VERSION = '#{version}'$),
+            %r(^DEBUG = 'DEBUG'$),
+            %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+            %r(^WEB_USER = 'web_user'$),
+            %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+            %r(^STATIC_PATH = '/home/web_user_user/sites/django_base/static'$),
+            %r(^MEDIA_PATH = '/home/web_user_user/sites/django_base/media'$),
+            %r(^UWSGI_PATH = '/home/web_user_user/sites/django_base/uwsgi'$),
+            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+        ]
+        install_app_conf.each do |u|
+          expect(chef_run).to render_file(
+                                  '/home/web_user/sites/django_base/scripts/serve_static_conf.py'
+                              ).with_content(u)
+        end
+      end
+
+      it 'runs the serve_static script' do
+        expect(chef_run).to run_bash('serve_static').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: './servestatic.py',
+            user: 'root'
+        )
       end
 
       it 'creates the server down index page' do

@@ -94,12 +94,23 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  describe file '/home/app_user/sites/django_base/scripts/installdjangoapp.py' do
+  scripts = ['servestatic.py', 'installdjangoapp.py']
+  scripts.each do |s|
+    describe file "/home/app_user/sites/django_base/scripts/#{s}" do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 500 }
+    end
+  end
+
+  describe file '/home/app_user/sites/django_base/scripts/utilities/commandfileutils.py' do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'app_user' }
     it { should be_grouped_into 'app_user' }
-    it { should be_mode 500 }
+    it { should be_mode 400 }
   end
 
   # App log directory should be present
@@ -152,6 +163,7 @@ if os[:family] == 'ubuntu'
   # Config file for for installation scripts should be present
   describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
     params = [
+        %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
         %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^APP_USER = 'app_user'$),

@@ -52,22 +52,6 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /home/app_user/sites/django_base directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0550',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/source directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/source').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0500',
-        )
-      end
-
       it 'creates the /home/app_user/.envs directory' do
         expect(chef_run).to create_directory('/home/app_user/.envs').with(
             owner: 'app_user',
@@ -76,68 +60,17 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /var/log/django_base directory' do
-        expect(chef_run).to create_directory('/var/log/django_base').with(
-            owner: 'root',
-            group: 'root',
-            mode: '0755',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/sockets directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base/sockets').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0750',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base/source/django_base_uwsgi.ini file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0400',
-            source: 'app_name_uwsgi.ini.erb',
-            variables: {
-                app_name: 'django_base',
-                app_user: 'app_user',
-                web_user: 'www-data',
-                processes: '2',
-                socket: '/home/app_user/sites/django_base/sockets/django_base.sock',
-                chmod_socket: 'chmod-socket = 660',
-                log_file: '/var/log/uwsgi/django_base.log',
-                pid_file: '/tmp/django_base-uwsgi-master.pid'
-            }
-        )
-        uwsgi_ini = [
-            %r(^# django_base_uwsgi\.ini file$),
-            %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
-            %r(^module = django_base\.wsgi$),
-            %r(^home = /home/app_user/\.envs/django_base$),
-            %r(^uid = app_user$),
-            %r(^gid = www-data$),
-            %r(^processes = 2$),
-            %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-            %r(^chmod-socket = 660$),
-            %r(^daemonize = /var/log/uwsgi/django_base\.log$),
-            %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
-        ]
-        uwsgi_ini.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(u)
-        end
-      end
     end
   end
 end
 
 describe 'django_app_server::django_app' do
   ['14.04', '16.04'].each do |version|
-    context "When app name and git repo are specified, on an Ubuntu #{version} platform" do
+    context "When git app repo is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['django_app_server']['django_app']['app_name'] = 'django_base'
-          node.set['django_app_server']['git']['git_repo'] = 'https://github.com/globz-eu'
+          node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
         end.converge(described_recipe)
       end
 
@@ -313,6 +246,7 @@ describe 'django_app_server::django_app' do
         expect(clone_scripts).to notify('bash[own_scripts]').to(:run).immediately
         expect(clone_scripts).to notify('bash[scripts_dir_permissions]').to(:run).immediately
         expect(clone_scripts).to notify('bash[make_scripts_executable]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[make_scripts_utilities_readable]').to(:run).immediately
       end
 
       it 'changes ownership of the script directory to app_user:app_user' do
@@ -325,6 +259,10 @@ describe 'django_app_server::django_app' do
 
       it 'makes scripts executable' do
         expect(chef_run).to_not run_bash('make_scripts_executable')
+      end
+
+      it 'makes utility scripts readable' do
+        expect(chef_run).to_not run_bash('make_script_utilities_readable')
       end
 
       it 'creates the /home/app_user/sites/django_base/scripts/install_django_app_conf.py file' do

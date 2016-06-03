@@ -160,6 +160,91 @@ if os[:family] == 'ubuntu'
     its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
   end
 
+  # Install scripts should be present
+  describe file('/home/app_user/sites/django_base/scripts') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 500 }
+  end
+
+  scripts = ['servestatic.py', 'installdjangoapp.py', 'utilities/commandfileutils.py']
+  scripts.each do |s|
+    describe file "/home/web_user/sites/django_base/scripts/#{s}" do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'web_user' }
+      it { should be_grouped_into 'web_user' }
+      it { should be_mode 500 }
+    end
+  end
+
+  # Config file for for installation scripts should be present
+  describe file('/home/web_user/sites/django_base/scripts/serve_static_conf.py') do
+    params = [
+        %r(^DIST_VERSION = '#{os[:release]}'$),
+        %r(^DEBUG = 'DEBUG'$),
+        %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+        %r(^WEB_USER = 'web_user'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^STATIC_PATH = '/home/web_user_user/sites/django_base/static'$),
+        %r(^MEDIA_PATH = '/home/web_user_user/sites/django_base/media'$),
+        %r(^UWSGI_PATH = '/home/web_user_user/sites/django_base/uwsgi'$),
+        %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+    ]
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'app_user' }
+    it { should be_grouped_into 'app_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
+
+  # Static files should be present
+  describe file('/home/web/user/sites/django_base/static/css') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 550 }
+  end
+
+  describe file('/home/web/user/sites/django_base/static/css/bootstrap.css') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  describe file('/home/web/user/sites/django_base/media/media') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  describe file('/home/web/user/sites/django_base/uwsgi/uwsgi_params') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  # App log directory should be present
+  describe file('/var/log/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 755 }
+  end
+
   describe command('curl localhost') do
     its(:stdout) {should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$))}
   end
