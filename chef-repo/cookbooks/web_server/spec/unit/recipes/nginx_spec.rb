@@ -24,12 +24,11 @@ require 'spec_helper'
 
 describe 'web_server::nginx' do
   ['14.04', '16.04'].each do |version|
-    context "When app name and git repo are specified, on an Ubuntu #{version} platform" do
+    context "When git repo is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['web_server']['django_app']['app_name'] = 'django_base'
-          node.set['web_server']['git']['git_repo'] = 'https://github.com/globz-eu'
+          node.set['web_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
         end.converge(described_recipe)
       end
 
