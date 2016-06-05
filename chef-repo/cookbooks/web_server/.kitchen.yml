@@ -48,5 +48,6 @@ suites:
     attributes:
       web_server:
         nginx:
-          static_path: '/home/app_user/sites/django_base/static'
+          git:
+            app_repo: 'https://github.com/globz-eu/django_base.git'
     excludes: centos-7.1

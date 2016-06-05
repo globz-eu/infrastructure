@@ -250,19 +250,35 @@ describe 'django_app_server::django_app' do
       end
 
       it 'changes ownership of the script directory to app_user:app_user' do
-        expect(chef_run).to_not run_bash('own_scripts')
+        expect(chef_run).to_not run_bash('own_scripts').with(
+            code: 'chown -R app_user:app_user /home/app_user/sites/django_base/scripts',
+            user: 'root',
+            action: :nothing
+        )
       end
 
       it 'changes permissions the scripts directory to 0500' do
-        expect(chef_run).to_not run_bash('scritps_dir_permissions')
+        expect(chef_run).to_not run_bash('scritps_dir_permissions').with(
+            code: 'chmod 0500 /home/app_user/sites/django_base/scripts',
+            user: 'root',
+            action: :nothing
+        )
       end
 
       it 'makes scripts executable' do
-        expect(chef_run).to_not run_bash('make_scripts_executable')
+        expect(chef_run).to_not run_bash('make_scripts_executable').with(
+            code: 'chmod 0500 /home/app_user/sites/django_base/scripts/*.py',
+            user: 'root',
+            action: :nothing
+        )
       end
 
       it 'makes utility scripts readable' do
-        expect(chef_run).to_not run_bash('make_script_utilities_readable')
+        expect(chef_run).to_not run_bash('make_script_utilities_readable').with(
+            code: 'chmod 0400 /home/app_user/sites/django_base/scripts/utilities/*.py',
+            user: 'root',
+            action: :nothing
+        )
       end
 
       it 'creates the /home/app_user/sites/django_base/scripts/install_django_app_conf.py file' do

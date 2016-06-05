@@ -28,19 +28,22 @@ web_user = web_user_vault['user']
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
+if node['web_server']['nginx']['app_home']
+  app_home = node['web_server']['nginx']['app_home']
+else
+  app_home = ''
+end
 server_name = node['web_server']['nginx']['server_name']
-app_repo = node['web_server']['git']['app_repo']
-static_path = "/home/#{web_user}/sites/#{app_name}/static"
-media_path = "/home/#{web_user}/sites/#{app_name}/media"
-uwsgi_path = "/home/#{web_user}/sites/#{app_name}/uwsgi"
-down_path = "/home/#{web_user}/sites/#{app_name}/down"
-paths = [static_path, media_path, uwsgi_path, down_path]
+app_repo = node['web_server']['nginx']['git']['app_repo']
+scripts_repo = node['web_server']['nginx']['git']['scripts_repo']
 
 package 'nginx'
 
 service 'nginx' do
   action :nothing
 end
+
+package 'git'
 
 # TODO: clone scripts from github to /opt/scripts
 # TODO: create serve_static conf file
@@ -55,21 +58,98 @@ end
 
 if app_repo
   /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
-  unless name == nil
+  if name
     app_name = name
   end
+
+  static_path = "/home/#{web_user}/sites/#{app_name}/static"
+  media_path = "/home/#{web_user}/sites/#{app_name}/media"
+  uwsgi_path = "/home/#{web_user}/sites/#{app_name}/uwsgi"
+  down_path = "/home/#{web_user}/sites/#{app_name}/down"
+  paths = [static_path, media_path, uwsgi_path, down_path]
+
   directory "/home/#{web_user}/sites/#{app_name}" do
     owner web_user
     group 'www-data'
-    mode '0750'
+    mode '0550'
+  end
+
+  directory "/var/log/#{app_name}" do
+    owner 'root'
+    group 'root'
+    mode '0755'
   end
 
   paths.each do |p|
     directory p do
       owner web_user
       group 'www-data'
-      mode '0750'
+      mode '0550'
     end
+  end
+
+  bash 'git_clone_static_scripts' do
+    cwd "/home/#{web_user}/sites/#{app_name}"
+    code "git clone #{scripts_repo}"
+    user 'root'
+    not_if "ls /home/#{web_user}/sites/#{app_name}/scripts", :user => 'root'
+    notifies :run, 'bash[own_static_scripts]', :immediately
+    notifies :run, 'bash[static_scripts_dir_permissions]', :immediately
+    notifies :run, 'bash[make_static_scripts_executable]', :immediately
+    notifies :run, 'bash[make_static_scripts_utilities_readable]', :immediately
+  end
+
+  # TODO: remove unused files from scripts folder
+
+  bash 'own_static_scripts' do
+    code "chown -R #{web_user}:#{web_user} /home/#{web_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'static_scripts_dir_permissions' do
+    code "chmod 0500 /home/#{web_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'make_static_scripts_executable' do
+    code "chmod 0500 /home/#{web_user}/sites/#{app_name}/scripts/*.py"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'make_static_scripts_utilities_readable' do
+    code "chmod 0400 /home/#{web_user}/sites/#{app_name}/scripts/utilities/*.py"
+    user 'root'
+    action :nothing
+  end
+
+  template "/home/#{web_user}/sites/#{app_name}/scripts/conf.py" do
+    owner web_user
+    group web_user
+    mode '0400'
+    source 'conf.py.erb'
+    variables({
+                  dist_version: node['platform_version'],
+                  debug: 'DEBUG',
+                  git_repo: app_repo,
+                  app_home: app_home,
+                  app_home_tmp: "/home/#{web_user}/sites/#{app_name}/source",
+                  app_user: '',
+                  web_user: web_user,
+                  webserver_user: 'www-data',
+                  static_path: static_path,
+                  media_path: media_path,
+                  uwsgi_path: uwsgi_path,
+                  log_file: "/var/log/#{app_name}/serve_static.log"
+              })
+  end
+
+  bash 'serve_static' do
+    cwd "/home/#{web_user}/sites/#{app_name}/scripts"
+    code './servestatic.py'
+    user 'root'
   end
 
   # TODO: adapt to tcp sockets option
