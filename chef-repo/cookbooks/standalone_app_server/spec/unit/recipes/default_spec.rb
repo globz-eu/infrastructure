@@ -28,8 +28,8 @@ describe 'standalone_app_server::default' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['django_app_server']['django_app']['app_name'] = 'django_base'
-          node.set['django_app_server']['git']['git_repo'] = 'https://github.com/globz-eu'
+          node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          node.set['web_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           node.set['db_server']['postgresql']['db_name'] = 'django_base'
         end.converge(described_recipe)
       end

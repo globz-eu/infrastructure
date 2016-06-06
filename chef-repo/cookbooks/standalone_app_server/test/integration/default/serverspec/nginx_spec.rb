@@ -60,9 +60,9 @@ if os[:family] == 'ubuntu'
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.122\.13;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
     ]
     elsif os[:release] == '16.04'
     params = [
@@ -71,9 +71,9 @@ if os[:family] == 'ubuntu'
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.122\.14;$/,
-        %r(^\s+alias /home/app_user/sites/django_base/media;),
-        %r(^\s+alias /home/app_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/app_user/sites/django_base/source/django_base/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
     ]
     end
     it { should exist }
@@ -98,7 +98,7 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.13;$/,
-            %r(^\s+root /var/www/django_base_down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       elsif os[:release] == '16.04'
         params = [
@@ -106,9 +106,10 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.14;$/,
-            %r(^\s+root /var/www/django_base_down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       end
+
       if f == '/etc/nginx/sites-available/django_base_down.conf'
         it { should exist }
         it { should be_file }
@@ -119,38 +120,144 @@ if os[:family] == 'ubuntu'
           its(:content) { should match(p) }
         end
       elsif f == '/etc/nginx/sites-enabled/django_base_down.conf'
-        it {should_not exist}
+        it { should_not exist }
       end
     end
   end
 
-  site_down_dirs = ['/var/www', '/var/www/django_base_down']
-  site_down_dirs.each do |f|
-    describe file(f) do
+  describe file('/home/web_user/sites') do
+    it {should exist}
+    it {should be_directory}
+    it {should be_owned_by 'web_user'}
+    it {should be_grouped_into 'www-data'}
+    it {should be_mode 750}
+  end
+
+  describe file('/home/web_user/sites/django_base') do
+    it {should exist}
+    it {should be_directory}
+    it {should be_owned_by 'web_user'}
+    it {should be_grouped_into 'www-data'}
+    it {should be_mode 550}
+  end
+
+  site_paths = ['static', 'media', 'uwsgi', 'down']
+  site_paths.each do |s|
+    describe file("/home/web_user/sites/django_base/#{s}") do
       it {should exist}
       it {should be_directory}
-      it {should be_owned_by 'root'}
+      it {should be_owned_by 'web_user'}
       it {should be_grouped_into 'www-data'}
-      it {should be_mode 750}
+      it {should be_mode 550}
     end
   end
 
-  describe file('/var/www/django_base_down/index.html') do
+  describe file('/home/web_user/sites/django_base/down/index.html') do
     it { should exist }
     it { should be_file }
-    it { should be_owned_by 'root' }
+    it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
     its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
   end
 
-  if os[:release] == '14.04'
-    host = '192.168.122.13'
-  elsif os[:release] == '16.04'
-    host = '192.168.122.14'
+  # Install scripts should be present
+  describe file('/home/web_user/sites/django_base/scripts') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'web_user' }
+    it { should be_mode 500 }
   end
-  describe command("curl #{host}") do
-    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
+
+  scripts = ['servestatic.py', 'installdjangoapp.py']
+  scripts.each do |s|
+    describe file "/home/web_user/sites/django_base/scripts/#{s}" do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'web_user' }
+      it { should be_grouped_into 'web_user' }
+      it { should be_mode 500 }
+    end
+  end
+
+  describe file '/home/web_user/sites/django_base/scripts/utilities/commandfileutils.py' do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'web_user' }
+    it { should be_mode 400 }
+  end
+
+  # Config file for for installation scripts should be present
+  describe file('/home/web_user/sites/django_base/scripts/conf.py') do
+    params = [
+        %r(^DIST_VERSION = '#{os[:release]}'$),
+        %r(^DEBUG = 'DEBUG'$),
+        %r(^APP_HOME = ''$),
+        %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+        %r(^APP_USER = ''$),
+        %r(^WEB_USER = 'web_user'$),
+        %r(^WEBSERVER_USER = 'www-data'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
+        %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
+        %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
+        %r(^VENV = ''$),
+        %r(^REQS_FILE = ''$),
+        %r(^SYS_DEPS_FILE = ''$),
+        %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+    ]
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'web_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
+
+  # Static files should be present
+  describe file('/home/web_user/sites/django_base/static/css') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 550 }
+  end
+
+  describe file('/home/web_user/sites/django_base/static/css/bootstrap.css') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  describe file('/home/web_user/sites/django_base/media/media') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  describe file('/home/web_user/sites/django_base/uwsgi/uwsgi_params') do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'web_user' }
+    it { should be_grouped_into 'www-data' }
+    it { should be_mode 440 }
+  end
+
+  # App log directory should be present
+  describe file('/var/log/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 755 }
   end
 
   describe file('/etc/nginx/sites-enabled/default') do

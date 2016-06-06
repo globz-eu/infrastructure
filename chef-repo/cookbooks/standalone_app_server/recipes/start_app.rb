@@ -24,7 +24,11 @@ include_recipe 'chef-vault'
 
 app_user_vault = chef_vault_item('app_user', 'app_user')
 app_user = app_user_vault['user']
-app_name = node['django_app_server']['django_app']['app_name']
+app_repo = node['django_app_server']['git']['app_repo']
+/https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
+unless name == nil
+  app_name = name
+end
 
 # TODO: replace by script
 bash 'migrate' do

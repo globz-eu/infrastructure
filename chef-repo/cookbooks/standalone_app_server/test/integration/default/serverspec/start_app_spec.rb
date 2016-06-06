@@ -80,3 +80,14 @@ end
 describe command ( 'pgrep uwsgi' ) do
   its(:stdout) { should match(/^\d+$/) }
 end
+
+# site is up
+if os[:release] == '14.04'
+  describe command('curl 192.168.122.13') do
+    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
+  end
+elsif os[:release] == '16.04'
+  describe command('curl 192.168.122.14') do
+    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
+  end
+end
