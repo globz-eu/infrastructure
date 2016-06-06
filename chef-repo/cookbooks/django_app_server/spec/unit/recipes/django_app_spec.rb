@@ -282,11 +282,11 @@ describe 'django_app_server::django_app' do
       end
 
       it 'creates the /home/app_user/sites/django_base/scripts/install_django_app_conf.py file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/scripts/install_django_app_conf.py').with(
+        expect(chef_run).to create_template('/home/app_user/sites/django_base/scripts/conf.py').with(
             owner: 'app_user',
             group: 'app_user',
             mode: '0400',
-            source: 'install_django_app_conf.py.erb',
+            source: 'conf.py.erb',
             variables: {
                 dist_version: version,
                 debug: "'DEBUG'",
@@ -311,7 +311,7 @@ describe 'django_app_server::django_app' do
             %r(^LOG_FILE = '/var/log/django_base/install\.log'$)
         ]
         install_app_conf.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py').with_content(u)
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/scripts/conf.py').with_content(u)
         end
       end
 

@@ -45,10 +45,6 @@ end
 
 package 'git'
 
-# TODO: clone scripts from github to /opt/scripts
-# TODO: create serve_static conf file
-# TODO: run serve_static script to move static content to appropriate directory
-
 # create site file structure
 directory "/home/#{web_user}/sites" do
   owner web_user

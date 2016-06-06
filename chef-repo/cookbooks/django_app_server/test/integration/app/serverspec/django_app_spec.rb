@@ -161,7 +161,7 @@ if os[:family] == 'ubuntu'
   end
 
   # Config file for for installation scripts should be present
-  describe file('/home/app_user/sites/django_base/scripts/install_django_app_conf.py') do
+  describe file('/home/app_user/sites/django_base/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),

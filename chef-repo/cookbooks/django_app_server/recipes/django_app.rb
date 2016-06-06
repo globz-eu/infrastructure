@@ -176,8 +176,8 @@ if app_repo
   end
 
   # create install_django_app configuration file
-  template "/home/#{app_user}/sites/#{app_name}/scripts/install_django_app_conf.py" do
-    source 'install_django_app_conf.py.erb'
+  template "/home/#{app_user}/sites/#{app_name}/scripts/conf.py" do
+    source 'conf.py.erb'
     action :create
     owner app_user
     group app_user
