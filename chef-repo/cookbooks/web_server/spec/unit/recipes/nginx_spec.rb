@@ -34,6 +34,7 @@ describe 'web_server::nginx' do
 
       before do
         stub_command('ls /home/web_user/sites/django_base/scripts').and_return(false)
+        stub_command('ls /home/web_user/sites/django_base/down/index.html').and_return(true)
       end
 
       it 'converges successfully' do
@@ -192,6 +193,7 @@ describe 'web_server::nginx' do
                 static_path: '/home/web_user/sites/django_base/static',
                 media_path: '/home/web_user/sites/django_base/media',
                 uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
+                down_path: '/home/web_user/sites/django_base/down',
                 log_file: '/var/log/django_base/serve_static.log'
             }
         )
@@ -207,6 +209,7 @@ describe 'web_server::nginx' do
             %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
             %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
             %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
+            %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
             %r(^VENV = ''$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
@@ -231,7 +234,7 @@ describe 'web_server::nginx' do
         params = [
             %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
         ]
-        expect(chef_run).to create_template('/home/web_user/sites/django_base/down/index.html').with(
+        expect(chef_run).to_not create_template('/home/web_user/sites/django_base/down/index.html').with(
              owner: 'web_user',
              group: 'www-data',
              mode: '0440',
@@ -241,7 +244,7 @@ describe 'web_server::nginx' do
              }
         )
         params.each do |p|
-          expect(chef_run).to render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
+          expect(chef_run).to_not render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
         end
       end
 
@@ -251,7 +254,9 @@ describe 'web_server::nginx' do
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.81;$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;),
+            %r(^\s+alias /home/web_user/sites/django_base/media;),
+            %r(^\s+alias /home/web_user/sites/django_base/static;),
         ]
         expect(chef_run).to create_template('/etc/nginx/sites-available/django_base_down.conf').with({
                   owner: 'root',
@@ -262,7 +267,9 @@ describe 'web_server::nginx' do
                       app_name: 'django_base',
                       listen_port: '80',
                       server_name: '192.168.1.81',
-                      down_path: '/home/web_user/sites/django_base/down'
+                      down_path: '/home/web_user/sites/django_base/down',
+                      static_path: '/home/web_user/sites/django_base/static',
+                      media_path: '/home/web_user/sites/django_base/media',
                   }
                                                                                                 })
         params.each do |p|

@@ -98,7 +98,9 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.15;$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;),
+            %r(^\s+alias /home/web_user/sites/django_base/media;),
+            %r(^\s+alias /home/web_user/sites/django_base/static;),
         ]
       elsif os[:release] == '16.04'
         params = [
@@ -106,7 +108,9 @@ if os[:family] == 'ubuntu'
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.122\.16;$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;)
+            %r(^\s+root /home/web_user/sites/django_base/down;),
+            %r(^\s+alias /home/web_user/sites/django_base/media;),
+            %r(^\s+alias /home/web_user/sites/django_base/static;),
         ]
       end
       it { should exist }
@@ -157,7 +161,7 @@ if os[:family] == 'ubuntu'
     it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
-    its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
+    its(:content) { should match(%r(^\s+<title>django_base site is down</title>$)) }
   end
 
   # Install scripts should be present
@@ -260,7 +264,7 @@ if os[:family] == 'ubuntu'
   end
 
   describe command('curl localhost') do
-    its(:stdout) {should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$))}
+    its(:stdout) {should match(%r(^\s+<title>django_base site is down</title>$))}
   end
 
   describe file('/etc/nginx/sites-enabled/default') do

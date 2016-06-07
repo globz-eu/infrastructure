@@ -17,4 +17,14 @@ server {
 
   # root directory
   root <%= @down_path %>;
+
+  # media
+  location /media  {
+  alias <%= @media_path %>;
+  }
+
+  # static
+  location /static {
+  alias <%= @static_path %>;
+  }
 }

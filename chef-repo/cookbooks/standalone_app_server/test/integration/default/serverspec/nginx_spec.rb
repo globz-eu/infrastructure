@@ -158,7 +158,7 @@ if os[:family] == 'ubuntu'
     it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
-    its(:content) { should match(%r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)) }
+    its(:content) { should match(%r(^\s+<title>django_base site is down</title>$)) }
   end
 
   # Install scripts should be present

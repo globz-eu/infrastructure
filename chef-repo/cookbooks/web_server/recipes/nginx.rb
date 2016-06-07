@@ -138,6 +138,7 @@ if app_repo
                   static_path: static_path,
                   media_path: media_path,
                   uwsgi_path: uwsgi_path,
+                  down_path: down_path,
                   log_file: "/var/log/#{app_name}/serve_static.log"
               })
   end
@@ -175,6 +176,7 @@ if app_repo
     variables({
         app_name: app_name
               })
+    not_if "ls #{down_path}/index.html"
   end
 
   template "/etc/nginx/sites-available/#{app_name}_down.conf" do
@@ -186,7 +188,9 @@ if app_repo
                   app_name: app_name,
                   listen_port: '80',
                   server_name: server_name,
-                  down_path: down_path
+                  down_path: down_path,
+                  static_path: static_path,
+                  media_path: media_path,
               })
   end
 
