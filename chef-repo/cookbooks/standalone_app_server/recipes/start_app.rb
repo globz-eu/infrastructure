@@ -30,26 +30,24 @@ unless name == nil
   app_name = name
 end
 
-# TODO: replace by script
-bash 'migrate' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
-  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py migrate --settings #{app_name}.settings_admin"
-  user 'root'
-end
-
 directory "/var/log/#{app_name}/test_results" do
   owner 'root'
   group 'root'
   mode '0700'
 end
 
-bash 'test_app' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
-  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./manage.py test --settings #{app_name}.settings_admin &> /var/log/#{app_name}/test_results/test_$(date +\"%d-%m-%y-%H%M%S\").log"
+bash 'migrate_and_test' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './installdjangoapp.py -mt'
   user 'root'
 end
 
-# TODO: move static content to static folder
+# TODO: replace by script
+bash 'start_uwsgi' do
+  cwd "/home/#{app_user}/sites/#{app_name}/source"
+  code 'uwsgi --ini ./django_base_uwsgi.ini '
+  user 'root'
+end
 
 file "/etc/nginx/sites-enabled/#{app_name}_down.conf" do
   action :delete
@@ -60,10 +58,4 @@ link "/etc/nginx/sites-enabled/#{app_name}.conf" do
   group 'root'
   to "/etc/nginx/sites-available/#{app_name}.conf"
   notifies :restart, 'service[nginx]', :immediately
-end
-
-bash 'start_uwsgi' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source"
-  code 'uwsgi --ini ./django_base_uwsgi.ini '
-  user 'root'
 end

@@ -50,11 +50,12 @@ describe file('/var/log/django_base/test_results') do
   it { should be_mode 700 }
 end
 
-describe command('ls /var/log/django_base/test_results | head -1 ') do
-  its(:stdout) { should match(/^test_\d{2}-\d{2}-\d{2}-\d{6}\.log$/)}
+# Runs app tests
+describe command('ls /var/log/django_base/test_results | tail -1 ') do
+  its(:stdout) { should match(/^test_\d{8}-\d{6}\.log$/)}
 end
 
-describe command('cat $(ls /var/log/django_base/test_results | head -1) | grep FAILED') do
+describe command('cat $(ls /var/log/django_base/test_results | tail -1) | grep FAILED') do
   its(:stdout) { should_not match(/FAILED/)}
 end
 

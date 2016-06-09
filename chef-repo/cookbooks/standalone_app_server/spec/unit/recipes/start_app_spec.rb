@@ -40,16 +40,7 @@ describe 'standalone_app_server::start_app' do
         expect(chef_run).to include_recipe('chef-vault')
       end
 
-      # manages migrations
-      it 'manages migrations' do
-        expect(chef_run).to run_bash('migrate').with({
-                  cwd: '/home/app_user/sites/django_base/source/django_base',
-                  code: '/home/app_user/.envs/django_base/bin/python ./manage.py migrate --settings django_base.settings_admin',
-                  user: 'root'
-              })
-      end
-
-      # runs app tests
+      # manages migrations and runs app tests
       it 'creates test log file structure' do
         expect(chef_run).to create_directory('/var/log/django_base/test_results').with({
             owner: 'root',
@@ -59,9 +50,9 @@ describe 'standalone_app_server::start_app' do
       end
 
       it 'runs app tests' do
-        expect(chef_run).to run_bash('test_app').with({
-                  cwd: '/home/app_user/sites/django_base/source/django_base',
-                  code: '/home/app_user/.envs/django_base/bin/python ./manage.py test --settings django_base.settings_admin &> /var/log/django_base/test_results/test_$(date +"%d-%m-%y-%H%M%S").log',
+        expect(chef_run).to run_bash('migrate_and_test').with({
+                  cwd: '/home/app_user/sites/django_base/scripts',
+                  code: './installdjangoapp.py -mt',
                   user: 'root'
                })
       end
