@@ -143,6 +143,18 @@ describe 'web_server::nginx' do
         expect(clone_scripts).to notify('bash[make_static_scripts_utilities_readable]').to(:run).immediately
       end
 
+      it 'installs pip3' do
+        expect(chef_run).to install_package('python3-pip')
+      end
+
+      it 'installs scripts requirements' do
+        expect(chef_run).to run_bash('install_scripts_requirements').with(
+            cwd: '/home/web_user/sites/django_base/scripts',
+            code: 'pip3 install -r requirements.txt',
+            user: 'root'
+        )
+      end
+
       it 'changes ownership of the script directory to web_user:web_user' do
         expect(chef_run).to_not run_bash('own_static_scripts').with(
             code: 'chown -R web_user:web_user /home/web_user/sites/django_base/scripts',

@@ -119,6 +119,14 @@ describe 'django_app_server::django_app' do
         )
       end
 
+      it 'creates the fifo directory' do
+        expect(chef_run).to create_directory('/tmp/django_base').with(
+            owner: 'root',
+            group: 'root',
+            mode: '0755',
+        )
+      end
+
       it 'creates the /var/log/django_base directory' do
         expect(chef_run).to create_directory('/var/log/django_base').with(
             owner: 'root',
@@ -198,41 +206,6 @@ describe 'django_app_server::django_app' do
         end
       end
 
-      it 'creates the /home/app_user/sites/django_base/source/django_base_uwsgi.ini file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0400',
-            source: 'app_name_uwsgi.ini.erb',
-            variables: {
-                app_name: 'django_base',
-                app_user: 'app_user',
-                web_user: 'www-data',
-                processes: '2',
-                socket: '/home/app_user/sites/django_base/sockets/django_base.sock',
-                chmod_socket: 'chmod-socket = 660',
-                log_file: '/var/log/uwsgi/django_base.log',
-                pid_file: '/tmp/django_base-uwsgi-master.pid'
-            }
-        )
-        uwsgi_ini = [
-            %r(^# django_base_uwsgi\.ini file$),
-            %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
-            %r(^module = django_base\.wsgi$),
-            %r(^home = /home/app_user/\.envs/django_base$),
-            %r(^uid = app_user$),
-            %r(^gid = www-data$),
-            %r(^processes = 2$),
-            %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-            %r(^chmod-socket = 660$),
-            %r(^daemonize = /var/log/uwsgi/django_base\.log$),
-            %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
-        ]
-        uwsgi_ini.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(u)
-        end
-      end
-
       it 'clones the scripts' do
         expect( chef_run ).to run_bash('git_clone_scripts').with(
             cwd: '/home/app_user/sites/django_base',
@@ -247,6 +220,14 @@ describe 'django_app_server::django_app' do
         expect(clone_scripts).to notify('bash[scripts_dir_permissions]').to(:run).immediately
         expect(clone_scripts).to notify('bash[make_scripts_executable]').to(:run).immediately
         expect(clone_scripts).to notify('bash[make_scripts_utilities_readable]').to(:run).immediately
+      end
+
+      it 'installs scripts requirements' do
+        expect(chef_run).to run_bash('install_scripts_requirements').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: 'pip3 install -r requirements.txt',
+            user: 'root'
+        )
       end
 
       it 'changes ownership of the script directory to app_user:app_user' do
@@ -318,25 +299,12 @@ describe 'django_app_server::django_app' do
       it 'runs the install_django_app script' do
         expect(chef_run).to run_bash('install_django_app').with(
                     cwd: '/home/app_user/sites/django_base/scripts',
-                    code: './installdjangoapp.py',
+                    code: './installdjangoapp.py -i',
                     user: 'root'
         )
       end
 
-      it 'adds the django_base_uwsgi.ini file' do
-        params = [
-            /^# django_base_uwsgi.ini file$/,
-            %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
-            /^module\s+=\s+django_base\.wsgi$/,
-            %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
-            /^uid\s+=\s+app_user$/,
-            /^gid\s+=\s+www-data$/,
-            /^processes\s+=\s+2$/,
-            %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-            /^chmod-socket\s+=\s+660$/,
-            %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
-            %r(^master-fifo\s+=\s+/tmp/fifo0$)
-        ]
+      it 'creates the /home/app_user/sites/django_base/source/django_base_uwsgi.ini file' do
         expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with(
             owner: 'app_user',
             group: 'app_user',
@@ -345,15 +313,31 @@ describe 'django_app_server::django_app' do
             variables: {
                 app_name: 'django_base',
                 app_user: 'app_user',
+                fifo: '/tmp/django_base/fifo0',
                 web_user: 'www-data',
                 processes: '2',
                 socket: '/home/app_user/sites/django_base/sockets/django_base.sock',
                 chmod_socket: 'chmod-socket = 660',
                 log_file: '/var/log/uwsgi/django_base.log',
                 pid_file: '/tmp/django_base-uwsgi-master.pid'
-            })
-        params.each do |p|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(p)
+            }
+        )
+        uwsgi_ini = [
+            %r(^master-fifo\s+=\s+/tmp/django_base/fifo0$),
+            %r(^# django_base_uwsgi\.ini file$),
+            %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
+            %r(^module = django_base\.wsgi$),
+            %r(^home = /home/app_user/\.envs/django_base$),
+            %r(^uid = app_user$),
+            %r(^gid = www-data$),
+            %r(^processes = 2$),
+            %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+            %r(^chmod-socket = 660$),
+            %r(^daemonize = /var/log/uwsgi/django_base\.log$),
+            %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
+        ]
+        uwsgi_ini.each do |u|
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(u)
         end
       end
     end

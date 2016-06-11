@@ -114,6 +114,20 @@ if os[:family] == 'ubuntu'
     it { should be_mode 400 }
   end
 
+  # Scripts dependencies should be present
+  describe command ('pip3 list | grep psutil') do
+    its(:stdout) { should match(/psutil\s+\(\d+\.\d+\.\d+\)/)}
+  end
+
+  # fifo directory for django app should be present
+  describe file('/tmp/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 777 }
+  end
+
   # App log directory should be present
   describe file('/var/log/django_base') do
     it { should exist }
@@ -324,17 +338,18 @@ if os[:family] == 'ubuntu'
   # uWSGI ini file should be present
   describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
     params = [
-        /^# django_base_uwsgi.ini file$/,
-        %r(^chdir\s+=\s+/home/app_user/sites/django_base/source/django_base$),
-        /^module\s+=\s+django_base\.wsgi$/,
-        %r(^home\s+=\s+/home/app_user/\.envs/django_base$),
-        /^uid\s+=\s+app_user$/,
-        /^gid\s+=\s+www-data$/,
-        /^processes\s+=\s+2$/,
+        %r(^master-fifo\s+=\s+/tmp/django_base/fifo0$),
+        %r(^# django_base_uwsgi\.ini file$),
+        %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
+        %r(^module = django_base\.wsgi$),
+        %r(^home = /home/app_user/\.envs/django_base$),
+        %r(^uid = app_user$),
+        %r(^gid = www-data$),
+        %r(^processes = 2$),
         %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-        /^chmod-socket\s+=\s+660$/,
-        %r(^daemonize\s+=\s+/var/log/uwsgi/django_base\.log$),
-        %r(^master-fifo\s+=\s+/tmp/fifo0$)
+        %r(^chmod-socket = 660$),
+        %r(^daemonize = /var/log/uwsgi/django_base\.log$),
+        %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
     ]
     it { should exist }
     it { should be_file }

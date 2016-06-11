@@ -189,6 +189,15 @@ if os[:family] == 'ubuntu'
     it { should be_mode 400 }
   end
 
+  # Scripts dependencies should be present
+  describe package('python3-pip') do
+    it { should be_installed }
+  end
+
+  describe command ('pip3 list | grep psutil') do
+    its(:stdout) { should match(/psutil\s+\(\d+\.\d+\.\d+\)/)}
+  end
+
   # Config file for for installation scripts should be present
   describe file('/home/web_user/sites/django_base/scripts/conf.py') do
     params = [

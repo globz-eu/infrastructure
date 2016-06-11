@@ -91,6 +91,13 @@ if app_repo
     mode '0755'
   end
 
+  # create app fifo directory
+  directory "/tmp/#{app_name}" do
+    owner 'root'
+    group 'root'
+    mode '0777'
+  end
+
   # create conf.d directory
   directory "/home/#{app_user}/sites/#{app_name}/conf.d" do
     owner app_user
@@ -151,6 +158,12 @@ if app_repo
 
   # TODO: remove unused files from scripts folder
 
+  bash 'install_scripts_requirements' do
+    cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+    code 'pip3 install -r requirements.txt'
+    user 'root'
+  end
+
   bash 'own_scripts' do
     code "chown -R #{app_user}:#{app_user} /home/#{app_user}/sites/#{app_name}/scripts"
     user 'root'
@@ -197,7 +210,7 @@ if app_repo
 
   bash 'install_django_app' do
     cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-    code './installdjangoapp.py'
+    code './installdjangoapp.py -i'
     user 'root'
   end
 
@@ -210,6 +223,7 @@ if app_repo
     variables({
                   app_name: app_name,
                   app_user: app_user,
+                  fifo: "/tmp/#{app_name}/fifo0",
                   web_user: 'www-data',
                   processes: node['django_app_server']['uwsgi']['processes'],
                   socket: socket,

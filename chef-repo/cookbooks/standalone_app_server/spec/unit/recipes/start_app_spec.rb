@@ -50,9 +50,9 @@ describe 'standalone_app_server::start_app' do
       end
 
       it 'runs app tests' do
-        expect(chef_run).to run_bash('migrate_and_test').with({
+        expect(chef_run).to run_bash('test_and_start_app').with({
                   cwd: '/home/app_user/sites/django_base/scripts',
-                  code: './installdjangoapp.py -mt',
+                  code: './installdjangoapp.py -imt -u start',
                   user: 'root'
                })
       end
@@ -72,14 +72,6 @@ describe 'standalone_app_server::start_app' do
       it 'notifies nginx to restart' do
         django_base_enabled = chef_run.link('/etc/nginx/sites-enabled/django_base.conf')
         expect(django_base_enabled).to notify('service[nginx]').to(:restart).immediately
-      end
-
-      it 'launches uwsgi' do
-        expect(chef_run).to run_bash('start_uwsgi').with({
-            cwd: '/home/app_user/sites/django_base/source',
-            code: 'uwsgi --ini ./django_base_uwsgi.ini ',
-            user: 'root'
-                                                         })
       end
     end
   end

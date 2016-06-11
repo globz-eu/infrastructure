@@ -36,16 +36,9 @@ directory "/var/log/#{app_name}/test_results" do
   mode '0700'
 end
 
-bash 'migrate_and_test' do
+bash 'test_and_start_app' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-  code './installdjangoapp.py -mt'
-  user 'root'
-end
-
-# TODO: replace by script
-bash 'start_uwsgi' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source"
-  code 'uwsgi --ini ./django_base_uwsgi.ini '
+  code './installdjangoapp.py -mt -u start'
   user 'root'
 end
 

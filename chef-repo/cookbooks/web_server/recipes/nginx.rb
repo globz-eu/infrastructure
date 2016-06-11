@@ -97,6 +97,14 @@ if app_repo
 
   # TODO: remove unused files from scripts folder
 
+  package 'python3-pip'
+
+  bash 'install_scripts_requirements' do
+    cwd "/home/#{web_user}/sites/#{app_name}/scripts"
+    code 'pip3 install -r requirements.txt'
+    user 'root'
+  end
+
   bash 'own_static_scripts' do
     code "chown -R #{web_user}:#{web_user} /home/#{web_user}/sites/#{app_name}/scripts"
     user 'root'
