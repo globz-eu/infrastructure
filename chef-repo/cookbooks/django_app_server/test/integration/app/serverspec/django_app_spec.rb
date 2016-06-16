@@ -94,7 +94,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  scripts = ['servestatic.py', 'installdjangoapp.py']
+  scripts = ['servestatic.py', 'installdjangoapp.py', 'createdb.py']
   scripts.each do |s|
     describe file "/home/app_user/sites/django_base/scripts/#{s}" do
       it { should exist }
@@ -116,15 +116,6 @@ if os[:family] == 'ubuntu'
   # Scripts dependencies should be present
   describe command ('pip3 list | grep psutil') do
     its(:stdout) { should match(/psutil\s+\(\d+\.\d+\.\d+\)/)}
-  end
-
-  # App log directory should be present
-  describe file('/var/log/django_base') do
-    it { should exist }
-    it { should be_directory }
-    it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
-    it { should be_mode 755 }
   end
 
   # Virtual environment directory structure should be present
@@ -170,6 +161,7 @@ if os[:family] == 'ubuntu'
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
+        %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^APP_USER = 'app_user'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
@@ -344,28 +336,34 @@ if os[:family] == 'ubuntu'
   end
 
   # uWSGI ini file should be present
-  describe file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini') do
-    params = [
-        %r(^master-fifo\s+=\s+/tmp/django_base/fifo0$),
-        %r(^# django_base_uwsgi\.ini file$),
-        %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
-        %r(^module = django_base\.wsgi$),
-        %r(^home = /home/app_user/\.envs/django_base$),
-        %r(^uid = app_user$),
-        %r(^gid = www-data$),
-        %r(^processes = 2$),
-        %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
-        %r(^chmod-socket = 660$),
-        %r(^daemonize = /var/log/uwsgi/django_base\.log$),
-        %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
-    ]
-    it { should exist }
-    it { should be_file }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'app_user' }
-    it { should be_mode 400 }
-    params.each do |p|
-      its(:content) { should match(p)}
+  uwsgi_conf_files = [
+      '/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini',
+      '/home/app_user/sites/django_base/source/django_base_uwsgi.ini'
+  ]
+  uwsgi_conf_files.each do |f|
+    describe file(f) do
+      params = [
+          %r(^master-fifo\s+=\s+/tmp/django_base/fifo0$),
+          %r(^# django_base_uwsgi\.ini file$),
+          %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
+          %r(^module = django_base\.wsgi$),
+          %r(^home = /home/app_user/\.envs/django_base$),
+          %r(^uid = app_user$),
+          %r(^gid = www-data$),
+          %r(^processes = 2$),
+          %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+          %r(^chmod-socket = 660$),
+          %r(^daemonize = /var/log/uwsgi/django_base\.log$),
+          %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
+      ]
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 400 }
+      params.each do |p|
+        its(:content) { should match(p)}
+      end
     end
   end
 end

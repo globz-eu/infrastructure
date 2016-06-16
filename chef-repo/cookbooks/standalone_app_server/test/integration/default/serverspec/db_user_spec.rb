@@ -17,9 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: db_server
-# Recipe:: default
+# Cookbook:: db_server
+# Spec:: db_user
 
-include_recipe 'apt::default'
-include_recipe 'db_server::db_user'
-include_recipe 'db_server::postgresql'
+require 'spec_helper'
+
+set :backend, :exec
+
+describe user( 'db_user' ) do
+  it { should exist }
+  it { should belong_to_group 'db_user' }
+  it { should belong_to_group 'db_user' }
+  it { should have_home_directory '/home/db_user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) { should match('$6$xKJVG30L$GN..e105dLVkI5JElirjwif2VoZtMldkCvbgRmFJAU4tC1KbRkMjEJIkkEREtvbcv38HFPARVc6cWV7YoEbxR/') }
+end

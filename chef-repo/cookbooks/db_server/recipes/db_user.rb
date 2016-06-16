@@ -18,8 +18,16 @@
 # =====================================================================
 #
 # Cookbook Name:: db_server
-# Recipe:: default
+# Recipe:: db_user
 
-include_recipe 'apt::default'
-include_recipe 'db_server::db_user'
-include_recipe 'db_server::postgresql'
+include_recipe 'chef-vault'
+
+db_user_item = chef_vault_item('pg_server', 'db_user')
+db_user = db_user_item['user']
+
+user db_user do
+  home "/home/#{db_user}"
+  supports :manage_home => true
+  password db_user_item['password_hash']
+  shell '/bin/bash'
+end

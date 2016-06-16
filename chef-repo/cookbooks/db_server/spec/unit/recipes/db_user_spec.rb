@@ -17,12 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook:: django_app_server
-# Spec:: app_user
+# Cookbook:: db_server
+# Spec:: db_user
 
 require 'spec_helper'
 
-describe 'django_app_server::app_user' do
+describe 'db_server::db_user' do
   ['14.04', '16.04'].each do |version|
     context "When app user is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
@@ -34,18 +34,15 @@ describe 'django_app_server::app_user' do
         expect { chef_run }.to_not raise_error
       end
 
-      it 'creates the app user' do
-        expect(chef_run).to create_user('app_user').with(
-            home: '/home/app_user',
-            shell: '/bin/bash',
-            password: '$6$g7n0bpuYPHBI.$FVkbyH37IcBhDc000UcrGZ/u4n1f9JaEhLtBrT1VcAwKXL1sh9QDoTb3leMdazZVLQuv/w1FCBeqXX6GZGWid/'
-        )
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('chef-vault')
       end
 
-      it 'adds app_user to group www-data' do
-        expect(chef_run).to manage_group('www-data').with(
-            append: true,
-            members: ['app_user']
+      it 'creates the database user' do
+        expect(chef_run).to create_user('db_user').with(
+            home: '/home/db_user',
+            shell: '/bin/bash',
+            password: '$6$xKJVG30L$GN..e105dLVkI5JElirjwif2VoZtMldkCvbgRmFJAU4tC1KbRkMjEJIkkEREtvbcv38HFPARVc6cWV7YoEbxR/'
         )
       end
     end

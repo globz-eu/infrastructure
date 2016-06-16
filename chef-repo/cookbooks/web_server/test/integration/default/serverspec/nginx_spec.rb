@@ -206,6 +206,7 @@ if os[:family] == 'ubuntu'
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
+        %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = ''$),
         %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
         %r(^APP_USER = ''$),

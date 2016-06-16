@@ -34,12 +34,14 @@ describe 'db_server::postgresql' do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
         stub_command("sudo -u postgres psql -c '\\l' | grep ").and_return(false)
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(false)
-        stub_command("sudo -u postgres psql -d  -c '\\ddp' | egrep 'table.*db_user'").and_return(false)
-        stub_command("sudo -u postgres psql -d  -c '\\ddp' | egrep 'sequence.*db_user'").and_return(false)
       end
 
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
+      end
+
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('chef-vault')
       end
 
       it 'starts the postgresql service' do
@@ -107,11 +109,11 @@ end
 
 describe 'db_server::postgresql' do
   ['14.04', '16.04'].each do |version|
-    context "When node['db_server']['postgresql']['db_name'] = django_base, on an Ubuntu #{version} platform" do
+    context "When app repo is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['db_server']['postgresql']['db_name'] = 'django_base'
+          node.set['db_server']['postgresql']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
         end.converge(described_recipe)
       end
 
@@ -119,8 +121,7 @@ describe 'db_server::postgresql' do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
         stub_command("sudo -u postgres psql -c '\\l' | grep django_base").and_return(false)
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'table.*db_user'").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'sequence.*db_user'").and_return(false)
+        stub_command('ls /home/db_user/sites/django_base/scripts').and_return(false)
       end
 
       it 'converges successfully' do
@@ -178,20 +179,6 @@ describe 'db_server::postgresql' do
         end
       end
 
-      it 'creates database' do
-        expect(chef_run).to run_bash('create_database').with({
-            code: "sudo -u postgres psql -c 'CREATE DATABASE django_base;'",
-            user: 'root'
-                                                                           })
-      end
-
-      it 'creates database user' do
-        expect(chef_run).to run_bash('create_user').with({
-             code: "sudo -u postgres psql -c \"CREATE USER db_user WITH PASSWORD 'db_user_password';\"",
-             user: 'root'
-                                                             })
-      end
-
       if version == '14.04'
         it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
           expect(chef_run).to install_package('postgresql-9.5')
@@ -201,23 +188,161 @@ describe 'db_server::postgresql' do
         end
       elsif version == '16.04'
         it 'installs the "postgresql-9.5 postgresql-contrib-9.5 postgresql-client-9.5 postgresql-server-9.5 postgresql-server-dev-9.5" package' do
-          expect(chef_run).to install_package([
-                                                  'postgresql',
-                                                  'postgresql-contrib-9.5',
-                                                  'postgresql-server-dev-9.5'
-                                              ])
+          expect(chef_run).to install_package(%w(postgresql postgresql-contrib-9.5 postgresql-server-dev-9.5))
         end
       end
 
-      it 'runs default privilege grant code' do
-        expect(chef_run).to run_bash('grant_default_db').with({
-          code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
+      it 'creates database user' do
+        expect(chef_run).to run_bash('create_user').with({
+          code: "sudo -u postgres psql -c \"CREATE USER db_user WITH PASSWORD 'db_user_password';\"",
           user: 'root'
-                                                                                  })
-        expect(chef_run).to run_bash('grant_default_seq').with({
-          code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
+                                                         })
+      end
+
+      it 'installs the git package' do
+        expect( chef_run ).to install_package('git')
+      end
+
+      it 'creates the /var/log/django_base directory' do
+        expect(chef_run).to create_directory('/var/log/django_base').with(
+            owner: 'root',
+            group: 'root',
+            mode: '0755',
+        )
+      end
+
+      it 'creates the scripts file structure' do
+        expect(chef_run).to create_directory('/home/db_user/sites').with(
+            owner: 'db_user',
+            group: 'db_user',
+            mode: '0500',
+        )
+        expect(chef_run).to create_directory('/home/db_user/sites/django_base').with(
+            owner: 'db_user',
+            group: 'db_user',
+            mode: '0500',
+        )
+      end
+
+      # installs scripts for creating database
+      it 'clones the scripts' do
+        expect( chef_run ).to run_bash('git_clone_db_scripts').with(
+            cwd: '/home/db_user/sites/django_base',
+            code: 'git clone https://github.com/globz-eu/scripts.git',
+            user: 'root'
+        )
+      end
+
+      it 'notifies script ownership and permission commands' do
+        clone_scripts = chef_run.bash('git_clone_db_scripts')
+        expect(clone_scripts).to notify('bash[own_db_scripts]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[db_scripts_dir_permissions]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[make_db_scripts_executable]').to(:run).immediately
+        expect(clone_scripts).to notify('bash[make_db_scripts_utilities_readable]').to(:run).immediately
+      end
+
+      it 'installs pip3' do
+        expect(chef_run).to install_package('python3-pip')
+      end
+
+      it 'installs scripts requirements' do
+        expect(chef_run).to run_bash('install_db_scripts_requirements').with(
+            cwd: '/home/db_user/sites/django_base/scripts',
+            code: 'pip3 install -r requirements.txt',
+            user: 'root'
+        )
+      end
+
+      it 'changes ownership of the script directory to db_user:db_user' do
+        expect(chef_run).to_not run_bash('own_db_scripts').with(
+            code: 'chown -R db_user:db_user /home/db_user/sites/django_base/scripts',
+            user: 'root',
+            action: :nothing
+        )
+      end
+
+      it 'changes permissions the scripts directory to 0500' do
+        expect(chef_run).to_not run_bash('db_scripts_dir_permissions').with(
+            code: 'chmod 0500 /home/db_user/sites/django_base/scripts',
+            user: 'root',
+            action: :nothing
+        )
+      end
+
+      it 'makes scripts executable' do
+        expect(chef_run).to_not run_bash('make_db_scripts_executable').with(
+            code: 'chmod 0500 /home/db_user/sites/django_base/scripts/*.py',
+            user: 'root',
+            action: :nothing
+        )
+      end
+
+      it 'makes scripts utilities readable' do
+        expect(chef_run).to_not run_bash('make_db_scripts_utilities_readable').with(
+            code: 'chmod 0400 /home/db_user/sites/django_base/scripts/utilities/*.py',
+            user: 'root',
+            action: :nothing
+        )
+      end
+
+      it 'creates the /home/db_user/sites/django_base/scripts/conf.py file' do
+        expect(chef_run).to create_template('/home/db_user/sites/django_base/scripts/conf.py').with(
+            owner: 'db_user',
+            group: 'db_user',
+            mode: '0400',
+            source: 'conf.py.erb',
+            variables: {
+                dist_version: version,
+                debug: 'DEBUG',
+                nginx_conf: '',
+                git_repo: 'https://github.com/globz-eu/django_base.git',
+                app_home: '',
+                app_home_tmp: '',
+                app_user: '',
+                web_user: '',
+                webserver_user: '',
+                db_user: 'db_user',
+                db_admin_user: 'postgres',
+                static_path: '',
+                media_path: '',
+                uwsgi_path: '',
+                down_path: '',
+                log_file: '/var/log/django_base/create_db.log'
+            }
+        )
+        install_app_conf = [
+            %r(^DIST_VERSION = '#{version}'$),
+            %r(^DEBUG = 'DEBUG'$),
+            %r(^NGINX_CONF = ''$),
+            %r(^APP_HOME = ''$),
+            %r(^APP_HOME_TMP = ''$),
+            %r(^APP_USER = ''$),
+            %r(^WEB_USER = ''$),
+            %r(^WEBSERVER_USER = ''$),
+            %r(^DB_USER = 'db_user'$),
+            %r(^DB_ADMIN_USER = 'postgres'$),
+            %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+            %r(^STATIC_PATH = ''$),
+            %r(^MEDIA_PATH = ''$),
+            %r(^UWSGI_PATH = ''$),
+            %r(^VENV = ''$),
+            %r(^REQS_FILE = ''$),
+            %r(^SYS_DEPS_FILE = ''$),
+            %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$)
+        ]
+        install_app_conf.each do |u|
+          expect(chef_run).to render_file(
+                                  '/home/db_user/sites/django_base/scripts/conf.py'
+                              ).with_content(u)
+        end
+      end
+
+      it 'runs create database script' do
+        expect(chef_run).to run_bash('run_create_database').with(
+          code: './createdb.py -c',
+          cwd: '/home/db_user/sites/django_base/scripts',
           user: 'root'
-                                                                                  })
+        )
       end
     end
   end
@@ -225,11 +350,11 @@ end
 
 describe 'db_server::postgresql' do
   ['14.04', '16.04'].each do |version|
-    context "When node['db_server']['postgresql']['db_name'] = django_base, on a second run on an Ubuntu #{version} platform" do
+    context "When app repo is specified, on a second run on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['db_server']['postgresql']['db_name'] = 'django_base'
+          node.set['db_server']['postgresql']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
         end.converge(described_recipe)
       end
 
@@ -237,15 +362,7 @@ describe 'db_server::postgresql' do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
         stub_command("sudo -u postgres psql -c '\\l' | grep django_base").and_return(true)
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(true)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'table.*db_user'").and_return(true)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'sequence.*db_user'").and_return(true)
-      end
-
-      it 'does not create database' do
-        expect(chef_run).to_not run_bash('create_database').with({
-                   code: "sudo -u postgres psql -c 'CREATE DATABASE django_base;'",
-                   user: 'root'
-                                                             })
+        stub_command('ls /home/db_user/sites/django_base/scripts').and_return(false)
       end
 
       it 'do not create database user' do
@@ -253,17 +370,6 @@ describe 'db_server::postgresql' do
                    code: "sudo -u postgres psql -c \"CREATE USER db_user WITH PASSWORD 'db_user_password';\"",
                    user: 'root'
                                                          })
-      end
-
-      it 'does not run default privilege grant code' do
-        expect(chef_run).to_not run_bash('grant_default_db').with({
-                  code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO db_user;'",
-                  user: 'root'
-                                                              })
-        expect(chef_run).to_not run_bash('grant_default_seq').with({
-                   code: "sudo -u postgres psql -d django_base -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO db_user;'",
-                   user: 'root'
-                                                               })
       end
     end
   end

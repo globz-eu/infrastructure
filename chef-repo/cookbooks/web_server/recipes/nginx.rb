@@ -95,8 +95,6 @@ if app_repo
     notifies :run, 'bash[make_static_scripts_utilities_readable]', :immediately
   end
 
-  # TODO: remove unused files from scripts folder
-
   package 'python3-pip'
 
   bash 'install_scripts_requirements' do
@@ -137,6 +135,7 @@ if app_repo
     variables({
                   dist_version: node['platform_version'],
                   debug: 'DEBUG',
+                  nginx_conf: '',
                   git_repo: app_repo,
                   app_home: app_home,
                   app_home_tmp: "/home/#{web_user}/sites/#{app_name}/source",
@@ -153,7 +152,7 @@ if app_repo
 
   bash 'serve_static' do
     cwd "/home/#{web_user}/sites/#{app_name}/scripts"
-    code './servestatic.py'
+    code './servestatic.py -m'
     user 'root'
   end
 

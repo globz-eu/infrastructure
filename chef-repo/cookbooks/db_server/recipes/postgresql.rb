@@ -28,18 +28,25 @@ include_recipe 'chef-vault'
 postgres_vault = chef_vault_item('pg_server', 'postgres')
 db_user_vault = chef_vault_item('pg_server', 'db_user')
 db_user = db_user_vault['user']
-db_name = node['db_server']['postgresql']['db_name']
+db_admin_user = postgres_vault['user']
 node.default['postgresql']['password']['postgres'] = postgres_vault['password']
+app_repo = node['db_server']['postgresql']['git']['app_repo']
+scripts_repo = node['db_server']['postgresql']['git']['scripts_repo']
+app_name = false
+db_name = false
+if app_repo
+  /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
+  if name
+    app_name = name
+    db_name = name
+  end
+end
 
 if node['platform_version'].include?('14.04')
   include_recipe 'postgresql::server'
   include_recipe 'postgresql::contrib'
 elsif node['platform_version'].include?('16.04')
-  package [
-              'postgresql',
-              'postgresql-contrib-9.5',
-              'postgresql-server-dev-9.5'
-          ]
+  package %w(postgresql postgresql-contrib-9.5 postgresql-server-dev-9.5)
 
   service 'postgresql' do
     action :start
@@ -66,27 +73,103 @@ elsif node['platform_version'].include?('16.04')
 end
 
 if db_name
-  bash 'create_database' do
-    code "sudo -u #{postgres_vault['user']} psql -c 'CREATE DATABASE #{db_name};'"
-    user 'root'
-    not_if "sudo -u #{postgres_vault['user']} psql -c '\\l' | grep #{db_name}", :user => 'root'
-  end
-
   bash 'create_user' do
     code "sudo -u #{postgres_vault['user']} psql -c \"CREATE USER #{db_user} WITH PASSWORD '#{db_user_vault['password']}';\""
     user 'root'
     not_if "sudo -u #{postgres_vault['user']} psql -c '\\du' | grep #{db_user}", :user => 'root'
   end
 
-  bash 'grant_default_db' do
-    code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO #{db_user};'"
-    user 'root'
-    not_if "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c '\\ddp' | egrep 'table.*#{db_user}'", :user => 'root'
+  package 'git'
+
+  directory '/var/log/django_base' do
+    owner 'root'
+    group 'root'
+    mode '0755'
   end
 
-  bash 'grant_default_seq' do
-    code "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE ON SEQUENCES TO #{db_user};'"
+  directory "/home/#{db_user}/sites" do
+    owner db_user
+    group db_user
+    mode '0500'
+  end
+
+  directory "/home/#{db_user}/sites/#{app_name}" do
+    owner db_user
+    group db_user
+    mode '0500'
+  end
+
+  bash 'git_clone_db_scripts' do
+    cwd "/home/#{db_user}/sites/#{app_name}"
+    code "git clone #{scripts_repo}"
     user 'root'
-    not_if "sudo -u #{postgres_vault['user']} psql -d #{db_name} -c '\\ddp' | egrep 'sequence.*#{db_user}'", :user => 'root'
+    not_if "ls /home/#{db_user}/sites/#{app_name}/scripts", :user => 'root'
+    notifies :run, 'bash[own_db_scripts]', :immediately
+    notifies :run, 'bash[db_scripts_dir_permissions]', :immediately
+    notifies :run, 'bash[make_db_scripts_executable]', :immediately
+    notifies :run, 'bash[make_db_scripts_utilities_readable]', :immediately
+  end
+
+  package 'python3-pip'
+
+  bash 'install_db_scripts_requirements' do
+    cwd "/home/#{db_user}/sites/#{app_name}/scripts"
+    code 'pip3 install -r requirements.txt'
+    user 'root'
+  end
+
+  bash 'own_db_scripts' do
+    code "chown -R #{db_user}:#{db_user} /home/#{db_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'db_scripts_dir_permissions' do
+    code "chmod 0500 /home/#{db_user}/sites/#{app_name}/scripts"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'make_db_scripts_executable' do
+    code "chmod 0500 /home/#{db_user}/sites/#{app_name}/scripts/*.py"
+    user 'root'
+    action :nothing
+  end
+
+  bash 'make_db_scripts_utilities_readable' do
+    code "chmod 0400 /home/#{db_user}/sites/#{app_name}/scripts/utilities/*.py"
+    user 'root'
+    action :nothing
+  end
+
+  template "/home/#{db_user}/sites/#{app_name}/scripts/conf.py" do
+    owner db_user
+    group db_user
+    mode '0400'
+    source 'conf.py.erb'
+    variables({
+        dist_version: node['platform_version'],
+        debug: 'DEBUG',
+        nginx_conf: '',
+        git_repo: app_repo,
+        app_home: '',
+        app_home_tmp: '',
+        app_user: '',
+        web_user: '',
+        webserver_user: '',
+        db_user: db_user,
+        db_admin_user: db_admin_user,
+        static_path: '',
+        media_path: '',
+        uwsgi_path: '',
+        down_path: '',
+        log_file: "/var/log/#{app_name}/create_db.log"
+              })
+  end
+
+  bash 'run_create_database' do
+    cwd "/home/#{db_user}/sites/#{app_name}/scripts"
+    code './createdb.py -c'
+    user 'root'
   end
 end

@@ -156,8 +156,6 @@ if app_repo
     notifies :run, 'bash[make_scripts_utilities_readable]', :immediately
   end
 
-  # TODO: remove unused files from scripts folder
-
   bash 'install_scripts_requirements' do
     cwd "/home/#{app_user}/sites/#{app_name}/scripts"
     code 'pip3 install -r requirements.txt'
@@ -198,6 +196,7 @@ if app_repo
     variables({
         dist_version: node['platform_version'],
         debug: "'DEBUG'",
+        nginx_conf: '',
         git_repo: app_repo,
         app_home: "/home/#{app_user}/sites/#{app_name}/source",
         app_user: app_user,
@@ -208,14 +207,8 @@ if app_repo
               })
   end
 
-  bash 'install_django_app' do
-    cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-    code './installdjangoapp.py -i'
-    user 'root'
-  end
-
   # make the uwsgi.ini file
-  template "/home/#{app_user}/sites/#{app_name}/source/#{app_name}_uwsgi.ini" do
+  template "/home/#{app_user}/sites/#{app_name}/conf.d/#{app_name}_uwsgi.ini" do
     owner app_user
     group app_user
     mode '0400'
@@ -231,5 +224,11 @@ if app_repo
                   log_file: "/var/log/uwsgi/#{app_name}.log",
                   pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
               })
+  end
+
+  bash 'install_django_app' do
+    cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+    code './installdjangoapp.py -i'
+    user 'root'
   end
 end

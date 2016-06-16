@@ -39,6 +39,7 @@ suites:
     attributes:
       db_server:
         postgresql:
-          db_name: 'django_base'
+          git:
+            app_repo: 'https://github.com/globz-eu/django_base.git'
     excludes:
       - centos-7.1

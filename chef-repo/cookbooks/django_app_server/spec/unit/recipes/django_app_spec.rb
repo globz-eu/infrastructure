@@ -123,7 +123,7 @@ describe 'django_app_server::django_app' do
         expect(chef_run).to create_directory('/tmp/django_base').with(
             owner: 'root',
             group: 'root',
-            mode: '0755',
+            mode: '0777',
         )
       end
 
@@ -196,12 +196,12 @@ describe 'django_app_server::django_app' do
                 db_admin_password: 'postgres_password',
             }
         )
-        install_app_conf = [
+        admin_conf = [
             %r(^from django_base\.settings import \*$),
             %r(^\s+'USER': 'postgres',$),
             %r(^\s+'PASSWORD': "postgres_password",$)
         ]
-        install_app_conf.each do |u|
+        admin_conf.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/settings_admin.py').with_content(u)
         end
       end
@@ -271,6 +271,7 @@ describe 'django_app_server::django_app' do
             variables: {
                 dist_version: version,
                 debug: "'DEBUG'",
+                nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '/home/app_user/sites/django_base/source',
                 app_user: 'app_user',
@@ -283,6 +284,7 @@ describe 'django_app_server::django_app' do
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
             %r(^DEBUG = 'DEBUG'$),
+            %r(^NGINX_CONF = ''$),
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
             %r(^APP_USER = 'app_user'$),
             %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
@@ -304,8 +306,8 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /home/app_user/sites/django_base/source/django_base_uwsgi.ini file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with(
+      it 'creates the /home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini file' do
+        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini').with(
             owner: 'app_user',
             group: 'app_user',
             mode: '0400',
@@ -337,7 +339,7 @@ describe 'django_app_server::django_app' do
             %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
         ]
         uwsgi_ini.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/source/django_base_uwsgi.ini').with_content(u)
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini').with_content(u)
         end
       end
     end

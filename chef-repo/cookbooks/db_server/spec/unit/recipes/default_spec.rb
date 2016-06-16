@@ -28,11 +28,20 @@ describe 'db_server::default' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version).converge(described_recipe)
-        stub_command("ls /var/lib/postgresql/9.5/main/recovery.conf").and_return('')
       end
 
       before do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
+      end
+
+      it 'converges successfully' do
+        expect { chef_run }.to_not raise_error
+      end
+
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('apt::default')
+        expect(chef_run).to include_recipe('db_server::db_user')
+        expect(chef_run).to include_recipe('db_server::postgresql')
       end
     end
   end
@@ -46,19 +55,22 @@ describe 'db_server::default' do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['db_server']['postgresql']['db_name'] = 'django_base'
         end.converge(described_recipe)
-        stub_command("ls /var/lib/postgresql/9.5/main/recovery.conf").and_return('')
       end
 
       before do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
         stub_command("sudo -u postgres psql -c '\\l' | grep django_base").and_return(false)
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'table.*db_user'").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'sequence.*db_user'").and_return(false)
       end
 
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
+      end
+
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('apt::default')
+        expect(chef_run).to include_recipe('db_server::db_user')
+        expect(chef_run).to include_recipe('db_server::postgresql')
       end
     end
   end

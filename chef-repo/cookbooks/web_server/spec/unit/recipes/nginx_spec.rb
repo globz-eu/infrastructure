@@ -196,6 +196,7 @@ describe 'web_server::nginx' do
             variables: {
                 dist_version: version,
                 debug: 'DEBUG',
+                nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '',
                 app_home_tmp: '/home/web_user/sites/django_base/source',
@@ -212,6 +213,7 @@ describe 'web_server::nginx' do
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
             %r(^DEBUG = 'DEBUG'$),
+            %r(^NGINX_CONF = ''$),
             %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
             %r(^APP_HOME = ''$),
             %r(^APP_USER = ''$),
@@ -237,7 +239,7 @@ describe 'web_server::nginx' do
       it 'runs the serve_static script' do
         expect(chef_run).to run_bash('serve_static').with(
             cwd: '/home/web_user/sites/django_base/scripts',
-            code: './servestatic.py',
+            code: './servestatic.py -m',
             user: 'root'
         )
       end
