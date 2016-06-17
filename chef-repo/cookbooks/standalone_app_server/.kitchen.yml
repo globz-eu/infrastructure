@@ -61,7 +61,8 @@ suites:
     attributes:
       db_server:
         postgresql:
-          db_name: 'django_base'
+          git:
+            app_repo: 'https://github.com/globz-eu/django_base.git'
       django_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
