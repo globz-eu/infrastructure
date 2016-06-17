@@ -37,7 +37,7 @@ describe 'standalone_app_server::update' do
       it 'runs server_down' do
         expect( chef_run ).to run_bash('server_down').with(
            cwd: '/home/web_user/sites/django_base/scritps',
-           code: './servestatic.py -s down',
+           code: './webserver.py -s down',
            user: 'root'
         )
       end
@@ -45,7 +45,7 @@ describe 'standalone_app_server::update' do
       it 'runs remove_app' do
         expect( chef_run ).to run_bash('server_down').with(
             cwd: '/home/app_user/sites/django_base/scritps',
-            code: './installdjangoapp.py -x',
+            code: './djangoapp.py -x',
             user: 'root'
         )
       end
@@ -53,7 +53,7 @@ describe 'standalone_app_server::update' do
       it 'resets the database' do
         expect( chef_run ).to run_bash('db_reset').with(
             cwd: '/home/db_user/sites/django_base/scripts',
-            code: './db_reset.py',
+            code: './dbserver.py -r',
             user: 'root'
         )
       end
@@ -61,7 +61,7 @@ describe 'standalone_app_server::update' do
       it 'runs reinstall_app' do
         expect( chef_run ).to run_bash('reinstall_app').with(
             cwd: '/home/app_user/sites/django_base/scritps',
-            code: './installdjangoapp.py -imt -u start',
+            code: './djangoapp.py -imt -u start',
             user: 'root'
         )
       end
@@ -69,7 +69,7 @@ describe 'standalone_app_server::update' do
       it 'runs server_up' do
         expect( chef_run ).to run_bash('server_down').with(
             cwd: '/home/web_user/sites/django_base/scritps',
-            code: './servestatic.py -s up',
+            code: './webserver.py -s up',
             user: 'root'
         )
       end
