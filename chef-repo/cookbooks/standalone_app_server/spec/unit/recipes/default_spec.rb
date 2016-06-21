@@ -37,10 +37,7 @@ describe 'standalone_app_server::default' do
       before do
         stub_command(/ls \/.*\/recovery.conf/).and_return(false)
         stub_command("pip3 list | grep uWSGI").and_return(false)
-        stub_command("sudo -u postgres psql -c '\\l' | grep django_base").and_return(false)
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'table.*db_user'").and_return(false)
-        stub_command("sudo -u postgres psql -d django_base -c '\\ddp' | egrep 'sequence.*db_user'").and_return(false)
         stub_command("ls /home/app_user/sites/django_base/scripts").and_return(false)
         stub_command("pip list | grep virtualenv").and_return(false)
       end

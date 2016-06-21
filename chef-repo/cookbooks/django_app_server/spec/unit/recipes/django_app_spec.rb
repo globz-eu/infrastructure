@@ -301,7 +301,7 @@ describe 'django_app_server::django_app' do
       it 'runs the install_django_app script' do
         expect(chef_run).to run_bash('install_django_app').with(
                     cwd: '/home/app_user/sites/django_base/scripts',
-                    code: './installdjangoapp.py -i',
+                    code: './djangoapp.py -i',
                     user: 'root'
         )
       end

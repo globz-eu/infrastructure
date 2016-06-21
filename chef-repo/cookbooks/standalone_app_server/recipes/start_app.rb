@@ -38,7 +38,7 @@ end
 
 bash 'test_and_start_app' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-  code './installdjangoapp.py -mt -u start'
+  code './djangoapp.py -mt -u start'
   user 'root'
 end
 

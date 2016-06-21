@@ -133,7 +133,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  scripts = ['createdb.py', 'servestatic.py', 'installdjangoapp.py']
+  scripts = ['dbserver.py', 'webserver.py', 'djangoapp.py']
   scripts.each do |s|
     describe file "/home/db_user/sites/django_base/scripts/#{s}" do
       it { should exist }

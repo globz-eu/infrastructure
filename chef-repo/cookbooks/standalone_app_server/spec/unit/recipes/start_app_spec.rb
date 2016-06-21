@@ -52,7 +52,7 @@ describe 'standalone_app_server::start_app' do
       it 'runs app tests' do
         expect(chef_run).to run_bash('test_and_start_app').with({
                   cwd: '/home/app_user/sites/django_base/scripts',
-                  code: './installdjangoapp.py -imt -u start',
+                  code: './djangoapp.py -mt -u start',
                   user: 'root'
                })
       end

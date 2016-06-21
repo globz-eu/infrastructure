@@ -169,7 +169,7 @@ if db_name
 
   bash 'run_create_database' do
     cwd "/home/#{db_user}/sites/#{app_name}/scripts"
-    code './createdb.py -c'
+    code './dbserver.py -c'
     user 'root'
   end
 end

@@ -239,7 +239,7 @@ describe 'web_server::nginx' do
       it 'runs the serve_static script' do
         expect(chef_run).to run_bash('serve_static').with(
             cwd: '/home/web_user/sites/django_base/scripts',
-            code: './servestatic.py -m',
+            code: './webserver.py -m',
             user: 'root'
         )
       end

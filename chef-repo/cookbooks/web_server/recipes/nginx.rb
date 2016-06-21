@@ -152,7 +152,7 @@ if app_repo
 
   bash 'serve_static' do
     cwd "/home/#{web_user}/sites/#{app_name}/scripts"
-    code './servestatic.py -m'
+    code './webserver.py -m'
     user 'root'
   end
 

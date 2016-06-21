@@ -339,7 +339,7 @@ describe 'db_server::postgresql' do
 
       it 'runs create database script' do
         expect(chef_run).to run_bash('run_create_database').with(
-          code: './createdb.py -c',
+          code: './dbserver.py -c',
           cwd: '/home/db_user/sites/django_base/scripts',
           user: 'root'
         )

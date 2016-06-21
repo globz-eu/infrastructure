@@ -228,7 +228,7 @@ if app_repo
 
   bash 'install_django_app' do
     cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-    code './installdjangoapp.py -i'
+    code './djangoapp.py -i'
     user 'root'
   end
 end
