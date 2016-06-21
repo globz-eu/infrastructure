@@ -16,16 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: install_scripts
+# Recipe:: user
 
-require 'serverspec'
-require 'pathname'
-require 'net/http'
-require 'net/smtp'
-require 'json'
+user_name = node['install_scripts']['user']['name']
+user_pwd = node['install_scripts']['user']['password']
 
-if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM).nil?
-  set :backend, :exec
-else
-  set :backend, :cmd
-  set :os, family: 'windows'
-end
+user user_name do
+  home "/home/#{user_name}"
+  shell '/bin/bash'
+  password user_pwd
+end if user_name and user_pwd

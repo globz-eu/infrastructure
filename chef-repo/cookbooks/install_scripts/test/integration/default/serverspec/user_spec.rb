@@ -16,16 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: install_scripts
+# Spec:: user
 
-require 'serverspec'
-require 'pathname'
-require 'net/http'
-require 'net/smtp'
-require 'json'
+require 'spec_helper'
 
-if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM).nil?
-  set :backend, :exec
-else
-  set :backend, :cmd
-  set :os, family: 'windows'
+set :backend, :exec
+
+describe user( 'user' ) do
+  it { should exist }
+  it { should belong_to_group 'user' }
+  it { should belong_to_group 'user' }
+  it { should have_home_directory '/home/user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) {
+    should match(
+       '$6$YPpcwnaZtxEObrRR$RpqD1RgLVHOrr0BbAmVocf.6/yIU5.mW.hr.sm./xvwheoa9xBO6td71PUczQKfcaAcE1U2c3o0mOMb8ufvr5/'
+           )
+  }
 end

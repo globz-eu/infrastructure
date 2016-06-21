@@ -24,7 +24,7 @@ import sys
 import os
 import shutil
 from optparse import OptionParser
-from installdjangoapp import InstallDjangoApp
+from djangoapp import InstallDjangoApp
 from conf import DIST_VERSION, GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, LOG_FILE, STATIC_PATH
 from conf import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, NGINX_CONF
 

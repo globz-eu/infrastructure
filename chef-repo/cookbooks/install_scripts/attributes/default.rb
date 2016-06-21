@@ -16,16 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: install_scripts
+# Attributes:: default
 
-require 'serverspec'
-require 'pathname'
-require 'net/http'
-require 'net/smtp'
-require 'json'
-
-if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM).nil?
-  set :backend, :exec
-else
-  set :backend, :cmd
-  set :os, family: 'windows'
-end
+default['install_scripts']['user']['name'] = ''
+default['install_scripts']['user']['password'] = ''

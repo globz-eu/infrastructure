@@ -4,13 +4,40 @@ driver:
 
 provisioner:
   name: chef_solo
+  log_file: "/var/log/chef-kitchen/chef-client.log"
 
 platforms:
   - name: ubuntu-14.04
-  - name: centos-7.2
+    driver:
+      provider: libvirt
+      box: alxgrh/ubuntu-trusty-x86_64
+      network:
+        - ['private_network', {ip: '10.10.0.18'}]
+      customize:
+        memory: 2048
+        cpus: 2
+  - name: ubuntu-16.04
+    driver:
+     provider: libvirt
+     box: nrclark/xenial64-minimal-libvirt
+     network:
+       - ['private_network', {ip: '10.10.0.19'}]
+     customize:
+       memory: 2048
+       cpus: 2
+  - name: centos-7.1
+    driver:
+      provider: libvirt
+      box: centos/7
 
 suites:
   - name: default
     run_list:
       - recipe[install_scripts::default]
     attributes:
+      install_scripts:
+        user:
+          name: 'user'
+          password: '$6$YPpcwnaZtxEObrRR$RpqD1RgLVHOrr0BbAmVocf.6/yIU5.mW.hr.sm./xvwheoa9xBO6td71PUczQKfcaAcE1U2c3o0mOMb8ufvr5/'
+    excludes:
+      - centos-7.1

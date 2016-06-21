@@ -332,7 +332,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
 
-        proc = runlog.check_process(self.python_version)
-        self.assertTrue(proc, proc)
+        proc = runlog.check_process('python')
+        self.assertTrue(proc, '%s process is running: %s' % ('python', proc))
         proc = runlog.check_process('SomeVeryUnlikelyProcessName')
         self.assertFalse(proc, proc)

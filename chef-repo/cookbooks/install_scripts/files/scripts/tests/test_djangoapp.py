@@ -32,9 +32,9 @@ import subprocess
 import datetime
 from unittest import mock
 from unittest.mock import call
-import installdjangoapp
-from installdjangoapp import InstallDjangoApp
-from installdjangoapp import main
+import djangoapp
+from djangoapp import InstallDjangoApp
+from djangoapp import main
 from tests.conf_tests import GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_DEPS_FILE
 from tests.conf_tests import TEST_DIR
 from tests.helpers import Alternate
@@ -67,7 +67,7 @@ class AppTest(InstallTest):
     def setUp(self):
         InstallTest.setUp(self)
 
-    @mock.patch('installdjangoapp.InstallDjangoApp.check_process', side_effect=check_process_mock)
+    @mock.patch('djangoapp.InstallDjangoApp.check_process', side_effect=check_process_mock)
     def test_start_uwsgi(self, check_process_mock_false):
         """
         tests that start_uwsgi runs the correct command and writes to log
@@ -643,8 +643,8 @@ class TestInstallDjangoAppMain(InstallTest):
         """
         tests run main script with install parameter returns no error
         """
-        sys.argv = ['installdjangoapp', '-i', '-l', 'DEBUG']
-        installdjangoapp.DIST_VERSION = self.dist_version
+        sys.argv = ['djangoapp', '-i', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:
@@ -682,8 +682,8 @@ class TestInstallDjangoAppMain(InstallTest):
         tests run main script with migrate, run-tests and uwsgi start returns no error
         """
         mocks.alt_bool = Alternate([False])
-        sys.argv = ['installdjangoapp', '-imt', '-u', 'start', '-l', 'DEBUG']
-        installdjangoapp.DIST_VERSION = self.dist_version
+        sys.argv = ['djangoapp', '-imt', '-u', 'start', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:
@@ -727,8 +727,8 @@ class TestInstallDjangoAppMain(InstallTest):
         """
         os.makedirs(os.path.join('/tmp', self.app_name))
         mocks.alt_bool = Alternate([True])
-        sys.argv = ['installdjangoapp', '-u', 'stop', '-l', 'DEBUG']
-        installdjangoapp.DIST_VERSION = self.dist_version
+        sys.argv = ['djangoapp', '-u', 'stop', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:
@@ -741,15 +741,15 @@ class TestInstallDjangoAppMain(InstallTest):
         self.log('INFO: stopped uwsgi server')
 
     @mock.patch.object(InstallDjangoApp, 'check_process', side_effect=check_process_mock)
-    @mock.patch('installdjangoapp.time.sleep')
+    @mock.patch('djangoapp.time.sleep')
     def test_run_main_restart_uwsgi(self, sleep_mock, check_process_mock):
         """
         tests that main with parameter -u stop stops uwsgi
         """
         os.makedirs(os.path.join('/tmp', self.app_name))
         mocks.alt_bool = Alternate([True, False])
-        sys.argv = ['installdjangoapp', '-u', 'restart', '-l', 'DEBUG']
-        installdjangoapp.DIST_VERSION = self.dist_version
+        sys.argv = ['djangoapp', '-u', 'restart', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:
@@ -776,8 +776,8 @@ class TestInstallDjangoAppMain(InstallTest):
         clone_app_mock(self.app_home)
         os.makedirs(os.path.join('/tmp', self.app_name))
         mocks.alt_bool = Alternate([True])
-        sys.argv = ['installdjangoapp', '-x', '-l', 'DEBUG']
-        installdjangoapp.DIST_VERSION = self.dist_version
+        sys.argv = ['djangoapp', '-x', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:

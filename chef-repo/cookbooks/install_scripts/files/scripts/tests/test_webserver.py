@@ -25,9 +25,9 @@ import re
 import unittest
 from unittest import mock
 from unittest.mock import call
-import servestatic
-from installdjangoapp import InstallDjangoApp
-from servestatic import main, ServeStatic
+import webserver
+from djangoapp import InstallDjangoApp
+from webserver import main, ServeStatic
 from tests.helpers import remove_test_dir
 from tests.conf_tests import GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, STATIC_PATH
 from tests.conf_tests import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, TEST_DIR, NGINX_CONF
@@ -338,7 +338,7 @@ class ServeStaticTest(StaticTest):
         self.log('INFO: %s is already enabled' % self.app_name)
 
 
-class ServeStaticMainTest(StaticTest):
+class WebServerMainTest(StaticTest):
     def setUp(self):
         StaticTest.setUp(self)
 
@@ -348,11 +348,11 @@ class ServeStaticMainTest(StaticTest):
         """
         tests run main script with no parameters returns no error
         """
-        sys.argv = ['servestatic', '-m', '-l', 'DEBUG']
+        sys.argv = ['webserver', '-m', '-l', 'DEBUG']
         paths = [self.static_path, self.media_path, self.uwsgi_path, self.down_path]
         for p in paths:
             os.makedirs(p)
-        servestatic.DIST_VERSION = self.dist_version
+        webserver.DIST_VERSION = self.dist_version
         try:
             main()
         except SystemExit as sysexit:
@@ -371,7 +371,7 @@ class ServeStaticMainTest(StaticTest):
         tests that site can be turned down
         """
         self.make_site_confs('up')
-        sys.argv = ['servestatic', '-s', 'down', '-l', 'DEBUG']
+        sys.argv = ['webserver', '-s', 'down', '-l', 'DEBUG']
         try:
             main()
         except SystemExit as sysexit:
@@ -383,7 +383,7 @@ class ServeStaticMainTest(StaticTest):
         tests that site can be turned down
         """
         self.make_site_confs('down')
-        sys.argv = ['servestatic', '-s', 'up', '-l', 'DEBUG']
+        sys.argv = ['webserver', '-s', 'up', '-l', 'DEBUG']
         try:
             main()
         except SystemExit as sysexit:

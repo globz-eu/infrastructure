@@ -27,8 +27,8 @@ from unittest import mock
 from tests.runandlogtest import RunAndLogTest
 from tests.conf_tests import GIT_REPO, DB_USER, DB_ADMIN_USER
 from tests.mocks.createdb_mocks import run_command_mock
-import createdb
-from createdb import CreateDB
+import dbserver
+from dbserver import CreateDB
 
 __author__ = 'Stefan Dieterle'
 
@@ -109,10 +109,10 @@ class CreateDBMain(DBTest):
         """
         tests main with parameter -c
         """
-        sys.argv = ['createdb', '-c', '-l', 'DEBUG']
-        createdb.DIST_VERSION = self.dist_version
+        sys.argv = ['dbserver', '-c', '-l', 'DEBUG']
+        dbserver.DIST_VERSION = self.dist_version
         try:
-            createdb.main()
+            dbserver.main()
         except SystemExit as sysexit:
             self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
         msgs = [
