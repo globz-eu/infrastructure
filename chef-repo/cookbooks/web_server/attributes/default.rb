@@ -19,6 +19,8 @@
 #
 # Cookbook Name:: web_server
 
+default['install_scripts']['users'] = []
+
 default['web_server']['nginx']['app_name'] = false
 default['web_server']['nginx']['git']['app_repo'] = false
 default['web_server']['nginx']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'

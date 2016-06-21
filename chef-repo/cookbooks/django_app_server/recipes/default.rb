@@ -20,11 +20,25 @@
 # Cookbook Name:: django_app_server
 # Recipe:: default
 
-include_recipe 'apt::default'
 include_recipe 'chef-vault'
-include_recipe 'django_app_server::app_user'
+
+app_user_item = chef_vault_item('app_user', 'app_user')
+app_user = app_user_item['user']
+
+if node['install_scripts']['users'].empty?
+  node.default['install_scripts']['users'] = [
+      {:user => app_user, :password => app_user_item['password'], :groups => ['www-data']},
+  ]
+  include_recipe 'install_scripts::user'
+
+  # group 'www-data' do
+  #   action :manage
+  #   members app_user
+  #   append true
+  # end
+end
+
+include_recipe 'apt::default'
 include_recipe 'django_app_server::python'
 include_recipe 'django_app_server::uwsgi'
-
 include_recipe 'django_app_server::django_app'
-

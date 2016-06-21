@@ -20,7 +20,17 @@
 # Cookbook Name:: web_server
 # Recipe:: default
 
+include_recipe 'chef-vault'
+
+web_user_item = chef_vault_item('web_user', 'web_user')
+web_user = web_user_item['user']
+
+if node['install_scripts']['users'].empty?
+  node.default['install_scripts']['users'] = [
+      {:user => web_user, :password => web_user_item['password'], :groups => ['www-data']}
+  ]
+  include_recipe 'install_scripts::user'
+end
 
 include_recipe 'apt::default'
-include_recipe 'web_server::web_user'
 include_recipe 'web_server::nginx'

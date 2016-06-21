@@ -47,7 +47,9 @@ describe 'standalone_app_server::default' do
       end
 
       it 'includes the correct recipes' do
+        expect(chef_run).to include_recipe('chef-vault')
         expect(chef_run).to include_recipe('apt::default')
+        expect(chef_run).to include_recipe('install_scripts::user')
         expect(chef_run).to include_recipe('db_server::default')
         expect(chef_run).to include_recipe('django_app_server::default')
         expect(chef_run).to include_recipe('web_server::default')

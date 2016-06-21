@@ -20,6 +20,15 @@
 # Cookbook Name:: db_server
 # Recipe:: default
 
+include_recipe 'chef-vault'
+
+db_user_item = chef_vault_item('pg_server', 'db_user')
+db_user = db_user_item['user']
+
+if node['install_scripts']['users'].empty?
+  node.default['install_scripts']['users'] = [{:user => db_user, :password => db_user_item['password_hash']}]
+  include_recipe 'install_scripts::user'
+end
+
 include_recipe 'apt::default'
-include_recipe 'db_server::db_user'
 include_recipe 'db_server::postgresql'

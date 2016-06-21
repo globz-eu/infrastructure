@@ -39,6 +39,15 @@ describe 'django_app_server::default' do
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
       end
+
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('chef-vault')
+        expect(chef_run).to include_recipe('apt::default')
+        expect(chef_run).to include_recipe('install_scripts::user')
+        expect(chef_run).to include_recipe('django_app_server::python')
+        expect(chef_run).to include_recipe('django_app_server::uwsgi')
+        expect(chef_run).to include_recipe('django_app_server::django_app')
+      end
     end
   end
 end

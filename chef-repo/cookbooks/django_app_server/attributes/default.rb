@@ -19,6 +19,8 @@
 #
 # Cookbook Name:: django_app_server
 
+default['install_scripts']['users'] = []
+
 default['poise-python']['install_python2'] = false
 
 default['django_app_server']['git']['app_repo'] = false
