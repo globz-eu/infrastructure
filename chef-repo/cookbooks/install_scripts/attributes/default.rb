@@ -20,5 +20,4 @@
 # Cookbook:: install_scripts
 # Attributes:: default
 
-default['install_scripts']['user']['name'] = ''
-default['install_scripts']['user']['password'] = ''
+default['install_scripts']['users'] = []

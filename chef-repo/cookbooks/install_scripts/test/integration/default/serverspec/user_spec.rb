@@ -27,7 +27,7 @@ set :backend, :exec
 describe user( 'user' ) do
   it { should exist }
   it { should belong_to_group 'user' }
-  it { should belong_to_group 'user' }
+  it { should belong_to_group 'www-data' }
   it { should have_home_directory '/home/user' }
   it { should have_login_shell '/bin/bash' }
   its(:encrypted_password) {

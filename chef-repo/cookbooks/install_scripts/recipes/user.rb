@@ -20,11 +20,28 @@
 # Cookbook Name:: install_scripts
 # Recipe:: user
 
-user_name = node['install_scripts']['user']['name']
-user_pwd = node['install_scripts']['user']['password']
+users = node['install_scripts']['users']
 
-user user_name do
-  home "/home/#{user_name}"
-  shell '/bin/bash'
-  password user_pwd
-end if user_name and user_pwd
+unless users.empty?
+  users.each do |u|
+    user_name = u[:user]
+    user_pwd = u[:password]
+
+    user user_name do
+      home "/home/#{user_name}"
+      supports :manage_home => true
+      shell '/bin/bash'
+      password user_pwd
+    end if user_name and user_pwd
+
+    unless u[:groups].empty?
+      u[:groups].each do |g|
+        group g do
+          action :manage
+          members u[:user]
+          append true
+        end
+      end
+    end unless u[:groups].nil?
+  end
+end

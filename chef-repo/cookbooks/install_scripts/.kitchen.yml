@@ -36,8 +36,10 @@ suites:
       - recipe[install_scripts::default]
     attributes:
       install_scripts:
-        user:
-          name: 'user'
-          password: '$6$YPpcwnaZtxEObrRR$RpqD1RgLVHOrr0BbAmVocf.6/yIU5.mW.hr.sm./xvwheoa9xBO6td71PUczQKfcaAcE1U2c3o0mOMb8ufvr5/'
+        users: [{
+          user: 'user',
+          password: '$6$YPpcwnaZtxEObrRR$RpqD1RgLVHOrr0BbAmVocf.6/yIU5.mW.hr.sm./xvwheoa9xBO6td71PUczQKfcaAcE1U2c3o0mOMb8ufvr5/',
+          groups: ['www-data']
+        }]
     excludes:
       - centos-7.1
