@@ -262,7 +262,7 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /home/app_user/sites/django_base/scripts/install_django_app_conf.py file' do
+      it 'creates the /home/app_user/sites/django_base/scripts/conf.py file' do
         expect(chef_run).to create_template('/home/app_user/sites/django_base/scripts/conf.py').with(
             owner: 'app_user',
             group: 'app_user',

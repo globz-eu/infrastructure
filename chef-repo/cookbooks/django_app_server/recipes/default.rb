@@ -30,12 +30,6 @@ if node['install_scripts']['users'].empty?
       {:user => app_user, :password => app_user_item['password'], :groups => ['www-data']},
   ]
   include_recipe 'install_scripts::user'
-
-  # group 'www-data' do
-  #   action :manage
-  #   members app_user
-  #   append true
-  # end
 end
 
 include_recipe 'apt::default'
