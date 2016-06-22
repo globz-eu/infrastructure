@@ -35,7 +35,9 @@ describe 'install_scripts::default' do
       end
 
       it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('apt::default')
         expect(chef_run).to include_recipe('install_scripts::user')
+        expect(chef_run).to include_recipe('install_scripts::scripts')
       end
     end
   end
