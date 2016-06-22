@@ -72,6 +72,7 @@ describe 'db_server::default' do
         expect(chef_run).to include_recipe('chef-vault')
         expect(chef_run).to include_recipe('apt::default')
         expect(chef_run).to include_recipe('install_scripts::user')
+        expect(chef_run).to include_recipe('install_scripts::scripts')
         expect(chef_run).to include_recipe('db_server::postgresql')
       end
     end

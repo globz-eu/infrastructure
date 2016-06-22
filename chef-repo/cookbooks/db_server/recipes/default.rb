@@ -26,8 +26,9 @@ db_user_item = chef_vault_item('pg_server', 'db_user')
 db_user = db_user_item['user']
 
 if node['install_scripts']['users'].empty?
-  node.default['install_scripts']['users'] = [{:user => db_user, :password => db_user_item['password_hash']}]
+  node.default['install_scripts']['users'] = [{user: db_user, password: db_user_item['password_hash'], scripts: 'db'}]
   include_recipe 'install_scripts::user'
+  include_recipe 'install_scripts::scripts'
 end
 
 include_recipe 'apt::default'

@@ -18,6 +18,7 @@
 # =====================================================================
 
 default['install_scripts']['users'] = []
+default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
 
 default['apt']['compile_time_update'] = true
 default['postgresql']['version'] = '9.5'
