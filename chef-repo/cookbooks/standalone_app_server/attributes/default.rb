@@ -20,6 +20,9 @@
 # Cookbook:: standalone_app_server
 # Attributes:: default
 
+default['install_scripts']['users'] = []
+default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+
 default['poise-python']['install_python2'] = false
 
 default['django_app_server']['git']['app_repo'] = false
