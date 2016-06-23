@@ -20,6 +20,7 @@
 # Cookbook Name:: web_server
 
 default['install_scripts']['users'] = []
+default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
 
 default['web_server']['nginx']['app_name'] = false
 default['web_server']['nginx']['git']['app_repo'] = false

@@ -35,7 +35,6 @@ else
 end
 server_name = node['web_server']['nginx']['server_name']
 app_repo = node['web_server']['nginx']['git']['app_repo']
-scripts_repo = node['web_server']['nginx']['git']['scripts_repo']
 
 package 'nginx'
 
@@ -44,13 +43,6 @@ service 'nginx' do
 end
 
 package 'git'
-
-# create site file structure
-directory "/home/#{web_user}/sites" do
-  owner web_user
-  group 'www-data'
-  mode '0750'
-end
 
 if app_repo
   /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
@@ -64,67 +56,12 @@ if app_repo
   down_path = "/home/#{web_user}/sites/#{app_name}/down"
   paths = [static_path, media_path, uwsgi_path, down_path]
 
-  directory "/home/#{web_user}/sites/#{app_name}" do
-    owner web_user
-    group 'www-data'
-    mode '0550'
-  end
-
-  directory "/var/log/#{app_name}" do
-    owner 'root'
-    group 'root'
-    mode '0755'
-  end
-
   paths.each do |p|
     directory p do
       owner web_user
       group 'www-data'
       mode '0550'
     end
-  end
-
-  bash 'git_clone_static_scripts' do
-    cwd "/home/#{web_user}/sites/#{app_name}"
-    code "git clone #{scripts_repo}"
-    user 'root'
-    not_if "ls /home/#{web_user}/sites/#{app_name}/scripts", :user => 'root'
-    notifies :run, 'bash[own_static_scripts]', :immediately
-    notifies :run, 'bash[static_scripts_dir_permissions]', :immediately
-    notifies :run, 'bash[make_static_scripts_executable]', :immediately
-    notifies :run, 'bash[make_static_scripts_utilities_readable]', :immediately
-  end
-
-  package 'python3-pip'
-
-  bash 'install_scripts_requirements' do
-    cwd "/home/#{web_user}/sites/#{app_name}/scripts"
-    code 'pip3 install -r requirements.txt'
-    user 'root'
-  end
-
-  bash 'own_static_scripts' do
-    code "chown -R #{web_user}:#{web_user} /home/#{web_user}/sites/#{app_name}/scripts"
-    user 'root'
-    action :nothing
-  end
-
-  bash 'static_scripts_dir_permissions' do
-    code "chmod 0500 /home/#{web_user}/sites/#{app_name}/scripts"
-    user 'root'
-    action :nothing
-  end
-
-  bash 'make_static_scripts_executable' do
-    code "chmod 0500 /home/#{web_user}/sites/#{app_name}/scripts/*.py"
-    user 'root'
-    action :nothing
-  end
-
-  bash 'make_static_scripts_utilities_readable' do
-    code "chmod 0400 /home/#{web_user}/sites/#{app_name}/scripts/utilities/*.py"
-    user 'root'
-    action :nothing
   end
 
   template "/home/#{web_user}/sites/#{app_name}/scripts/conf.py" do

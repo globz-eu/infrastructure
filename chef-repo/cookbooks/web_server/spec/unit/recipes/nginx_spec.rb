@@ -33,7 +33,6 @@ describe 'web_server::nginx' do
       end
 
       before do
-        stub_command('ls /home/web_user/sites/django_base/scripts').and_return(false)
         stub_command('ls /home/web_user/sites/django_base/down/index.html').and_return(true)
       end
 
@@ -97,26 +96,8 @@ describe 'web_server::nginx' do
         expect( chef_run ).to install_package('git')
       end
 
-      it 'creates the /var/log/django_base directory' do
-        expect(chef_run).to create_directory('/var/log/django_base').with(
-            owner: 'root',
-            group: 'root',
-            mode: '0755',
-        )
-      end
-
       it 'creates the site file structure' do
         sites_paths = ['static', 'media', 'uwsgi', 'down']
-        expect(chef_run).to create_directory('/home/web_user/sites').with(
-            owner: 'web_user',
-            group: 'www-data',
-            mode: '0750',
-        )
-        expect(chef_run).to create_directory('/home/web_user/sites/django_base').with(
-            owner: 'web_user',
-            group: 'www-data',
-            mode: '0550',
-        )
         sites_paths.each do |s|
           expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
               owner: 'web_user',
@@ -124,67 +105,6 @@ describe 'web_server::nginx' do
               mode: '0550',
           )
         end
-      end
-
-      # installs scripts for serving static content
-      it 'clones the scripts' do
-        expect( chef_run ).to run_bash('git_clone_static_scripts').with(
-            cwd: '/home/web_user/sites/django_base',
-            code: 'git clone https://github.com/globz-eu/scripts.git',
-            user: 'root'
-        )
-      end
-
-      it 'notifies script ownership and permission commands' do
-        clone_scripts = chef_run.bash('git_clone_static_scripts')
-        expect(clone_scripts).to notify('bash[own_static_scripts]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[static_scripts_dir_permissions]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[make_static_scripts_executable]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[make_static_scripts_utilities_readable]').to(:run).immediately
-      end
-
-      it 'installs pip3' do
-        expect(chef_run).to install_package('python3-pip')
-      end
-
-      it 'installs scripts requirements' do
-        expect(chef_run).to run_bash('install_scripts_requirements').with(
-            cwd: '/home/web_user/sites/django_base/scripts',
-            code: 'pip3 install -r requirements.txt',
-            user: 'root'
-        )
-      end
-
-      it 'changes ownership of the script directory to web_user:web_user' do
-        expect(chef_run).to_not run_bash('own_static_scripts').with(
-            code: 'chown -R web_user:web_user /home/web_user/sites/django_base/scripts',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'changes permissions the scripts directory to 0500' do
-        expect(chef_run).to_not run_bash('static_scripts_dir_permissions').with(
-            code: 'chmod 0500 /home/web_user/sites/django_base/scripts',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'makes scripts executable' do
-        expect(chef_run).to_not run_bash('make_static_scripts_executable').with(
-            code: 'chmod 0500 /home/web_user/sites/django_base/scripts/*.py',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'makes scripts utilities readable' do
-        expect(chef_run).to_not run_bash('make_static_scripts_utilities_readable').with(
-            code: 'chmod 0400 /home/web_user/sites/django_base/scripts/utilities/*.py',
-            user: 'root',
-            action: :nothing
-        )
       end
 
       it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
