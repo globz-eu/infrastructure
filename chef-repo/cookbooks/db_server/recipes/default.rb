@@ -20,6 +20,7 @@
 # Cookbook Name:: db_server
 # Recipe:: default
 
+include_recipe 'apt::default'
 include_recipe 'chef-vault'
 
 db_user_item = chef_vault_item('pg_server', 'db_user')
@@ -31,5 +32,4 @@ if node['install_scripts']['users'].empty?
   include_recipe 'install_scripts::scripts'
 end
 
-include_recipe 'apt::default'
 include_recipe 'db_server::postgresql'

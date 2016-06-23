@@ -40,16 +40,12 @@ describe 'django_app_server::django_app' do
         expect { chef_run }.to_not raise_error
       end
 
-      it 'installs the git package' do
-        expect( chef_run ).to install_package('git')
+      it 'includes the expected recipes' do
+        expect(chef_run).to include_recipe('chef-vault')
       end
 
-      it 'creates the /home/app_user/sites directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0550',
-        )
+      it 'installs the git package' do
+        expect( chef_run ).to install_package('git')
       end
 
       it 'creates the /home/app_user/.envs directory' do
@@ -87,22 +83,6 @@ describe 'django_app_server::django_app' do
         expect( chef_run ).to install_package('git')
       end
 
-      it 'creates the /home/app_user/sites directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0550',
-        )
-      end
-
-      it 'creates the /home/app_user/sites/django_base directory' do
-        expect(chef_run).to create_directory('/home/app_user/sites/django_base').with(
-            owner: 'app_user',
-            group: 'www-data',
-            mode: '0550',
-        )
-      end
-
       it 'creates the /home/app_user/sites/django_base/source directory' do
         expect(chef_run).to create_directory('/home/app_user/sites/django_base/source').with(
             owner: 'app_user',
@@ -124,14 +104,6 @@ describe 'django_app_server::django_app' do
             owner: 'root',
             group: 'root',
             mode: '0777',
-        )
-      end
-
-      it 'creates the /var/log/django_base directory' do
-        expect(chef_run).to create_directory('/var/log/django_base').with(
-            owner: 'root',
-            group: 'root',
-            mode: '0755',
         )
       end
 
@@ -204,62 +176,6 @@ describe 'django_app_server::django_app' do
         admin_conf.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/settings_admin.py').with_content(u)
         end
-      end
-
-      it 'clones the scripts' do
-        expect( chef_run ).to run_bash('git_clone_scripts').with(
-            cwd: '/home/app_user/sites/django_base',
-            code: 'git clone https://github.com/globz-eu/scripts.git',
-            user: 'root'
-        )
-      end
-
-      it 'notifies script ownership and permission commands' do
-        clone_scripts = chef_run.bash('git_clone_scripts')
-        expect(clone_scripts).to notify('bash[own_scripts]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[scripts_dir_permissions]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[make_scripts_executable]').to(:run).immediately
-        expect(clone_scripts).to notify('bash[make_scripts_utilities_readable]').to(:run).immediately
-      end
-
-      it 'installs scripts requirements' do
-        expect(chef_run).to run_bash('install_scripts_requirements').with(
-            cwd: '/home/app_user/sites/django_base/scripts',
-            code: 'pip3 install -r requirements.txt',
-            user: 'root'
-        )
-      end
-
-      it 'changes ownership of the script directory to app_user:app_user' do
-        expect(chef_run).to_not run_bash('own_scripts').with(
-            code: 'chown -R app_user:app_user /home/app_user/sites/django_base/scripts',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'changes permissions the scripts directory to 0500' do
-        expect(chef_run).to_not run_bash('scritps_dir_permissions').with(
-            code: 'chmod 0500 /home/app_user/sites/django_base/scripts',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'makes scripts executable' do
-        expect(chef_run).to_not run_bash('make_scripts_executable').with(
-            code: 'chmod 0500 /home/app_user/sites/django_base/scripts/*.py',
-            user: 'root',
-            action: :nothing
-        )
-      end
-
-      it 'makes utility scripts readable' do
-        expect(chef_run).to_not run_bash('make_script_utilities_readable').with(
-            code: 'chmod 0400 /home/app_user/sites/django_base/scripts/utilities/*.py',
-            user: 'root',
-            action: :nothing
-        )
       end
 
       it 'creates the /home/app_user/sites/django_base/scripts/conf.py file' do

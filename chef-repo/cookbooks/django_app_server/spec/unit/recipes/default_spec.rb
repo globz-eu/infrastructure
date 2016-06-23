@@ -44,6 +44,7 @@ describe 'django_app_server::default' do
         expect(chef_run).to include_recipe('chef-vault')
         expect(chef_run).to include_recipe('apt::default')
         expect(chef_run).to include_recipe('install_scripts::user')
+        expect(chef_run).to include_recipe('install_scripts::scripts')
         expect(chef_run).to include_recipe('django_app_server::python')
         expect(chef_run).to include_recipe('django_app_server::uwsgi')
         expect(chef_run).to include_recipe('django_app_server::django_app')
