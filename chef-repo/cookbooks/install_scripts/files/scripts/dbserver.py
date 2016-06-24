@@ -74,7 +74,7 @@ class CreateDB(CommandFileUtils):
                 for l in log:
                     last = l
             if last == 'ERROR:  database "%s" already exists\n' % self.db_name:
-                self.logging('skipped database creation, %s already exists' % self.db_name, 'INFO')
+                self.logging('skipped database creation, \'%s\' already exists' % self.db_name, 'INFO')
                 run.append(0)
             else:
                 self.logging('create_db exited with error', 'ERROR')
@@ -84,8 +84,23 @@ class CreateDB(CommandFileUtils):
                 return r
         return 0
 
-    def rm_db(self):
-        pass
+    def drop_db(self):
+        cmd = ['sudo', '-u', self.db_admin_user, 'psql', '-c', 'DROP DATABASE %s;' % self.db_name]
+        msg = 'dropped database %s' % self.db_name
+        try:
+            run = self.run_command(cmd, msg, out=self.log_file, log_error=False)
+        except SystemExit:
+            with open(self.log_file) as log:
+                last = ''
+                for l in log:
+                    last = l
+            if last == 'ERROR:  database "%s" does not exist\n' % self.db_name:
+                self.logging('skipped drop database, \'%s\' does not exist' % self.db_name, 'INFO')
+                run = 0
+            else:
+                self.logging('create_db exited with error', 'ERROR')
+                sys.exit(1)
+        return run
 
 
 def main():
@@ -96,6 +111,10 @@ def main():
                       help='create: creates database and manages default privileges', default=False)
     parser.add_option('-l', '--log-level', dest='log_level',
                       help='log-level: DEBUG, INFO, ERROR, FATAL', default='INFO')
+    parser.add_option('-x', '--drop', dest='drop', action='store_true',
+                      help='drop: drops database', default=False)
+    parser.add_option('-r', '--reset', dest='reset', action='store_true',
+                      help='reset: drops database, recreates it and manages default privileges', default=False)
     (options, args) = parser.parse_args()
     if len(args) > 2:
         parser.error('incorrect number of arguments')
@@ -104,6 +123,14 @@ def main():
         git_repo=GIT_REPO
     )
     if options.create:
+        create = createdb.create_db()
+        run.append(create)
+    if options.drop:
+        drop = createdb.drop_db()
+        run.append(drop)
+    if options.reset:
+        drop = createdb.drop_db()
+        run.append(drop)
         create = createdb.create_db()
         run.append(create)
     for r in run:

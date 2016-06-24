@@ -52,14 +52,13 @@ def run_command_mock(cmd, msg, cwd=None, out=None, log_error=True):
                     now = datetime.datetime.utcnow()
                     log.write('%s %s: %s\n' % (now.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], 'INFO', msg))
                 except CalledProcessError:
-                    now = datetime.datetime.utcnow()
-                    db_exists_msg = 'skipped database creation, \'%s\' already exists' % db_name
-                    log.write('%s %s: %s\n' % (now.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], 'INFO', db_exists_msg))
-                    raise CalledProcessError(
-                        returncode=1, cmd=[
-                            'sudo', '-u', DB_ADMIN_USER, 'psql', '-c', 'CREATE DATABASE %s;' % db_name
-                        ]
-                    )
+                    if 'CREATE DATABASE %s;' % db_name in cmd:
+                        db_exists_msg = 'ERROR:  database "%s" already exists\n' % db_name
+                    elif 'DROP DATABASE %s;' % db_name in cmd:
+                        db_exists_msg = 'ERROR:  database "%s" does not exist\n' % db_name
+                    print('db_exists_msg: %s' % db_exists_msg)
+                    log.write(db_exists_msg)
+                    raise CalledProcessError(returncode=1, cmd=cmd)
     except CalledProcessError as error:
         if log_error:
             err_msg = '%s exited with exit code %s' % (' '.join(error.cmd), str(error.returncode))
