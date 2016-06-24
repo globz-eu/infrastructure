@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook Name:: standalone_app_server
-# Server Spec:: update
+# Chef Spec:: update
 
 require 'spec_helper'
 
@@ -27,7 +27,9 @@ describe 'standalone_app_server::update' do
     context "When all parameters are default, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
-        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version).converge(described_recipe)
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
+          node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+        end.converge('web_server::nginx', described_recipe)
       end
 
       it 'converges successfully' do
@@ -36,15 +38,15 @@ describe 'standalone_app_server::update' do
 
       it 'runs server_down' do
         expect( chef_run ).to run_bash('server_down').with(
-           cwd: '/home/web_user/sites/django_base/scritps',
+           cwd: '/home/web_user/sites/django_base/scripts',
            code: './webserver.py -s down',
            user: 'root'
         )
       end
 
       it 'runs remove_app' do
-        expect( chef_run ).to run_bash('server_down').with(
-            cwd: '/home/app_user/sites/django_base/scritps',
+        expect( chef_run ).to run_bash('remove_app').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
             code: './djangoapp.py -x',
             user: 'root'
         )
@@ -60,15 +62,15 @@ describe 'standalone_app_server::update' do
 
       it 'runs reinstall_app' do
         expect( chef_run ).to run_bash('reinstall_app').with(
-            cwd: '/home/app_user/sites/django_base/scritps',
+            cwd: '/home/app_user/sites/django_base/scripts',
             code: './djangoapp.py -imt -u start',
             user: 'root'
         )
       end
 
       it 'runs server_up' do
-        expect( chef_run ).to run_bash('server_down').with(
-            cwd: '/home/web_user/sites/django_base/scritps',
+        expect( chef_run ).to run_bash('server_up').with(
+            cwd: '/home/web_user/sites/django_base/scripts',
             code: './webserver.py -s up',
             user: 'root'
         )

@@ -108,10 +108,95 @@ if os[:family] == 'ubuntu'
     its(:stdout) { should match(%r(\s*db_user\s+|\s+|\s+\{\})) }
   end
 
+  # File structure for scripts should be present
+  describe file('/home/db_user/sites') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'db_user' }
+    it { should be_grouped_into 'db_user' }
+    it { should be_mode 500 }
+  end
+
+  describe file('/home/db_user/sites/django_base') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'db_user' }
+    it { should be_grouped_into 'db_user' }
+    it { should be_mode 500 }
+  end
+
+  describe file('/home/db_user/sites/django_base/scripts') do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'db_user' }
+    it { should be_grouped_into 'db_user' }
+    it { should be_mode 500 }
+  end
+
+  scripts = ['dbserver.py']
+  scripts.each do |s|
+    describe file "/home/db_user/sites/django_base/scripts/#{s}" do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'db_user' }
+      it { should be_grouped_into 'db_user' }
+      it { should be_mode 500 }
+    end
+  end
+
+  describe file '/home/db_user/sites/django_base/scripts/utilities/commandfileutils.py' do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'db_user' }
+    it { should be_grouped_into 'db_user' }
+    it { should be_mode 400 }
+  end
+
+  # Scripts dependencies should be present
+  describe package('python3-pip') do
+    it { should be_installed }
+  end
+
+  describe command ('pip3 list | grep psutil') do
+    its(:stdout) { should match(/psutil\s+\(\d+\.\d+\.\d+\)/)}
+  end
+
+  # Config file for for installation scripts should be present
+  describe file('/home/db_user/sites/django_base/scripts/conf.py') do
+    params = [
+        %r(^DIST_VERSION = '#{os[:release]}'$),
+        %r(^DEBUG = 'DEBUG'$),
+        %r(^NGINX_CONF = ''$),
+        %r(^APP_HOME = ''$),
+        %r(^APP_HOME_TMP = ''$),
+        %r(^APP_USER = ''$),
+        %r(^WEB_USER = ''$),
+        %r(^WEBSERVER_USER = ''$),
+        %r(^DB_USER = 'db_user'$),
+        %r(^DB_ADMIN_USER = 'postgres'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^STATIC_PATH = ''$),
+        %r(^MEDIA_PATH = ''$),
+        %r(^UWSGI_PATH = ''$),
+        %r(^VENV = ''$),
+        %r(^REQS_FILE = ''$),
+        %r(^SYS_DEPS_FILE = ''$),
+        %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$)
+    ]
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by 'db_user' }
+    it { should be_grouped_into 'db_user' }
+    it { should be_mode 400 }
+    params.each do |p|
+      its(:content) { should match(p)}
+    end
+  end
+
   # test that app database was created
   describe command( "sudo -u postgres psql -l" ) do
     its(:stdout) { should match(
-                              %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
+      %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
                           ) }
   end
 

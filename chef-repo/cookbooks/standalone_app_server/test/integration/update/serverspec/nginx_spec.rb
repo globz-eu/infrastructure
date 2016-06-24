@@ -130,7 +130,7 @@ if os[:family] == 'ubuntu'
     it {should be_directory}
     it {should be_owned_by 'web_user'}
     it {should be_grouped_into 'www-data'}
-    it {should be_mode 750}
+    it {should be_mode 550}
   end
 
   describe file('/home/web_user/sites/django_base') do
@@ -170,7 +170,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  scripts = ['servestatic.py', 'installdjangoapp.py']
+  scripts = ['webserver.py', 'djangoapp.py']
   scripts.each do |s|
     describe file "/home/web_user/sites/django_base/scripts/#{s}" do
       it { should exist }
