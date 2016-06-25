@@ -63,6 +63,7 @@ default['postgresql']['pg_hba'] = [
       }
 ]
 
+default['db_server']['node_number'] = '000'
 default['db_server']['postgresql']['db_name'] = false
 default['db_server']['postgresql']['git']['app_repo'] = false
 default['db_server']['postgresql']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'

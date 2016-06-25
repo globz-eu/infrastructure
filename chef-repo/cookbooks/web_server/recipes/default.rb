@@ -23,7 +23,8 @@
 include_recipe 'apt::default'
 include_recipe 'chef-vault'
 
-web_user_item = chef_vault_item('web_user', 'web_user')
+node_nr = node['web_server']['node_number']
+web_user_item = chef_vault_item('web_user', "web_user#{node_nr}")
 web_user = web_user_item['user']
 
 if node['install_scripts']['users'].empty?

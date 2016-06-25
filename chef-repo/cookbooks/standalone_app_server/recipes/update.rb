@@ -22,11 +22,13 @@
 
 include_recipe 'chef-vault'
 
-db_user_item = chef_vault_item('pg_server', 'db_user')
+node_nr = node['standalone_app_server']['node_number']
+
+db_user_item = chef_vault_item('pg_server', "db_user#{node_nr}")
 db_user = db_user_item['user']
-app_user_item = chef_vault_item('app_user', 'app_user')
+app_user_item = chef_vault_item('app_user', "app_user#{node_nr}")
 app_user = app_user_item['user']
-web_user_item = chef_vault_item('web_user', 'web_user')
+web_user_item = chef_vault_item('web_user', "web_user#{node_nr}")
 web_user = web_user_item['user']
 app_repo = node['django_app_server']['git']['app_repo']
 /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo

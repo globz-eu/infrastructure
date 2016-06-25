@@ -23,8 +23,6 @@
 # Installs uwsgi python package globally, generates uwsgi.ini config
 # file
 
-include_recipe 'chef-vault'
-
 bash 'uwsgi' do
   code 'pip3 install uwsgi'
   user 'root'

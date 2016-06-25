@@ -20,11 +20,15 @@
 # Cookbook:: standalone_app_server
 # Attributes:: default
 
+default['standalone_app_server']['node_number'] = '005'
+node_nr = default['standalone_app_server']['node_number']
+
 default['install_scripts']['users'] = []
 default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
 
 default['poise-python']['install_python2'] = false
 
+default['django_app_server']['node_number'] = node_nr
 default['django_app_server']['git']['app_repo'] = false
 default['django_app_server']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
 default['django_app_server']['django_app']['debug'] = 'False'
@@ -38,8 +42,8 @@ default['apt']['compile_time_update'] = true
 default['postgresql']['version'] = '9.5'
 default['postgresql']['enable_pgdg_apt'] = true
 default['postgresql']['dir'] = '/etc/postgresql/9.5/main'
-default['postgresql']['client']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-client-9.5']
-default['postgresql']['server']['packages'] = ['postgresql-server-dev-9.5', 'postgresql-9.5']
+default['postgresql']['client']['packages'] = %w(postgresql-server-dev-9.5 postgresql-client-9.5)
+default['postgresql']['server']['packages'] = %w(postgresql-server-dev-9.5 postgresql-9.5)
 default['postgresql']['server']['service_name'] = 'postgresql'
 default['postgresql']['contrib']['packages'] = ['postgresql-contrib-9.5']
 default['postgresql']['pg_hba'] = [
@@ -77,10 +81,13 @@ default['postgresql']['pg_hba'] = [
     }
 ]
 
+default['db_server']['node_number'] = node_nr
 default['db_server']['postgresql']['db_name'] = false
 
 
+default['web_server']['node_number'] = node_nr
 default['web_server']['nginx']['app_name'] = 'django_base'
 default['web_server']['nginx']['server_name'] = '192.168.1.82'
 
+default['basic_node']['node_number'] = node_nr
 default['basic_node']['firewall']['web_server'] = true

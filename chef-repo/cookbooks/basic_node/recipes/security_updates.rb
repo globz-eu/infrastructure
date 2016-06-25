@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-admin_email_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
 
 package 'apticron'
 
@@ -32,5 +32,5 @@ template '/etc/apticron/apticron.conf' do
   owner 'root'
   group 'root'
   mode '0644'
-  variables(admin_email: admin_email_vault_item['email'])
+  variables(admin_email: node_admin_item['email'])
 end

@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-node_admin_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
 
 user node_admin_item['user'] do
   home "/home/#{node_admin_item['user']}"

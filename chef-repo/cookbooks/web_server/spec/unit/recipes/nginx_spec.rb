@@ -41,7 +41,7 @@ describe 'web_server::nginx' do
       end
 
       it 'includes chef-vault and firewall recipes' do
-        recipes = ['chef-vault', 'basic_node::firewall']
+        recipes = %w(chef-vault basic_node::firewall)
         recipes.each do |r|
           expect(chef_run).to include_recipe(r)
         end

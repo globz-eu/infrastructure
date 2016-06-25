@@ -28,9 +28,11 @@
 
 include_recipe 'chef-vault'
 
-app_user_vault = chef_vault_item('app_user', 'app_user')
+app_user_vault = chef_vault_item('app_user', "app_user#{node['django_app_server']['node_number']}")
 app_user = app_user_vault['user']
-django_app_vault = chef_vault_item('django_app', 'app')
+django_app_vault = chef_vault_item('django_app', "app#{node['django_app_server']['node_number']}")
+db_user_vault = chef_vault_item('pg_server', "db_user#{node['django_app_server']['node_number']}")
+pg_user_vault = chef_vault_item('pg_server', "postgres#{node['django_app_server']['node_number']}")
 
 app_repo = node['django_app_server']['git']['app_repo']
 
@@ -103,8 +105,8 @@ if app_repo
                   allowed_host: node['django_app_server']['django_app']['allowed_host'],
                   engine: node['django_app_server']['django_app']['engine'],
                   app_name: app_name,
-                  db_user: django_app_vault['db_user'],
-                  db_user_password: django_app_vault['db_user_password'],
+                  db_user: db_user_vault['user'],
+                  db_user_password: db_user_vault['password'],
                   db_host: node['django_app_server']['django_app']['db_host']
               })
   end
@@ -118,8 +120,8 @@ if app_repo
     mode '0400'
     variables({
                   app_name: app_name,
-                  db_admin_user: django_app_vault['db_admin_user'],
-                  db_admin_password: django_app_vault['db_admin_password'],
+                  db_admin_user: pg_user_vault['user'],
+                  db_admin_password: pg_user_vault['password'],
               })
   end
 

@@ -25,8 +25,8 @@
 
 include_recipe 'chef-vault'
 
-postgres_vault = chef_vault_item('pg_server', 'postgres')
-db_user_vault = chef_vault_item('pg_server', 'db_user')
+postgres_vault = chef_vault_item('pg_server', "postgres#{node['db_server']['node_number']}")
+db_user_vault = chef_vault_item('pg_server', "db_user#{node['db_server']['node_number']}")
 db_user = db_user_vault['user']
 db_admin_user = postgres_vault['user']
 node.default['postgresql']['password']['postgres'] = postgres_vault['password']

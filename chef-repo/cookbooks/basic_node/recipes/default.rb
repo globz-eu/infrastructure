@@ -22,9 +22,9 @@
 
 include_recipe 'chef-vault'
 
-node_admin_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
 
-node.default['apt']['unattended_upgrades']['mail'] = node_admin_vault_item['email']
+node.default['apt']['unattended_upgrades']['mail'] = node_admin_item['email']
 
 include_recipe 'apt::default'
 include_recipe 'apt::unattended-upgrades'

@@ -22,7 +22,9 @@
 
 include_recipe 'chef-vault'
 
-node_admin_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
+admin_user = node_admin_item['user']
+admin_key = node_admin_item['key']
 
 package 'openssh-server'
 
@@ -30,20 +32,20 @@ service 'ssh' do
   action [:start, :enable]
 end
 
-directory "/home/#{node_admin_vault_item['user']}/.ssh" do
-  owner node_admin_vault_item['user']
-  group node_admin_vault_item['user']
+directory "/home/#{admin_user}/.ssh" do
+  owner admin_user
+  group admin_user
   mode '0750'
 end
 
-template "/home/#{node_admin_vault_item['user']}/.ssh/authorized_keys" do
+template "/home/#{admin_user}/.ssh/authorized_keys" do
   source 'authorized_keys.erb'
   action :create
-  owner node_admin_vault_item['user']
-  group node_admin_vault_item['user']
+  owner admin_user
+  group admin_user
   mode '0640'
   variables({
-                admin_key: node_admin_vault_item['key'],
+                admin_key: admin_key,
             })
 end
 
@@ -58,7 +60,7 @@ template '/etc/ssh/sshd_config' do
                 password_authentication: node['openssh']['sshd']['password_authentication'],
                 pubkey_authentication: node['openssh']['sshd']['pubkey_authentication'],
                 rsa_authentication: node['openssh']['sshd']['rsa_authentication'],
-                allowed_users: node_admin_vault_item['user']
+                allowed_users: admin_user
             })
   notifies :restart, 'service[ssh]', :immediately
 end

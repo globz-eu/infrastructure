@@ -23,9 +23,10 @@
 include_recipe 'chef-vault'
 include_recipe 'basic_node::firewall'
 
-web_user_vault = chef_vault_item('web_user', 'web_user')
+node_nr = node['web_server']['node_number']
+web_user_vault = chef_vault_item('web_user', "web_user#{node_nr}")
 web_user = web_user_vault['user']
-app_user_vault = chef_vault_item('app_user', 'app_user')
+app_user_vault = chef_vault_item('app_user', "app_user#{node_nr}")
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
 if node['web_server']['nginx']['app_home']

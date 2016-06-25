@@ -36,7 +36,7 @@ describe 'web_server::default' do
     end
 
     it 'includes apt and nginx recipes' do
-      recipes = %w(chef-vault install_scripts::user install_scripts::scripts apt::default web_server::nginx)
+      recipes = %w(apt::default chef-vault install_scripts::user install_scripts::scripts web_server::nginx)
       recipes.each do |r|
         expect(chef_run).to include_recipe(r)
       end

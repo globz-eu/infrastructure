@@ -45,7 +45,7 @@ describe file('/etc/apt/apt.conf.d/50unattended-upgrades') do
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   it { should be_mode 644 }
-  its(:md5sum) { should eq 'a89c22db4df9a6331162e78f561dd8ea' }
+  its(:md5sum) { should eq '6435438c08332ad23d59aec068e6bc1f' }
   it { should contain 'Unattended-Upgrade::Mail "admin@example.com";' }
 end
 

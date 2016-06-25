@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-node_admin_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_admin')
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
 
 package 'dropbear'
 
@@ -39,7 +39,7 @@ template '/etc/initramfs-tools/root/.ssh/authorized_keys' do
   mode '0640'
   source 'authorized_keys.erb'
   variables({
-      admin_key: node_admin_vault_item['key']
+      admin_key: node_admin_item['key']
             })
 end
 

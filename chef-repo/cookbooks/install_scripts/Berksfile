@@ -6,4 +6,4 @@ group :integration do
   cookbook 'test-helper', path: '../test-helper'
 end
 
-cookbook 'apt', '~> 3.0.0'
+cookbook 'apt', '~> 4.0.1'

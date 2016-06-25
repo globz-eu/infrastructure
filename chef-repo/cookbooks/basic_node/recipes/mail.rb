@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-smtp_auth_vault_item = chef_vault_item("basic_node#{node['basic_node']['node_number']}", 'node_smtp')
+smtp_auth_vault_item = chef_vault_item('basic_node', 'node_smtp')
 
 package 'ssmtp'
 

@@ -35,5 +35,5 @@ end
 
 if node['platform_version'].include?('16.04')
   # install python3.5 runtime
-  package ['python3.5-dev', 'python3-pip', 'python3-venv']
+  package %w(python3.5-dev python3-pip python3-venv)
 end

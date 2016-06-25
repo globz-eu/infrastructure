@@ -23,7 +23,7 @@
 include_recipe 'apt::default'
 include_recipe 'chef-vault'
 
-app_user_item = chef_vault_item('app_user', 'app_user')
+app_user_item = chef_vault_item('app_user', "app_user#{node['django_app_server']['node_number']}")
 app_user = app_user_item['user']
 
 if node['install_scripts']['users'].empty?
