@@ -22,7 +22,9 @@
 
 include_recipe 'chef-vault'
 
-node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node']['node_number']}")
+node_number = node['basic_node']['node_number']
+node_admin_item = chef_vault_item('basic_node', "node_admin#{node_number}")
+node_ip_item = chef_vault_item('basic_node', "node_ips#{node_number}")
 
 package 'dropbear'
 
@@ -56,7 +58,7 @@ template '/usr/share/initramfs-tools/scripts/init-bottom/dropbear' do
   mode '0640'
   source 'dropbear.erb'
   variables({
-      interface: 'eth1'
+      interface: node_ip_item['local_interface']
             })
 end
 
@@ -66,9 +68,9 @@ template '/etc/initramfs-tools/initramfs.conf' do
   mode '0640'
   source 'initramfs.conf.erb'
   variables({
-      interface: 'eth1',
-      ip: '10.10.10.10',
-      netmask: '255.255.255.0',
+      interface: node_ip_item['local_interface'],
+      ip: node_ip_item['local_ip'],
+      netmask: node_ip_item['local_mask'],
       dropbear: 'DROPBEAR=y'
             })
 end

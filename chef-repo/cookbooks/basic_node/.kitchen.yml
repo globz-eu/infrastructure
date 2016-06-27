@@ -13,19 +13,25 @@ platforms:
       provider: libvirt
       box: alxgrh/ubuntu-trusty-x86_64
       network:
-        - ['private_network', {ip: '10.10.0.10'}]
+        - ['private_network', {ip: '10.10.1.10'}]
       customize:
         memory: 2048
         cpus: 2
+    attributes:
+      basic_node:
+        node_number: '000'
   - name: ubuntu-16.04
     driver:
       provider: libvirt
       box: nrclark/xenial64-minimal-libvirt
       network:
-        - ['private_network', {ip: '10.10.0.11'}]
+        - ['private_network', {ip: '10.10.1.11'}]
       customize:
         memory: 2048
         cpus: 2
+    attributes:
+      basic_node:
+        node_number: '001'
   - name: centos-7.1
     driver:
       provider: libvirt

@@ -22,7 +22,7 @@
 
 include_recipe 'chef-vault'
 
-smtp_auth_vault_item = chef_vault_item('basic_node', 'node_smtp')
+smtp_vault = chef_vault_item('basic_node', "node_smtp#{node['basic_node']['node_number']}")
 
 package 'ssmtp'
 
@@ -35,9 +35,9 @@ template '/etc/ssmtp/ssmtp.conf' do
   group 'root'
   mode '0644'
   variables({
-                auth_user: smtp_auth_vault_item['auth_user'],
-                password: smtp_auth_vault_item['password'],
-                mail_hub: smtp_auth_vault_item['mail_hub'],
+                auth_user: smtp_vault['auth_user'],
+                password: smtp_vault['password'],
+                mail_hub: smtp_vault['mail_hub'],
                 TLS: node['basic_node']['mail']['ssmtp_conf']['TLS'],
                 port: node['basic_node']['mail']['ssmtp_conf']['port']
             })

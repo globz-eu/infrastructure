@@ -1,5 +1,5 @@
 {
-  "id": "node_smtp",
+  "id": "node_smtp001",
   "auth_user": "admin@example.com",
   "password": "password",
   "mail_hub": "smtp.mail.com"

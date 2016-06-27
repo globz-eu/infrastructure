@@ -1,0 +1,6 @@
+{
+  "id": "node_smtp000",
+  "auth_user": "admin@example.com",
+  "password": "password",
+  "mail_hub": "smtp.mail.com"
+}

@@ -27,8 +27,13 @@ describe 'basic_node::remote_unlock' do
     context "When all attributes are default, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
-        runner = ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version)
-        runner.converge(described_recipe)
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
+          if version == '14.04'
+            node.set['basic_node']['node_number'] = '000'
+          elsif version == '16.04'
+            node.set['basic_node']['node_number'] = '001'
+          end
+        end.converge(described_recipe)
       end
 
       it 'converges successfully' do
@@ -85,11 +90,22 @@ describe 'basic_node::remote_unlock' do
       end
 
       it 'manages the initramfs.conf file' do
-        initramfs_conf = [
+        if version == '14.04'
+          initramfs_conf = [
+                /^DROPBEAR=y/,
+                /^DEVICE=eth1/,
+                /^IP=10\.10\.1\.10:::255\.255\.255\.0::eth1:off/
+          ]
+          ip = '10.10.1.10'
+        elsif version == '16.04'
+          initramfs_conf = [
               /^DROPBEAR=y/,
               /^DEVICE=eth1/,
-              /^IP=10\.10\.10\.10:::255\.255\.255\.0::eth1:off/
-        ]
+              /^IP=10\.10\.1\.11:::255\.255\.255\.0::eth1:off/
+          ]
+          ip = '10.10.1.11'
+        end
+
         expect(chef_run).to create_template('/etc/initramfs-tools/initramfs.conf').with(
             owner: 'root',
             group: 'root',
@@ -97,7 +113,7 @@ describe 'basic_node::remote_unlock' do
             source: 'initramfs.conf.erb',
             variables: {
                 interface: 'eth1',
-                ip: '10.10.10.10',
+                ip: ip,
                 netmask: '255.255.255.0',
                 dropbear: 'DROPBEAR=y'
             })

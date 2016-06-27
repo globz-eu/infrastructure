@@ -9,5 +9,5 @@ end
 cookbook 'chef-vault', '~> 1.3.3'
 cookbook 'firewall', '~> 2.5.2'
 cookbook 'apt', '~> 4.0.1'
-cookbook 'basic_node', '~> 0.1.21', path: '../basic_node'
+cookbook 'basic_node', '~> 0.1.22', path: '../basic_node'
 cookbook 'install_scripts', '~> 0.1.0', path: '../install_scripts'
