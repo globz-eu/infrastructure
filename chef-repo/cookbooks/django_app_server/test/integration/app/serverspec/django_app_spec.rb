@@ -279,7 +279,7 @@ if os[:family] == 'ubuntu'
       if os[:release] == '14.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.122\.11'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.82'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
@@ -291,7 +291,7 @@ if os[:family] == 'ubuntu'
       elsif os[:release] == '16.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.122\.12'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.83'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
@@ -313,10 +313,8 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file for admin tasks should be present
-  settings_admin_files = [
-      '/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py',
-      '/home/app_user/sites/django_base/conf.d/settings_admin.py'
-  ]
+  settings_admin_files = %w(/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py
+ /home/app_user/sites/django_base/conf.d/settings_admin.py)
   settings_admin_files.each do |f|
     describe file(f) do
       params = [

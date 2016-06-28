@@ -28,11 +28,18 @@
 
 include_recipe 'chef-vault'
 
+node_number = node['django_app_server']['node_number']
 app_user_vault = chef_vault_item('app_user', "app_user#{node['django_app_server']['node_number']}")
 app_user = app_user_vault['user']
 django_app_vault = chef_vault_item('django_app', "app#{node['django_app_server']['node_number']}")
 db_user_vault = chef_vault_item('pg_server', "db_user#{node['django_app_server']['node_number']}")
 pg_user_vault = chef_vault_item('pg_server', "postgres#{node['django_app_server']['node_number']}")
+node_ip_item = chef_vault_item('basic_node', "node_ips#{node_number}")
+if node['django_app_server']['django_app']['allowed_host']
+  allowed_host = node['django_app_server']['django_app']['allowed_host']
+else
+  allowed_host = node_ip_item['public_ip']
+end
 
 app_repo = node['django_app_server']['git']['app_repo']
 
@@ -102,7 +109,7 @@ if app_repo
     variables({
                   secret_key: django_app_vault['secret_key'],
                   debug: node['django_app_server']['django_app']['debug'],
-                  allowed_host: node['django_app_server']['django_app']['allowed_host'],
+                  allowed_host: allowed_host,
                   engine: node['django_app_server']['django_app']['engine'],
                   app_name: app_name,
                   db_user: db_user_vault['user'],

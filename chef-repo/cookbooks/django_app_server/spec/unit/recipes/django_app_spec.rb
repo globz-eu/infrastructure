@@ -67,6 +67,11 @@ describe 'django_app_server::django_app' do
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          if version == '14.04'
+            node.set['django_app_server']['node_number'] = '000'
+          elsif version == '16.04'
+            node.set['django_app_server']['node_number'] = '001'
+          end
         end.converge(described_recipe)
       end
 
@@ -124,6 +129,11 @@ describe 'django_app_server::django_app' do
       end
 
       it 'creates the /home/app_user/sites/django_base/conf.d/configuration.py file' do
+        if version == '14.04'
+          allowed_host = '192.168.1.82'
+        elsif version == '16.04'
+          allowed_host = '192.168.1.83'
+        end
         expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/configuration.py').with(
             owner: 'app_user',
             group: 'app_user',
@@ -132,7 +142,7 @@ describe 'django_app_server::django_app' do
             variables: {
                 secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
                 debug: 'False',
-                allowed_host: 'localhost',
+                allowed_host: allowed_host,
                 engine: 'django.db.backends.postgresql_psycopg2',
                 app_name: 'django_base',
                 db_user: 'db_user',
@@ -143,7 +153,7 @@ describe 'django_app_server::django_app' do
         config = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
             %r(^DEBUG = False$),
-            %r(^ALLOWED_HOSTS = \['localhost'\]$),
+            %r(^ALLOWED_HOSTS = \['#{allowed_host}'\]$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
             %r(^\s+'NAME': 'django_base',$),
             %r(^\s+'USER': 'db_user',$),
