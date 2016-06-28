@@ -59,7 +59,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.13;$/,
+        /^\s+server_name\s+192\.168\.1\.85;$/,
         %r(^\s+alias /home/web_user/sites/django_base/media;),
         %r(^\s+alias /home/web_user/sites/django_base/static;),
         %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
@@ -70,7 +70,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.122\.14;$/,
+        /^\s+server_name\s+192\.168\.1\.86;$/,
         %r(^\s+alias /home/web_user/sites/django_base/media;),
         %r(^\s+alias /home/web_user/sites/django_base/static;),
         %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
@@ -86,10 +86,8 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  site_down_conf = [
-      '/etc/nginx/sites-available/django_base_down.conf',
-      '/etc/nginx/sites-enabled/django_base_down.conf'
-  ]
+  site_down_conf = %w(/etc/nginx/sites-available/django_base_down.conf
+ /etc/nginx/sites-enabled/django_base_down.conf)
   site_down_conf.each() do |f|
     describe file(f) do
       if os[:release] == '14.04'
@@ -97,7 +95,7 @@ if os[:family] == 'ubuntu'
             /^# django_base_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.122\.13;$/,
+            /^\s+server_name\s+192\.168\.1\.85;$/,
             %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       elsif os[:release] == '16.04'
@@ -105,7 +103,7 @@ if os[:family] == 'ubuntu'
             /^# django_base_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.122\.14;$/,
+            /^\s+server_name\s+192\.168\.1\.86;$/,
             %r(^\s+root /home/web_user/sites/django_base/down;)
         ]
       end
@@ -141,7 +139,7 @@ if os[:family] == 'ubuntu'
     it {should be_mode 550}
   end
 
-  site_paths = ['static', 'media', 'uwsgi', 'down']
+  site_paths = %w(static media uwsgi down)
   site_paths.each do |s|
     describe file("/home/web_user/sites/django_base/#{s}") do
       it {should exist}

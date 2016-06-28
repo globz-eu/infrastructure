@@ -20,8 +20,8 @@
 # Cookbook:: standalone_app_server
 # Attributes:: default
 
-default['standalone_app_server']['node_number'] = '005'
-node_nr = default['standalone_app_server']['node_number']
+default['standalone_app_server']['node_number'] = '000'
+node_nr = node['standalone_app_server']['node_number']
 
 default['install_scripts']['users'] = []
 default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
@@ -32,7 +32,7 @@ default['django_app_server']['node_number'] = node_nr
 default['django_app_server']['git']['app_repo'] = false
 default['django_app_server']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
 default['django_app_server']['django_app']['debug'] = 'False'
-default['django_app_server']['django_app']['allowed_host'] = 'localhost'
+default['django_app_server']['django_app']['allowed_host'] = false
 default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'
 default['django_app_server']['django_app']['db_host'] = 'localhost'
 default['django_app_server']['uwsgi']['processes'] = '2'
@@ -87,7 +87,7 @@ default['db_server']['postgresql']['db_name'] = false
 
 default['web_server']['node_number'] = node_nr
 default['web_server']['nginx']['app_name'] = 'django_base'
-default['web_server']['nginx']['server_name'] = '192.168.1.82'
+default['web_server']['nginx']['server_name'] = false
 
 default['basic_node']['node_number'] = node_nr
 default['basic_node']['firewall']['web_server'] = true

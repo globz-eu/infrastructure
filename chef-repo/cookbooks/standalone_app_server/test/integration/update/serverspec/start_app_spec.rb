@@ -84,11 +84,11 @@ end
 
 # site is up
 if os[:release] == '14.04'
-  describe command('curl 192.168.122.13') do
+  describe command('curl 192.168.1.85') do
     its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
   end
 elsif os[:release] == '16.04'
-  describe command('curl 192.168.122.14') do
+  describe command('curl 192.168.1.86') do
     its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
   end
 end

@@ -17,37 +17,29 @@ platforms:
       vagrantfiles:
         - vagrant.rb
       network:
-        - ['private_network', {ip: '10.10.1.15'}]
+        - ['private_network', {ip: '10.10.1.18'}]
 #        - ['private_network', {ip: '192.168.122.13'}]
-        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.81'}]
+        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.85'}]
       customize:
         memory: 2048
         cpus: 2
     attributes:
-      web_server:
-        nginx:
-          server_name: '192.168.1.81'
-      django_app_server:
-        django_app:
-          allowed_host: '192.168.1.81'
+      standalone_app_server:
+        node_number: '000'
   - name: ubuntu-16.04
     driver:
       provider: libvirt
       box: nrclark/xenial64-minimal-libvirt
       network:
-        - ['private_network', {ip: '10.10.1.16'}]
+        - ['private_network', {ip: '10.10.1.19'}]
 #        - ['private_network', {ip: '192.168.122.14'}]
-        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.82'}]
+        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.86'}]
       customize:
         memory: 2048
         cpus: 2
     attributes:
-      web_server:
-        nginx:
-          server_name: '192.168.1.82'
-      django_app_server:
-        django_app:
-          allowed_host: '192.168.1.82'
+      standalone_app_server:
+        node_number: '001'
   - name: centos-7.1
     driver:
       provider: libvirt

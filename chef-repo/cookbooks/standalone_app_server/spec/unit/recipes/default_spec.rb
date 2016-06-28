@@ -31,6 +31,11 @@ describe 'standalone_app_server::default' do
           node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           node.set['web_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           node.set['db_server']['postgresql']['db_name'] = 'django_base'
+          if version == '14.04'
+            node.set['standalone_app_server']['node_number'] = '000'
+          elsif version == '16.04'
+            node.set['standalone_app_server']['node_number'] = '001'
+          end
         end.converge(described_recipe)
       end
 

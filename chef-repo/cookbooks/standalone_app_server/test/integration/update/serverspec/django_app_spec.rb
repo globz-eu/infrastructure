@@ -280,7 +280,7 @@ if os[:family] == 'ubuntu'
       if os[:release] == '14.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.122\.13'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.85'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
@@ -292,7 +292,7 @@ if os[:family] == 'ubuntu'
       elsif os[:release] == '16.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.122\.14'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.86'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),

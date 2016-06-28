@@ -1,8 +1,0 @@
-{
-  "id": "app005",
-  "secret_key": "n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!",
-  "db_user": "db_user",
-  "db_user_password": "db_user_password",
-  "db_admin_user": "postgres",
-  "db_admin_password": "postgres_password"
-}
