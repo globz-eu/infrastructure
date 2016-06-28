@@ -29,12 +29,18 @@ web_user = web_user_vault['user']
 app_user_vault = chef_vault_item('app_user', "app_user#{node_nr}")
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
+node_ip_item = chef_vault_item('basic_node', "node_ips#{node_nr}")
 if node['web_server']['nginx']['app_home']
   app_home = node['web_server']['nginx']['app_home']
 else
   app_home = ''
 end
-server_name = node['web_server']['nginx']['server_name']
+if node['web_server']['nginx']['server_name']
+  server_name = node['web_server']['nginx']['server_name']
+else
+  server_name = node_ip_item['public_ip']
+end
+
 app_repo = node['web_server']['nginx']['git']['app_repo']
 
 package 'nginx'
@@ -95,6 +101,7 @@ if app_repo
   end
 
   # TODO: adapt to tcp sockets option
+  # TODO: adapt to https
   template "/etc/nginx/sites-available/#{app_name}.conf" do
     owner 'root'
     group 'root'

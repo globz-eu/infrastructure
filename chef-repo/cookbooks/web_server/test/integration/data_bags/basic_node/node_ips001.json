@@ -1,9 +1,9 @@
 {
   "id": "node_ips001",
-  "local_ip": "10.10.1.11",
+  "local_ip": "10.10.1.17",
   "local_mask": "255.255.255.0",
   "local_interface": "eth1",
-  "public_ip": "192.168.1.81",
+  "public_ip": "192.168.1.85",
   "public_mask": "255.255.255.0",
   "public_interface": "eth2"
 }

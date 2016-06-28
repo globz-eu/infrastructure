@@ -29,6 +29,11 @@ describe 'web_server::nginx' do
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['web_server']['nginx']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          if version == '14.04'
+            node.set['web_server']['node_number'] = '000'
+          elsif version == '16.04'
+            node.set['web_server']['node_number'] = '001'
+          end
         end.converge(described_recipe)
       end
 

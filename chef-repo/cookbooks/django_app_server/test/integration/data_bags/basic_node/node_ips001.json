@@ -5,5 +5,5 @@
   "local_interface": "eth1",
   "public_ip": "192.168.1.83",
   "public_mask": "255.255.255.0",
-  "public_interface": "eth1"
+  "public_interface": "eth2"
 }

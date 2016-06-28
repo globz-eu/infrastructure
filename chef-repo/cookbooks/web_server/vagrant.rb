@@ -16,22 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
-#
-# Cookbook Name:: web_server
 
-default['install_scripts']['users'] = []
-default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
-
-default['web_server']['node_number'] = '000'
-node_nr = default['web_server']['node_number']
-
-default['web_server']['node_number'] = node_nr
-default['web_server']['nginx']['app_name'] = false
-default['web_server']['nginx']['git']['app_repo'] = false
-default['web_server']['nginx']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
-default['web_server']['nginx']['server_name'] = false
-default['web_server']['nginx']['app_home'] = false
-
-default['basic_node']['node_number'] = node_nr
-default['basic_node']['firewall']['web_server'] = true
-default['basic_node']['node_number'] = default['web_server']['node_number']
+# Use for public network
+Vagrant.configure(2) do |config|
+  config.vm.provision 'shell', inline: <<-SHELL
+    route add default gw 192.168.1.1 eth2
+    route del default eth0
+    ip route change to default dev eth2 via 192.168.1.1
+  SHELL
+end
