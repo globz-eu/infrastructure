@@ -17,21 +17,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: db_server
-# Recipe:: default
+# Cookbook Name:: django_app_server
+# Server Spec:: python
 
-include_recipe 'apt::default'
-include_recipe 'chef-vault'
+require 'spec_helper'
 
-db_user_item = chef_vault_item('pg_server', "db_user#{node['db_server']['node_number']}")
-db_user = db_user_item['user']
+set :backend, :exec
 
-if node['install_scripts']['users'].empty?
-  node.default['install_scripts']['users'] = [{user: db_user, password: db_user_item['password_hash'], scripts: 'db'}]
-  include_recipe 'install_scripts::user'
-  if node['install_scripts']['git']['app_repo']
-    include_recipe 'install_scripts::scripts'
-  end
+describe command ( 'pip3 list' ) do
+  its(:stdout) { should match(/uWSGI/)}
 end
 
-include_recipe 'db_server::postgresql'
+describe file('/var/log/uwsgi') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 755 }
+end
+

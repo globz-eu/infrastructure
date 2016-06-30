@@ -30,7 +30,7 @@ db_user_vault = chef_vault_item('pg_server', "db_user#{node['db_server']['node_n
 db_user = db_user_vault['user']
 db_admin_user = postgres_vault['user']
 node.default['postgresql']['password']['postgres'] = postgres_vault['password']
-app_repo = node['db_server']['postgresql']['git']['app_repo']
+app_repo = node['db_server']['git']['app_repo']
 app_name = false
 db_name = false
 if app_repo

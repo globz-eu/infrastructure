@@ -17,21 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: db_server
-# Recipe:: default
+# Cookbook:: db_server
+# Spec:: db_user
 
-include_recipe 'apt::default'
-include_recipe 'chef-vault'
+require 'spec_helper'
 
-db_user_item = chef_vault_item('pg_server', "db_user#{node['db_server']['node_number']}")
-db_user = db_user_item['user']
+set :backend, :exec
 
-if node['install_scripts']['users'].empty?
-  node.default['install_scripts']['users'] = [{user: db_user, password: db_user_item['password_hash'], scripts: 'db'}]
-  include_recipe 'install_scripts::user'
-  if node['install_scripts']['git']['app_repo']
-    include_recipe 'install_scripts::scripts'
-  end
+describe user( 'db_user' ) do
+  it { should exist }
+  it { should belong_to_group 'db_user' }
+  it { should belong_to_group 'db_user' }
+  it { should have_home_directory '/home/db_user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) { should match('$6$xKJVG30L$GN..e105dLVkI5JElirjwif2VoZtMldkCvbgRmFJAU4tC1KbRkMjEJIkkEREtvbcv38HFPARVc6cWV7YoEbxR/') }
 end
-
-include_recipe 'db_server::postgresql'

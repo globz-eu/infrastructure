@@ -31,7 +31,9 @@ if node['install_scripts']['users'].empty?
       {user: app_user, password: app_user_item['password'], groups: ['www-data'], scripts: 'app'},
   ]
   include_recipe 'install_scripts::user'
-  include_recipe 'install_scripts::scripts'
+  if node['install_scripts']['git']['app_repo']
+    include_recipe 'install_scripts::scripts'
+  end
 end
 
 include_recipe 'django_app_server::python'

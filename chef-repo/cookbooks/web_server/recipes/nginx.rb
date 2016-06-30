@@ -41,7 +41,7 @@ else
   server_name = node_ip_item['public_ip']
 end
 
-app_repo = node['web_server']['nginx']['git']['app_repo']
+app_repo = node['web_server']['git']['app_repo']
 
 package 'nginx'
 

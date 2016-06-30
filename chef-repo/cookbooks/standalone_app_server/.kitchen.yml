@@ -51,17 +51,9 @@ suites:
       - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
-      db_server:
-        postgresql:
-          git:
-            app_repo: 'https://github.com/globz-eu/django_base.git'
-      django_app_server:
+      standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
-      web_server:
-        nginx:
-          git:
-            app_repo: 'https://github.com/globz-eu/django_base.git'
     excludes: centos-7.1
   - name: update
     run_list:
@@ -69,15 +61,17 @@ suites:
       - recipe[standalone_app_server::update]
       - recipe[test-helper::default]
     attributes:
-      db_server:
-        postgresql:
-          git:
-            app_repo: 'https://github.com/globz-eu/django_base.git'
-      django_app_server:
+      standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
-      web_server:
-        nginx:
-          git:
-            app_repo: 'https://github.com/globz-eu/django_base.git'
+    excludes: centos-7.1
+  - name: formalign
+    run_list:
+      - recipe[standalone_app_server::default]
+      - recipe[standalone_app_server::update]
+      - recipe[test-helper::default]
+    attributes:
+      standalone_app_server:
+        git:
+          app_repo: 'https://github.com/globz-eu/formalign.git'
     excludes: centos-7.1

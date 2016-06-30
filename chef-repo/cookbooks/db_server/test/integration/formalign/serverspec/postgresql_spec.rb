@@ -21,7 +21,7 @@ require 'spec_helper'
 
 set :backend, :exec
 
-app_name = 'django_base'
+app_name = 'formalign'
 
 if os[:family] == 'ubuntu'
   if os[:release] == '14.04'

@@ -23,7 +23,7 @@
 require 'spec_helper'
 require 'find'
 
-app_name = 'django_base'
+app_name = 'formalign'
 
 set :backend, :exec
 

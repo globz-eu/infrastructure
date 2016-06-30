@@ -17,8 +17,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-default['install_scripts']['users'] = []
-default['install_scripts']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+default['db_server']['node_number'] = '000'
+default['db_server']['git']['app_repo'] = false
+app_repo = node['db_server']['git']['app_repo']
+default['db_server']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
+
+if app_repo
+  default['install_scripts']['git']['app_repo'] = app_repo
+else
+  default['install_scripts']['git']['app_repo'] = false
+end
 
 default['apt']['compile_time_update'] = true
 default['postgresql']['version'] = '9.5'
@@ -62,8 +70,3 @@ default['postgresql']['pg_hba'] = [
           :method => 'md5'
       }
 ]
-
-default['db_server']['node_number'] = '000'
-default['db_server']['postgresql']['db_name'] = false
-default['db_server']['postgresql']['git']['app_repo'] = false
-default['db_server']['postgresql']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'

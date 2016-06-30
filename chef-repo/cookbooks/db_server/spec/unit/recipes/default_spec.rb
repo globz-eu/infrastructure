@@ -54,7 +54,7 @@ describe 'db_server::default' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['db_server']['postgresql']['db_name'] = 'django_base'
+          node.set['db_server']['git']['app_repo'] = 'https://github.com/gloz-eu/django_base.git'
         end.converge(described_recipe)
       end
 

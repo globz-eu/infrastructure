@@ -28,7 +28,7 @@ describe 'standalone_app_server::start_app' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          node.set['standalone_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           if version == '14.04'
             node.set['standalone_app_server']['node_number'] = '000'
           elsif version == '16.04'

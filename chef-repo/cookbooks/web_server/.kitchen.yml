@@ -58,7 +58,16 @@ suites:
       - recipe[test-helper::default]
     attributes:
       web_server:
-        nginx:
           git:
             app_repo: 'https://github.com/globz-eu/django_base.git'
+    excludes: centos-7.1
+  - name: formalign
+    run_list:
+      - recipe[basic_node::firewall]
+      - recipe[web_server::default]
+      - recipe[test-helper::default]
+    attributes:
+      web_server:
+          git:
+            app_repo: 'https://github.com/globz-eu/formalign.git'
     excludes: centos-7.1

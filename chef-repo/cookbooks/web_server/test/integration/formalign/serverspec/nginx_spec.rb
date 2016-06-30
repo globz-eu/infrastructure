@@ -23,7 +23,7 @@
 
 require 'serverspec'
 
-app_name = 'django_base'
+app_name = 'formalign'
 
 set :backend, :exec
 
@@ -160,7 +160,7 @@ if os[:family] == 'ubuntu'
     it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
-    its(:content) { should match(%r(^\s+<title>#{app_name} site is down</title>$)) }
+    its(:content) { should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$)) }
   end
 
   # Install scripts should be present
@@ -239,7 +239,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 550 }
   end
 
-  describe file("/home/web_user/sites/#{app_name}/static/css/bootstrap.css") do
+  describe file("/home/web_user/sites/#{app_name}/static/bootstrap/css/bootstrap.css") do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -247,7 +247,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 440 }
   end
 
-  describe file("/home/web_user/sites/#{app_name}/media/media") do
+  describe file("/home/web_user/sites/#{app_name}/media/media.txt") do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -273,7 +273,7 @@ if os[:family] == 'ubuntu'
   end
 
   describe command('curl localhost') do
-    its(:stdout) {should match(%r(^\s+<title>#{app_name} site is down</title>$))}
+    its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$))}
   end
 
   describe file('/etc/nginx/sites-enabled/default') do

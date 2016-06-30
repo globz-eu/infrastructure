@@ -12,7 +12,7 @@ platforms:
       provider: libvirt
       box: alxgrh/ubuntu-trusty-x86_64
       network:
-        - ['private_network', {ip: '10.10.0.12'}]
+        - ['private_network', {ip: '10.10.1.12'}]
       customize:
         memory: 2048
         cpus: 2
@@ -21,7 +21,7 @@ platforms:
      provider: libvirt
      box: nrclark/xenial64-minimal-libvirt
      network:
-       - ['private_network', {ip: '10.10.0.13'}]
+       - ['private_network', {ip: '10.10.1.13'}]
      customize:
        memory: 2048
        cpus: 2
@@ -37,8 +37,17 @@ suites:
       - recipe[test-helper::default]
     attributes:
       db_server:
-        postgresql:
-          git:
-            app_repo: 'https://github.com/globz-eu/django_base.git'
+        git:
+          app_repo: 'https://github.com/globz-eu/django_base.git'
+    excludes:
+      - centos-7.1
+  - name: formalign
+    run_list:
+      - recipe[db_server::default]
+      - recipe[test-helper::default]
+    attributes:
+      db_server:
+        git:
+          app_repo: 'https://github.com/globz-eu/formalign.git'
     excludes:
       - centos-7.1

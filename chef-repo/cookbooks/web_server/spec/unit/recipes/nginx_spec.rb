@@ -28,7 +28,7 @@ describe 'web_server::nginx' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['web_server']['nginx']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          node.set['web_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           if version == '14.04'
             node.set['web_server']['node_number'] = '000'
           elsif version == '16.04'
@@ -65,12 +65,19 @@ describe 'web_server::nginx' do
       end
 
       it 'creates or updates django_base.conf file' do
+        if version == '14.04'
+          ip_end = '84'
+          ip = '192.168.1.84'
+        elsif version == '16.04'
+          ip_end = '85'
+          ip = '192.168.1.85'
+        end
         params = [
             /^# django_base.conf$/,
             %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
             /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.81;$/,
+            /^\s+server_name\s+192\.168\.1\.#{ip_end};$/,
             %r(^\s+alias /home/web_user/sites/django_base/media;),
             %r(^\s+alias /home/web_user/sites/django_base/static;),
             %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
@@ -85,7 +92,7 @@ describe 'web_server::nginx' do
                 server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
                 server_tcp_socket: '# server 127.0.0.1:8001;',
                 listen_port: '80',
-                server_name: '192.168.1.81',
+                server_name: ip,
                 web_user: 'web_user',
                 static_path: '/home/web_user/sites/django_base/static',
                 media_path: '/home/web_user/sites/django_base/media',
@@ -188,11 +195,18 @@ describe 'web_server::nginx' do
       end
 
       it 'creates or updates django_base_down.conf file' do
+        if version == '14.04'
+          ip_end = '84'
+          ip = '192.168.1.84'
+        elsif version == '16.04'
+          ip_end = '85'
+          ip = '192.168.1.85'
+        end
         params = [
             /^# django_base_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.81;$/,
+            /^\s+server_name\s+192\.168\.1\.#{ip_end};$/,
             %r(^\s+root /home/web_user/sites/django_base/down;),
             %r(^\s+alias /home/web_user/sites/django_base/media;),
             %r(^\s+alias /home/web_user/sites/django_base/static;),
@@ -205,7 +219,7 @@ describe 'web_server::nginx' do
                   variables: {
                       app_name: 'django_base',
                       listen_port: '80',
-                      server_name: '192.168.1.81',
+                      server_name: ip,
                       down_path: '/home/web_user/sites/django_base/down',
                       static_path: '/home/web_user/sites/django_base/static',
                       media_path: '/home/web_user/sites/django_base/media',
