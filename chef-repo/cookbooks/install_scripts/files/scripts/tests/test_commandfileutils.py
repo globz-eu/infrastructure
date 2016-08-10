@@ -161,7 +161,8 @@ class CommandFileUtilsTest(RunAndLogTest):
 
     def test_logging_exits_when_log_level_is_not_specified(self):
         """
-        tests that logging exits when log level is not specified or is invalid
+        tests that logging uses default log level (DEBUG) when level is not specified and exits when log level is
+        invalid
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
         msgs = [
@@ -171,9 +172,10 @@ class CommandFileUtilsTest(RunAndLogTest):
         for m, ll in msgs:
             try:
                 runlog.logging(m, ll)
+                self.log('DEBUG: info message')
             except SystemExit as error:
                 self.assertEqual(1, error.code, '%s exited with: %s' % ('logging', str(error)))
-            self.log('ERROR: log level "%s" is not specified or not valid' % ll)
+                self.log('ERROR: log level "%s" is not specified or not valid' % ll)
 
     def test_logging_only_logs_messages_of_appropriate_log_level(self):
         """
@@ -218,6 +220,50 @@ class CommandFileUtilsTest(RunAndLogTest):
                  '/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
         for p in paths:
             self.log('INFO: %s' % p)
+
+    def test_walktree_with_no_file_function(self):
+        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        with open(app_home_nested_file, 'w') as file:
+            file.write('some text')
+        runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        runlog.walktree(self.app_home, d_callback=runlog.logging, d_args=('INFO', ))
+        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
+        for p in paths:
+            self.log('INFO: %s' % p)
+
+    def test_walktree_with_no_file_function_args(self):
+        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        with open(app_home_nested_file, 'w') as file:
+            file.write('some text')
+        runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        runlog.walktree(self.app_home, f_callback=runlog.logging)
+        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
+        for p in paths:
+            self.log('DEBUG: %s' % p)
+
+    def test_walktree_with_no_directory_function(self):
+        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        with open(app_home_nested_file, 'w') as file:
+            file.write('some text')
+        runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        runlog.walktree(self.app_home, f_callback=runlog.logging, f_args=('INFO', ))
+        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
+        for p in paths:
+            self.log('INFO: %s' % p)
+
+    def test_walktree_with_no_directory_function_args(self):
+        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        with open(app_home_nested_file, 'w') as file:
+            file.write('some text')
+        runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        runlog.walktree(self.app_home, d_callback=runlog.logging)
+        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
+        for p in paths:
+            self.log('DEBUG: %s' % p)
 
     def test_walktree_exits_when_it_encounters_permission_error(self):
         """
@@ -306,6 +352,33 @@ class CommandFileUtilsTest(RunAndLogTest):
                 for name in dirs:
                     os.chmod(os.path.join(root, name), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
             shutil.rmtree(self.app_home)
+
+    def test_check_pending_returns_correct_list(self):
+        """
+        tests that check_pending only returns directories for pending or acceptance tests
+        """
+        sample_dirs = ['/bla/pending_tests', '/bli/blo/acceptance_tests', '/bla/blup/some_other_dir']
+        expected_dirs = ['/bla/pending_tests', '/bli/blo/acceptance_tests']
+        cfu = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        for s in sample_dirs:
+            cfu.check_pending(s)
+        self.assertEqual(expected_dirs, cfu.pending_dirs, cfu.pending_dirs)
+
+    def test_get_pending_dirs_returns_dirs_with_pending_tests(self):
+        """
+        tests that get_pending_dirs returns a list of directory paths for pending tests
+        """
+        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'app_name', 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'app_name', 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
+        cfu = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
+        pending_dirs = cfu.get_pending_dirs(self.app_home)
+        expected_pending_dirs = [
+            os.path.join('.', 'acceptance_tests'),
+            os.path.join('.', 'app_name', 'base', 'unit_tests', 'pending_tests'),
+            os.path.join('.', 'app_name', 'functional_tests', 'pending_tests'),
+        ]
+        self.assertEqual(expected_pending_dirs, pending_dirs, pending_dirs)
 
     @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     def test_own_manages_ownership(self, own_app_mock):

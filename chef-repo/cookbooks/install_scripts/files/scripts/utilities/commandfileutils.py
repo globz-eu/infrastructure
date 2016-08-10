@@ -55,14 +55,17 @@ class CommandFileUtils:
         else:
             self.logging('distribution not supported', 'FATAL')
             sys.exit(1)
+        self.pending_dirs = []
 
-    def logging(self, msg, level):
+    def logging(self, msg, level=None):
         """
         Logs message to file according if message level is equal or higher to general log level.
         :param msg: message to be logged
         :param level: message level
         :return: nothing
         """
+        if not level:
+            level = self.log_level
         log_levels = [
             'DEBUG',
             'INFO',
@@ -118,15 +121,15 @@ class CommandFileUtils:
             sys.exit(1)
         return 0
 
-    def walktree(self, top, f_callback, f_args, d_callback, d_args):
+    def walktree(self, top, f_callback=None, f_args=None, d_callback=None, d_args=None):
         """
-        Walks a directory tree from top and calls f_callback with pathname and f_args on files or d_callback with pathname
-        and d_args on directories
+        Walks a directory tree from top and calls f_callback with pathname and f_args on files or d_callback with
+        pathname and d_args on directories
         :param top: directory to walk
         :param f_callback: callback function for files
-        :param f_args: additional arguments after pathname for f_callback
+        :param f_args: additional positional arguments after pathname for f_callback
         :param d_callback: callback function for directories
-        :param d_args: additional arguments after pathname for d_callback
+        :param d_args: additional positional arguments after pathname for d_callback
         :return: nothing
         """
         for f in os.listdir(top):
@@ -134,15 +137,23 @@ class CommandFileUtils:
             mode = os.stat(pathname).st_mode
             if stat.S_ISDIR(mode):
                 try:
-                    d_callback(pathname, *d_args)
+                    if d_callback:
+                        if d_args:
+                            d_callback(pathname, *d_args)
+                        else:
+                            d_callback(pathname)
                     self.walktree(pathname, f_callback, f_args, d_callback, d_args)
                 except PermissionError as error:
                     msg = '%s on: %s' % (error.strerror, error.filename)
                     self.logging(msg, 'ERROR')
                     sys.exit(1)
-            elif stat.S_ISREG(mode):
+            elif stat.S_ISREG(mode) and f_callback:
                 try:
-                    f_callback(pathname, *f_args)
+                    if f_callback:
+                        if f_args:
+                            f_callback(pathname, *f_args)
+                        else:
+                            f_callback(pathname)
                 except PermissionError as error:
                     msg = '%s on: %s' % (error.strerror, error.filename)
                     self.logging(msg, 'ERROR')
@@ -215,6 +226,23 @@ class CommandFileUtils:
             self.logging(msg, 'ERROR')
             sys.exit(1)
         return 0
+
+    def check_pending(self, path):
+        """
+        checks whether a directory is an acceptance tests or pending tests directory and appends it to self.pending_dirs
+        if so
+        """
+        if os.path.basename(path) in ['acceptance_tests', 'pending_tests']:
+            self.pending_dirs.append(path)
+
+    def get_pending_dirs(self, top):
+        """
+        scans app and returns list of pending tests directories
+        :return: list of pending tests directories paths
+        """
+        self.walktree(top, d_callback=self.check_pending)
+        self.pending_dirs = ['.%s' % p[len(top):] for p in self.pending_dirs]
+        return self.pending_dirs
 
     def check_process(self, process):
         """

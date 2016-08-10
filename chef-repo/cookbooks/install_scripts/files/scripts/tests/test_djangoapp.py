@@ -496,6 +496,7 @@ class InstallDjangoAppTest(InstallTest):
         """
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name), exist_ok=True)
         log_file_now = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )
@@ -516,6 +517,67 @@ class InstallDjangoAppTest(InstallTest):
         self.run_cwd(cwd, func, install_django_app.run_tests, args)
         self.run_error(cmd, func, install_django_app.run_tests, args)
 
+    def test_run_app_tests_with_acceptance_tests(self):
+        """
+        tests that run_tests runs the right command, excluding acceptance tests, from the right directory and writes to log
+        """
+        now = datetime.datetime.utcnow()
+        os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
+        log_file_now = os.path.join(
+            os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
+        )
+        with open(log_file_now, 'w') as log:
+            log.write('OK')
+        install_django_app = InstallDjangoApp(
+            self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
+        )
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
+            '--exclude-dir', './acceptance_tests',
+            '--settings', '%s.settings_admin' % self.app_name
+        ]
+        msg = 'successfully tested %s' % self.app_name
+        cwd = os.path.join(self.app_home, self.app_name)
+        func = 'run_tests'
+        args = (self.app_home,)
+        self.run_success([cmd], [msg], func, install_django_app.run_tests, args)
+        self.run_cwd(cwd, func, install_django_app.run_tests, args)
+        self.run_error(cmd, func, install_django_app.run_tests, args)
+
+    def test_run_app_tests_with_pending_tests(self):
+        """
+        tests that run_tests runs the right command, excluding acceptance tests and pending tests, from the right
+        directory and writes to log
+        """
+        now = datetime.datetime.utcnow()
+        os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
+        log_file_now = os.path.join(
+            os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
+        )
+        with open(log_file_now, 'w') as log:
+            log.write('OK')
+        install_django_app = InstallDjangoApp(
+            self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
+        )
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
+            '--exclude-dir', './acceptance_tests',
+            '--exclude-dir', './base/unit_tests/pending_tests',
+            '--exclude-dir', './%s/functional_tests/pending_tests' % self.app_name,
+            '--settings', '%s.settings_admin' % self.app_name
+        ]
+        msg = 'successfully tested %s' % self.app_name
+        cwd = os.path.join(self.app_home, self.app_name)
+        func = 'run_tests'
+        args = (self.app_home,)
+        self.run_success([cmd], [msg], func, install_django_app.run_tests, args)
+        self.run_cwd(cwd, func, install_django_app.run_tests, args)
+        self.run_error(cmd, func, install_django_app.run_tests, args)
+
     def test_run_tests_exits_on_failed_test(self):
         """
         tests that run_tests exits when app tests fail and writes to log.
@@ -523,6 +585,7 @@ class InstallDjangoAppTest(InstallTest):
         now = datetime.datetime.utcnow()
         yesterday = now - datetime.timedelta(days=1)
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name), exist_ok=True)
         log_file_now = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )
@@ -547,6 +610,7 @@ class InstallDjangoAppTest(InstallTest):
         """
         tests that run_tests logs to the right file.
         """
+        os.makedirs(os.path.join(self.app_home, self.app_name), exist_ok=True)
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo,
         )

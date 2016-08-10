@@ -56,7 +56,6 @@ def run_command_mock(cmd, msg, cwd=None, out=None, log_error=True):
                         db_exists_msg = 'ERROR:  database "%s" already exists\n' % db_name
                     elif 'DROP DATABASE %s;' % db_name in cmd:
                         db_exists_msg = 'ERROR:  database "%s" does not exist\n' % db_name
-                    print('db_exists_msg: %s' % db_exists_msg)
                     log.write(db_exists_msg)
                     raise CalledProcessError(returncode=1, cmd=cmd)
     except CalledProcessError as error:

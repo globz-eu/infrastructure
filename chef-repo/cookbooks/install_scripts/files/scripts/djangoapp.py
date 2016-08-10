@@ -232,10 +232,11 @@ class InstallDjangoApp(CommandFileUtils):
         :param app_home: app root
         :return: returns run_command return code
         """
-        cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
-            '--settings', '%s.settings_admin' % self.app_name
-        ]
+        pending = self.get_pending_dirs(app_home)
+        cmd = [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test']
+        for p in pending:
+            cmd.extend(['--exclude-dir', p])
+        cmd.extend(['--settings', '%s.settings_admin' % self.app_name])
         msg = 'successfully tested %s' % self.app_name
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)

@@ -31,10 +31,10 @@ default['django_app_server']['node_number'] = node_nr
 default['django_app_server']['git']['app_repo'] = app_repo
 
 default['db_server']['node_number'] = node_nr
-default['db_server']['postgresql']['git']['app_repo'] = app_repo
+default['db_server']['git']['app_repo'] = app_repo
 
 default['web_server']['node_number'] = node_nr
-default['web_server']['nginx']['git']['app_repo'] = app_repo
+default['web_server']['git']['app_repo'] = app_repo
 default['web_server']['nginx']['server_name'] = false
 
 default['basic_node']['node_number'] = node_nr
