@@ -19,7 +19,6 @@
 #
 # Cookbook Name:: standalone_app_server
 # Recipe:: update
-#
 
 include_recipe 'chef-vault'
 
