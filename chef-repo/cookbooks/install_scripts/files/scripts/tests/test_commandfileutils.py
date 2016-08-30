@@ -368,14 +368,14 @@ class CommandFileUtilsTest(RunAndLogTest):
         """
         tests that get_pending_dirs returns a list of directory paths for pending tests
         """
-        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'app_name', 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'app_name', 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, 'app_name', 'app_name', 'functional_tests', 'pending_tests'), exist_ok=True)
         os.makedirs(os.path.join(self.app_home, 'app_name', 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
         cfu = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        pending_dirs = cfu.get_pending_dirs(self.app_home)
+        pending_dirs = cfu.get_pending_dirs(self.app_home, 'app_name')
         expected_pending_dirs = [
             os.path.join('.', 'acceptance_tests'),
-            os.path.join('.', 'app_name', 'base', 'unit_tests', 'pending_tests'),
+            os.path.join('.', 'base', 'unit_tests', 'pending_tests'),
             os.path.join('.', 'app_name', 'functional_tests', 'pending_tests'),
         ]
         self.assertEqual(expected_pending_dirs, pending_dirs, pending_dirs)

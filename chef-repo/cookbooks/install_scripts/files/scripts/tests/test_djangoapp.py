@@ -523,7 +523,7 @@ class InstallDjangoAppTest(InstallTest):
         """
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, 'acceptance_tests'), exist_ok=True)
         log_file_now = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )
@@ -552,9 +552,9 @@ class InstallDjangoAppTest(InstallTest):
         """
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'acceptance_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, self.app_name, 'functional_tests', 'pending_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name, 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
         log_file_now = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )

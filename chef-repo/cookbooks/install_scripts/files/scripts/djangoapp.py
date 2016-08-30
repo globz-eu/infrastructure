@@ -232,7 +232,7 @@ class InstallDjangoApp(CommandFileUtils):
         :param app_home: app root
         :return: returns run_command return code
         """
-        pending = self.get_pending_dirs(app_home)
+        pending = self.get_pending_dirs(app_home, self.app_name)
         cmd = [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test']
         for p in pending:
             cmd.extend(['--exclude-dir', p])

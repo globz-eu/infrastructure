@@ -235,13 +235,13 @@ class CommandFileUtils:
         if os.path.basename(path) in ['acceptance_tests', 'pending_tests']:
             self.pending_dirs.append(path)
 
-    def get_pending_dirs(self, top):
+    def get_pending_dirs(self, top, app_name):
         """
         scans app and returns list of pending tests directories
         :return: list of pending tests directories paths
         """
         self.walktree(top, d_callback=self.check_pending)
-        self.pending_dirs = ['.%s' % p[len(top):] for p in self.pending_dirs]
+        self.pending_dirs = ['.%s' % p[(len(top) + len(app_name) + 1):] for p in self.pending_dirs]
         return self.pending_dirs
 
     def check_process(self, process):
