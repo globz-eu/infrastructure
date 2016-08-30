@@ -46,4 +46,6 @@ suites:
       basic_node:
         firewall:
           web_server: true
+        remote_unlock:
+          encryption: true
     excludes: centos-7.1

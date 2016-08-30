@@ -37,4 +37,7 @@ include_recipe 'basic_node::openssh'
 include_recipe 'basic_node::security_updates'
 include_recipe 'basic_node::firewall'
 include_recipe 'basic_node::ntp'
-include_recipe 'basic_node::remote_unlock'
+
+if node['basic_node']['remote_unlock']['encryption']
+  include_recipe 'basic_node::remote_unlock'
+end

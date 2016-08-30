@@ -33,6 +33,7 @@ describe 'basic_node::remote_unlock' do
           elsif version == '16.04'
             node.set['basic_node']['node_number'] = '001'
           end
+          node.set['basic_node']['remote_unlock']['encryption'] = true
         end.converge(described_recipe)
       end
 
