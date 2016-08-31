@@ -45,6 +45,7 @@ describe 'standalone_app_server::default' do
         stub_command("sudo -u postgres psql -c '\\du' | grep db_user").and_return(false)
         stub_command("ls /home/app_user/sites/django_base/scripts").and_return(false)
         stub_command("pip list | grep virtualenv").and_return(false)
+        stub_command("ls /home/web_user/sites/django_base/down/index.html").and_return(false)
       end
 
       it 'converges successfully' do

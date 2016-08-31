@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import re
 import subprocess
 from subprocess import CalledProcessError
 from unittest import TestCase
@@ -93,7 +94,25 @@ class RunAndLogTest(TestCase):
         self.assertEqual(0, run, tested_function + ' returned: ' + str(run))
         self.assertEqual(cmd_args['cwd'], kwargs['cwd'], '%s not found for %s in %s' % (cwd, tested_function, kwargs))
 
-    def log(self, message):
+    def log(self, message, test=True, regex=False):
+        """
+        tests the presence or absence of a message or regex in the log file
+        :param message: message to test
+        :param test: tests presence (True) or absence (False)
+        :param regex: tests using regex if True
+        :return:
+        """
         with open(self.log_file) as log:
             log_list = [l[24:] for l in log]
-            self.assertTrue('%s\n' % message in log_list, '\'%s\' not found in %s' % (message, log_list))
+            if test:
+                if regex:
+                    matches = [l for l in log_list if re.match(message, l)]
+                    self.assertTrue(matches, '%s not found' % message)
+                else:
+                    self.assertTrue('%s\n' % message in log_list, log_list)
+            else:
+                if regex:
+                    matches = [l for l in log_list if re.match(message, l)]
+                    self.assertFalse(matches, '"%s" found in %s' % (message, matches))
+                else:
+                    self.assertFalse('%s\n' % message in log_list, log_list)

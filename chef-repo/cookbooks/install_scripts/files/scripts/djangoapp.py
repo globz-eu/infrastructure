@@ -265,6 +265,8 @@ class InstallDjangoApp(CommandFileUtils):
         msg = 'started uwsgi server'
         cwd = os.path.join(app_home, self.app_name)
         if not uwsgi:
+            os.makedirs(os.path.join('/tmp', self.app_name), exist_ok=True)
+            self.permissions(os.path.join('/tmp', self.app_name), dir_permissions='777')
             run = self.run_command(cmd, msg, cwd=cwd)
         else:
             run = 0

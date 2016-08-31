@@ -37,6 +37,10 @@ describe 'standalone_app_server::update' do
         end.converge('web_server::nginx', described_recipe)
       end
 
+      before do
+        stub_command("ls /home/web_user/sites/django_base/down/index.html").and_return(false)
+      end
+
       it 'converges successfully' do
         expect { chef_run }.to_not raise_error
       end

@@ -23,9 +23,11 @@ from unittest import TestCase
 from unittest.mock import call
 from unittest import mock
 import os
+import sys
 import shutil
 import stat
 import datetime
+import re
 from utilities.commandfileutils import CommandFileUtils
 from tests.conf_tests import DIST_VERSION, DEBUG, APP_HOME, LOG_FILE
 from tests.runandlogtest import RunAndLogTest
@@ -49,6 +51,11 @@ class RunCommandTest(TestCase):
         remove_test_dir()
 
     def log(self, message, test=True):
+        """
+        tests the presence or absence of a message or regex in the log file
+        :param message: message to test
+        :param test: tests presence (True) or absence (False)
+        """
         with open(self.log_file) as log:
             log_list = [l[24:] for l in log]
             if test:
@@ -110,13 +117,13 @@ class CommandFileUtilsTest(RunAndLogTest):
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
 
-    def log(self, message, test=True):
-        with open(self.log_file) as log:
-            log_list = [l[24:] for l in log]
-            if test:
-                self.assertTrue('%s\n' % message in log_list, log_list)
-            else:
-                self.assertFalse('%s\n' % message in log_list, log_list)
+    # def log(self, message, test=True):
+    #     with open(self.log_file) as log:
+    #         log_list = [l[24:] for l in log]
+    #         if test:
+    #             self.assertTrue('%s\n' % message in log_list, log_list)
+    #         else:
+    #             self.assertFalse('%s\n' % message in log_list, log_list)
 
     def test_commandfileutils_exits_on_unknown_dist_version(self):
         try:
@@ -231,6 +238,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
         for p in paths:
             self.log('INFO: %s' % p)
+            self.log('ERROR:', test=False, regex=True)
 
     def test_walktree_with_no_file_function_args(self):
         app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
@@ -253,6 +261,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
         for p in paths:
             self.log('INFO: %s' % p)
+            self.log('ERROR:', test=False, regex=True)
 
     def test_walktree_with_no_directory_function_args(self):
         app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')

@@ -147,7 +147,7 @@ class CommandFileUtils:
                     msg = '%s on: %s' % (error.strerror, error.filename)
                     self.logging(msg, 'ERROR')
                     sys.exit(1)
-            elif stat.S_ISREG(mode) and f_callback:
+            elif stat.S_ISREG(mode):
                 try:
                     if f_callback:
                         if f_args:

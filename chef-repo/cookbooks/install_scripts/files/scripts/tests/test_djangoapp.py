@@ -82,6 +82,8 @@ class AppTest(InstallTest):
         # when uwsgi is not running
         self.run_success([cmd], [msg], func, install_django_app.start_uwsgi, args)
         self.run_cwd(cwd, func, install_django_app.start_uwsgi, args)
+        self.assertTrue(os.path.exists(os.path.join('/tmp', self.app_name)), 'fifo directory was not created')
+        self.log('INFO: changed permissions of %s to %s' % (os.path.join('/tmp', self.app_name), '777'))
 
         # when uwsgi is running
         msg = 'uwsgi is already running'
@@ -779,7 +781,8 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: successfully migrated %s' % self.app_name,
             'INFO: successfully tested %s' % self.app_name,
             'INFO: started uwsgi server',
-            'INFO: install django app exited with code 0'
+            'INFO: changed permissions of %s to %s' % (os.path.join('/tmp', self.app_name), '777'),
+            'INFO: install django app exited with code 0',
         ]
         for m in msgs:
             self.log(m)
@@ -826,7 +829,8 @@ class TestInstallDjangoAppMain(InstallTest):
         )
         msgs = [
             'INFO: stopped uwsgi server',
-            'INFO: started uwsgi server'
+            'INFO: started uwsgi server',
+            'INFO: changed permissions of %s to %s' % (os.path.join('/tmp', self.app_name), '777')
         ]
         for m in msgs:
             self.log(m)
