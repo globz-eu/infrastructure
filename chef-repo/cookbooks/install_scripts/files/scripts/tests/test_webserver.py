@@ -265,6 +265,54 @@ class ServeStaticTest(StaticTest):
         # for successful exit
         self.log('INFO: serve static exited with code 0')
 
+    @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
+    def test_remove_static(self, own_app_mock, clone_app_mock):
+        """
+        tests that remove_static removes the static directories and files, writes to log
+        """
+        user = 'web_user'
+        os.makedirs(self.static_path)
+        os.makedirs(self.media_path)
+        os.makedirs(self.uwsgi_path)
+        os.makedirs(self.down_path)
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo)
+        serve_django_static.serve_static(
+            user, user, self.down_path, self.static_path, self.media_path, self.uwsgi_path
+        )
+
+        serve_django_static.remove_static(self.down_path, self.static_path, self.media_path, self.uwsgi_path)
+
+        fds = [
+            {'path': self.down_path, 'file': 'index.html'},
+            {'path': self.static_path, 'file': 'static_file'},
+            {'path': self.media_path, 'file': 'media_file'},
+            {'path': self.uwsgi_path, 'file': 'uwsgi_params'},
+        ]
+        for f in fds:
+            self.assertTrue(os.path.exists(f['path']), '%s was removed' % f['path'])
+            self.assertFalse(os.path.exists(os.path.join(f['path'], f['file'])), '%s was not removed' % f['file'])
+            self.log('INFO: removed files in %s' % f['path'])
+
+    def test_remove_static_adds_static_paths_if_missing(self):
+        """
+        tests that remove_static adds static paths if missing and writes to log
+        """
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo)
+        serve_django_static.remove_static(self.down_path, self.static_path, self.media_path, self.uwsgi_path)
+
+        fds = [
+            self.down_path,
+            self.static_path,
+            self.media_path,
+            self.uwsgi_path,
+        ]
+        for f in fds:
+            self.assertTrue(os.path.exists(f), '%s not present' % f)
+            self.log('INFO: added missing path %s' % f)
+
     def test_site_toggle_down(self):
         """
         tests that site_toggle_up_down removes the site.conf file from enabled sites, links the site_down.conf file to enabled
@@ -346,7 +394,7 @@ class WebServerMainTest(StaticTest):
     @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     def test_run_main_default(self, own_app_mock, clone_app_mock):
         """
-        tests run main script with no parameters returns no error
+        tests run main script with move static parameter returns no error
         """
         sys.argv = ['webserver', '-m', '-l', 'DEBUG']
         paths = [self.static_path, self.media_path, self.uwsgi_path, self.down_path]
@@ -377,6 +425,73 @@ class WebServerMainTest(StaticTest):
         except SystemExit as sysexit:
             self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
         self.log('INFO: %s is down' % self.app_name)
+
+    @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
+    def test_run_main_remove_static(self, own_app_mock, clone_app_mock):
+        """
+        tests run main script with remove static parameter returns no error
+        """
+        user = 'web_user'
+        os.makedirs(self.static_path)
+        os.makedirs(self.media_path)
+        os.makedirs(self.uwsgi_path)
+        os.makedirs(self.down_path)
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo)
+        serve_django_static.serve_static(
+            user, user, self.down_path, self.static_path, self.media_path, self.uwsgi_path
+        )
+
+        sys.argv = ['webserver', '-x', '-l', 'DEBUG']
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+
+        fds = [
+            self.down_path,
+            self.static_path,
+            self.media_path,
+            self.uwsgi_path,
+        ]
+        for f in fds:
+            self.assertTrue(os.path.exists(f), '%s not present' % f)
+            self.log('INFO: removed files in %s' % f)
+
+    @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
+    def test_run_main_reload_static(self, own_app_mock, clone_app_mock):
+        """
+        tests run main script with move static parameter returns no error
+        """
+        sys.argv = ['webserver', '-r', '-l', 'DEBUG']
+        paths = [self.static_path, self.media_path, self.uwsgi_path, self.down_path]
+        for p in paths:
+            os.makedirs(p)
+        webserver.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+        self.assertEqual(
+            [call(self.down_path, self.web_user, self.webserver_user),
+             call(self.static_path, self.web_user, self.webserver_user),
+             call(self.media_path, self.web_user, self.webserver_user),
+             call(self.uwsgi_path, self.web_user, self.webserver_user)],
+            own_app_mock.mock_calls, own_app_mock.mock_calls
+        )
+        self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+
+        fds = [
+            self.down_path,
+            self.static_path,
+            self.media_path,
+            self.uwsgi_path,
+        ]
+        for f in fds:
+            self.assertTrue(os.path.exists(f), '%s not present' % f)
+            self.log('INFO: removed files in %s' % f)
 
     def test_run_main_site_up(self):
         """

@@ -53,6 +53,14 @@ describe 'standalone_app_server::update' do
         )
       end
 
+      it 'runs restore_static' do
+        expect( chef_run ).to run_bash('restore_static').with(
+            cwd: '/home/web_user/sites/django_base/scripts',
+            code: './webserver.py -r',
+            user: 'root'
+        )
+      end
+
       it 'runs remove_app' do
         expect( chef_run ).to run_bash('remove_app').with(
             cwd: '/home/app_user/sites/django_base/scripts',

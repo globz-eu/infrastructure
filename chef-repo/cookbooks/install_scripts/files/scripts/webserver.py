@@ -48,7 +48,7 @@ class ServeStatic(InstallDjangoApp):
 
     def move(self, from_path=None, to_path=None, file_type=None):
         """
-        moves static content from django app to static_path
+        moves static content from django app (and clones it if absent) to static_path
         :param file_type: type of from path (file or dir)
         :param from_path: directory or file path in app to move
         :param to_path: path to directory to move static content to
@@ -109,10 +109,9 @@ class ServeStatic(InstallDjangoApp):
         :param web_user: web user
         :param static_path: path to static content
         :param media_path: path to media content
+        :param uwsgi_path: path to uwsgi_params directory
         :return: returns 0 if it reaches the end of its flow
         """
-        os.makedirs(self.app_home)
-
         static_files = [
             {'from_path': os.path.join(self.app_home, self.app_name, 'static', 'site_down', 'index.html'),
              'to_path': down_path, 'file_type': 'file'},
@@ -132,6 +131,27 @@ class ServeStatic(InstallDjangoApp):
                 self.permissions(static['to_path'], '440', '550', recursive=True)
         shutil.rmtree(self.app_home)
         self.logging('serve static exited with code 0\n', 'INFO')
+        return 0
+
+    def remove_static(self, down_path, static_path, media_path, uwsgi_path):
+        """
+        removes static, media and uwsgi_params
+        :param down_path: server down folder
+        :param static_path: path to static content
+        :param media_path: path to media content
+        :param uwsgi_path: path to uwsgi_params directory
+        :return: returns 0 if it reaches the end of its flow
+        """
+        paths = [down_path, static_path, media_path, uwsgi_path]
+        for path in paths:
+            if os.path.exists(path):
+                self.permissions(path, '770', '770', recursive=True)
+                shutil.rmtree(path)
+                os.makedirs(path)
+                self.logging('removed files in %s\n' % path, 'INFO')
+            else:
+                os.makedirs(path)
+                self.logging('added missing path %s\n' % path, 'INFO')
         return 0
 
     def site_toggle_up_down(self, up_down='up'):
@@ -181,11 +201,16 @@ def main():
                       help='log-level: DEBUG, INFO, ERROR, FATAL', default='INFO')
     parser.add_option('-m', '--move-static', dest='move_static', action='store_true',
                       help='move-static: moves static files from app to server static folders', default=False)
+    parser.add_option('-x', '--remove-static', dest='remove_static', action='store_true',
+                      help='removes static files from server static folders', default=False)
+    parser.add_option('-r', '--reload-static', dest='reload_static', action='store_true',
+                      help='reloads static files to server static folders', default=False)
     parser.add_option('-s', '--site-manage', dest='site_manage',
                       help='site-manage: (up, down) turns site up or down', default=False)
     (options, args) = parser.parse_args()
     if len(args) > 2:
         parser.error('incorrect number of arguments')
+
     if options.log_level:
         log_level = options.log_level
     kwargs = {'git_repo': GIT_REPO, 'nginx_conf': NGINX_CONF} if NGINX_CONF else {'git_repo': GIT_REPO}
@@ -196,6 +221,7 @@ def main():
             WEB_USER, WEBSERVER_USER, DOWN_PATH, STATIC_PATH, MEDIA_PATH, UWSGI_PATH
         )
         run.append(static)
+
     if options.site_manage:
         if options.site_manage == 'up':
             site_up = serve_django_static.site_toggle_up_down('up')
@@ -203,6 +229,23 @@ def main():
         if options.site_manage == 'down':
             site_down = serve_django_static.site_toggle_up_down('down')
             run.append(site_down)
+
+    if options.remove_static:
+        remove = serve_django_static.remove_static(
+            DOWN_PATH, STATIC_PATH, MEDIA_PATH, UWSGI_PATH
+        )
+        run.append(remove)
+
+    if options.reload_static:
+        remove = serve_django_static.remove_static(
+            DOWN_PATH, STATIC_PATH, MEDIA_PATH, UWSGI_PATH
+        )
+        run.append(remove)
+        static = serve_django_static.serve_static(
+            WEB_USER, WEBSERVER_USER, DOWN_PATH, STATIC_PATH, MEDIA_PATH, UWSGI_PATH
+        )
+        run.append(static)
+
     for r in run:
         if r != 0:
             sys.exit(1)

@@ -42,6 +42,12 @@ bash 'server_down' do
   user 'root'
 end
 
+bash 'restore_static' do
+  cwd "/home/#{web_user}/sites/#{app_name}/scripts"
+  code './webserver.py -r'
+  user 'root'
+end
+
 bash 'remove_app' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
   code './djangoapp.py -x'
