@@ -49,6 +49,12 @@ template "/home/#{admin_user}/.ssh/authorized_keys" do
             })
 end
 
+if node['openssh']['sshd']['authorized_users']
+  allowed_users = [admin_user] + node['openssh']['sshd']['authorized_users']
+else
+  allowed_users = [admin_user]
+end
+
 template '/etc/ssh/sshd_config' do
   source 'sshd_config.erb'
   action :create
@@ -60,7 +66,7 @@ template '/etc/ssh/sshd_config' do
                 password_authentication: node['openssh']['sshd']['password_authentication'],
                 pubkey_authentication: node['openssh']['sshd']['pubkey_authentication'],
                 rsa_authentication: node['openssh']['sshd']['rsa_authentication'],
-                allowed_users: admin_user
+                allowed_users: allowed_users.join(' ')
             })
   notifies :restart, 'service[ssh]', :immediately
 end

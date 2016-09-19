@@ -87,7 +87,7 @@ describe 'basic_node::openssh' do
               password_authentication: chef_run.node['openssh']['sshd']['password_authentication'],
               pubkey_authentication: chef_run.node['openssh']['sshd']['pubkey_authentication'],
               rsa_authentication: chef_run.node['openssh']['sshd']['rsa_authentication'],
-              allowed_users: 'node_admin'
+              allowed_users: 'node_admin vagrant'
           }
         )
         sshd_config.each do |s|

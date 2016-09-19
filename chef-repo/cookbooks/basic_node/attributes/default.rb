@@ -2,6 +2,7 @@ default['openssh']['sshd']['permit_root_login'] = 'no'
 default['openssh']['sshd']['password_authentication'] = 'no'
 default['openssh']['sshd']['pubkey_authentication'] = 'yes'
 default['openssh']['sshd']['rsa_authentication'] = 'yes'
+default['openssh']['sshd']['authorized_users'] = ['vagrant']
 
 
 
