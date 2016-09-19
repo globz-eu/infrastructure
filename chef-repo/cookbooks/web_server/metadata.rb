@@ -26,7 +26,7 @@ description 'Installs/Configures web_server'
 long_description 'Installs/Configures web_server'
 version '0.1.9'
 
-depends 'basic_node', '~> 0.1.24'
+depends 'basic_node', '~> 0.1.25'
 depends 'chef-vault', '~> 1.3.3'
 depends 'apt', '~> 4.0.1'
 depends 'test-helper'
