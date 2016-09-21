@@ -30,15 +30,6 @@ if os[:family] == 'ubuntu'
     it { should be_installed }
   end
 
-  # File structure for app should be present
-  describe file('/home/app_user/sites') do
-    it { should exist }
-    it { should be_directory }
-    it { should be_owned_by 'app_user' }
-    it { should be_grouped_into 'www-data' }
-    it { should be_mode 550 }
-  end
-
   # Virtual environment directory structure should be present
   describe file('/home/app_user/.envs') do
     it { should exist }

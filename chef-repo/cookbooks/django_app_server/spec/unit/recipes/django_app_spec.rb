@@ -159,7 +159,8 @@ describe 'django_app_server::django_app' do
             %r(^\s+'USER': 'db_user',$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_django_base',$)
+            %r(^\s+'NAME': 'test_django_base',$),
+            %r(^SERVER_URL = 'liveserver'$)
         ]
         config.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/configuration.py').with_content(u)

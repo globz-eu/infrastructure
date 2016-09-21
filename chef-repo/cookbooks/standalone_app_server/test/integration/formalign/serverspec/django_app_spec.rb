@@ -39,7 +39,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 550 }
   end
 
-  describe file('/home/app_user/sites/django_base') do
+  describe file('/home/app_user/sites/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -47,7 +47,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 550 }
   end
 
-  describe file('/home/app_user/sites/django_base/source') do
+  describe file('/home/app_user/sites/formalign/source') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -56,7 +56,7 @@ if os[:family] == 'ubuntu'
   end
 
   # App should be installed
-  describe file('/home/app_user/sites/django_base/source/django_base/manage.py') do
+  describe file('/home/app_user/sites/formalign/source/formalign/manage.py') do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'app_user' }
@@ -64,10 +64,10 @@ if os[:family] == 'ubuntu'
     it { should be_mode 400 }
   end
 
-  # check django_base/source ownership and permissions
-  Find.find('/home/app_user/sites/django_base/source/django_base') do |f|
-    unless f =~ %r(/home/app_user/sites/django_base/source/django_base/\.git/.*) or
-    f =~ %r(/home/app_user/sites/django_base/source/django_base/.*__pycache__.*)
+  # check formalign/source ownership and permissions
+  Find.find('/home/app_user/sites/formalign/source/formalign') do |f|
+    unless f =~ %r(/home/app_user/sites/formalign/source/formalign/\.git/.*) or
+    f =~ %r(/home/app_user/sites/formalign/source/formalign/.*__pycache__.*)
       if FileTest.directory?(f)
         describe file(f) do
           it { should be_directory }
@@ -87,7 +87,7 @@ if os[:family] == 'ubuntu'
   end
 
   # Install scripts should be present
-  describe file('/home/app_user/sites/django_base/scripts') do
+  describe file('/home/app_user/sites/formalign/scripts') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -97,7 +97,7 @@ if os[:family] == 'ubuntu'
 
   scripts = ['djangoapp.py']
   scripts.each do |s|
-    describe file "/home/app_user/sites/django_base/scripts/#{s}" do
+    describe file "/home/app_user/sites/formalign/scripts/#{s}" do
       it { should exist }
       it { should be_file }
       it { should be_owned_by 'app_user' }
@@ -106,7 +106,7 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  describe file '/home/app_user/sites/django_base/scripts/utilities/commandfileutils.py' do
+  describe file '/home/app_user/sites/formalign/scripts/utilities/commandfileutils.py' do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'app_user' }
@@ -120,7 +120,7 @@ if os[:family] == 'ubuntu'
   end
 
   # fifo directory for django app should be present
-  describe file('/tmp/django_base') do
+  describe file('/tmp/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'root' }
@@ -129,7 +129,7 @@ if os[:family] == 'ubuntu'
   end
 
   # App log directory should be present
-  describe file('/var/log/django_base') do
+  describe file('/var/log/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'root' }
@@ -146,7 +146,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  describe file('/home/app_user/.envs/django_base') do
+  describe file('/home/app_user/.envs/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -154,9 +154,9 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  # check .envs/django_base ownership and permissions
-  Find.find('/home/app_user/.envs/django_base') do |f|
-    unless f =~ %r(/home/app_user/.envs/django_base/lib/.*)
+  # check .envs/formalign ownership and permissions
+  Find.find('/home/app_user/.envs/formalign') do |f|
+    unless f =~ %r(/home/app_user/.envs/formalign/lib/.*)
       unless File.symlink?(f)
         if FileTest.directory?(f)
           describe file(f) do
@@ -176,18 +176,18 @@ if os[:family] == 'ubuntu'
   end
 
   # Config file for for installation scripts should be present
-  describe file('/home/app_user/sites/django_base/scripts/conf.py') do
+  describe file('/home/app_user/sites/formalign/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
-        %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
+        %r(^APP_HOME = '/home/app_user/sites/formalign/source'$),
         %r(^APP_USER = 'app_user'$),
-        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
-        %r(^VENV = '/home/app_user/\.envs/django_base'$),
-        %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
-        %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
-        %r(^LOG_FILE = '/var/log/django_base/install\.log'$)
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/formalign\.git'$),
+        %r(^VENV = '/home/app_user/\.envs/formalign'$),
+        %r(^REQS_FILE = '/home/app_user/sites/formalign/source/formalign/requirements\.txt'$),
+        %r(^SYS_DEPS_FILE = '/home/app_user/sites/formalign/source/formalign/system_dependencies\.txt'$),
+        %r(^LOG_FILE = '/var/log/formalign/install\.log'$)
     ]
     it { should exist }
     it { should be_file }
@@ -200,7 +200,7 @@ if os[:family] == 'ubuntu'
   end
 
   # conf.d directory for django app should be present
-  describe file('/home/app_user/sites/django_base/conf.d') do
+  describe file('/home/app_user/sites/formalign/conf.d') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -209,7 +209,7 @@ if os[:family] == 'ubuntu'
   end
 
   # Sockets directory for uWSGI should be present
-  describe file('/home/app_user/sites/django_base/sockets') do
+  describe file('/home/app_user/sites/formalign/sockets') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'app_user' }
@@ -218,24 +218,24 @@ if os[:family] == 'ubuntu'
   end
 
   if os[:release] == '14.04'
-    describe file('/home/app_user/.envs/django_base/lib/python3.4/django_base.pth') do
+    describe file('/home/app_user/.envs/formalign/lib/python3.4/formalign.pth') do
       it { should exist }
       it { should be_file }
       it { should be_owned_by 'app_user' }
       it { should be_grouped_into 'app_user' }
       it { should be_mode 644 }
-      its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
+      its(:content) { should match(/\/home\/app_user\/sites\/formalign\/source/)}
     end
   end
 
   if os[:release] == '16.04'
-    describe file('/home/app_user/.envs/django_base/lib/python3.5/django_base.pth') do
+    describe file('/home/app_user/.envs/formalign/lib/python3.5/formalign.pth') do
       it { should exist }
       it { should be_file }
       it { should be_owned_by 'app_user' }
       it { should be_grouped_into 'app_user' }
       it { should be_mode 644 }
-      its(:content) { should match(/\/home\/app_user\/sites\/django_base\/source/)}
+      its(:content) { should match(/\/home\/app_user\/sites\/formalign\/source/)}
     end
   end
 
@@ -257,11 +257,11 @@ if os[:family] == 'ubuntu'
   end
 
   # Python packages should be installed
-  describe command ( '/home/app_user/.envs/django_base/bin/pip3 list' ) do
+  describe command ( '/home/app_user/.envs/formalign/bin/pip3 list' ) do
     packages = [
-        /^Django \(1\.9\.5\)$/,
-        /^numpy \(1\.11\.0\)$/,
-        /^biopython \(1\.66\)$/,
+        /^Django \(1\.9\.7\)$/,
+        /^numpy \(1\.11\.1\)$/,
+        /^biopython \(1\.67\)$/,
         /^lxml \(3\.6\.0\)$/,
         /^psycopg2 \(2\.6\.1\)$/,
     ]
@@ -272,8 +272,8 @@ if os[:family] == 'ubuntu'
 
   # Django app configuration file should be present
   configuration_files = [
-      '/home/app_user/sites/django_base/conf.d/configuration.py',
-      '/home/app_user/sites/django_base/source/django_base/configuration.py'
+      '/home/app_user/sites/formalign/conf.d/configuration.py',
+      '/home/app_user/sites/formalign/source/formalign/configuration.py'
   ]
   configuration_files.each do |f|
     describe file(f) do
@@ -284,10 +284,10 @@ if os[:family] == 'ubuntu'
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-            %r(^\s+'NAME': 'django_base',$),
+            %r(^\s+'NAME': 'formalign',$),
             %r(^\s+'USER': 'db_user',$),
             %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_django_base',$)
+            %r(^\s+'NAME': 'test_formalign',$)
         ]
       elsif os[:release] == '16.04'
         params = [
@@ -296,10 +296,10 @@ if os[:family] == 'ubuntu'
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-            %r(^\s+'NAME': 'django_base',$),
+            %r(^\s+'NAME': 'formalign',$),
             %r(^\s+'USER': 'db_user',$),
             %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_django_base',$)
+            %r(^\s+'NAME': 'test_formalign',$)
         ]
       end
       it { should exist }
@@ -315,13 +315,13 @@ if os[:family] == 'ubuntu'
 
   # Django app configuration file for admin tasks should be present
   settings_admin_files = [
-      '/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py',
-      '/home/app_user/sites/django_base/conf.d/settings_admin.py'
+      '/home/app_user/sites/formalign/source/formalign/formalign/settings_admin.py',
+      '/home/app_user/sites/formalign/conf.d/settings_admin.py'
   ]
   settings_admin_files.each do |f|
     describe file(f) do
       params = [
-          %r(^from django_base.settings import \*$),
+          %r(^from formalign.settings import \*$),
           %r(^\s+'USER': 'postgres',$),
           %r(^\s+'PASSWORD': "postgres_password",$),
       ]
@@ -338,24 +338,24 @@ if os[:family] == 'ubuntu'
 
   # uWSGI ini file should be present
   uwsgi_conf_files = [
-      '/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini',
-      '/home/app_user/sites/django_base/source/django_base_uwsgi.ini'
+      '/home/app_user/sites/formalign/conf.d/formalign_uwsgi.ini',
+      '/home/app_user/sites/formalign/source/formalign_uwsgi.ini'
   ]
   uwsgi_conf_files.each do |f|
     describe file(f) do
       params = [
-          %r(^master-fifo\s+=\s+/tmp/django_base/fifo0$),
-          %r(^# django_base_uwsgi\.ini file$),
-          %r(^chdir = /home/app_user/sites/django_base/source/django_base$),
-          %r(^module = django_base\.wsgi$),
-          %r(^home = /home/app_user/\.envs/django_base$),
+          %r(^master-fifo\s+=\s+/tmp/formalign/fifo0$),
+          %r(^# formalign_uwsgi\.ini file$),
+          %r(^chdir = /home/app_user/sites/formalign/source/formalign$),
+          %r(^module = formalign\.wsgi$),
+          %r(^home = /home/app_user/\.envs/formalign$),
           %r(^uid = app_user$),
           %r(^gid = www-data$),
           %r(^processes = 2$),
-          %r(^socket = /home/app_user/sites/django_base/sockets/django_base\.sock$),
+          %r(^socket = /home/app_user/sites/formalign/sockets/formalign\.sock$),
           %r(^chmod-socket = 660$),
-          %r(^daemonize = /var/log/uwsgi/django_base\.log$),
-          %r(^safe-pidfile = /tmp/django_base-uwsgi-master\.pid$)
+          %r(^daemonize = /var/log/uwsgi/formalign\.log$),
+          %r(^safe-pidfile = /tmp/formalign-uwsgi-master\.pid$)
       ]
       it { should exist }
       it { should be_file }

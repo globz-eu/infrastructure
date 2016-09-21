@@ -260,9 +260,9 @@ if os[:family] == 'ubuntu'
   # Python packages should be installed
   describe command ( "/home/app_user/.envs/#{app_name}/bin/pip3 list" ) do
     packages = [
-        /^Django \(1\.9\.5\)$/,
-        /^numpy \(1\.11\.0\)$/,
-        /^biopython \(1\.66\)$/,
+        /^Django \(1\.9\.7\)$/,
+        /^numpy \(1\.11\.1\)$/,
+        /^biopython \(1\.67\)$/,
         /^lxml \(3\.6\.0\)$/,
         /^psycopg2 \(2\.6\.1\)$/,
     ]

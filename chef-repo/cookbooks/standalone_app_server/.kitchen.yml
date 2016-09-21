@@ -68,7 +68,6 @@ suites:
   - name: formalign
     run_list:
       - recipe[standalone_app_server::default]
-#      - recipe[standalone_app_server::update]
       - recipe[test-helper::default]
     attributes:
       standalone_app_server:

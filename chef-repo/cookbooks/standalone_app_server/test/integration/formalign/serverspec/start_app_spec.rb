@@ -25,16 +25,16 @@ require 'spec_helper'
 set :backend, :exec
 
 # manages migrations
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py makemigrations'" ) do
+describe command ( "su - app_user -c 'cd && .envs/formalign/bin/python sites/formalign/source/formalign/manage.py makemigrations'" ) do
   its(:stdout) { should match(/No changes detected/)}
 end
 
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py migrate'" ) do
+describe command ( "su - app_user -c 'cd && .envs/formalign/bin/python sites/formalign/source/formalign/manage.py migrate'" ) do
   its(:stdout) { should match(/No migrations to apply\./)}
 end
 
 # runs app tests
-describe file('/var/log/django_base') do
+describe file('/var/log/formalign') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
@@ -42,7 +42,7 @@ describe file('/var/log/django_base') do
   it { should be_mode 755 }
 end
 
-describe file('/var/log/django_base/test_results') do
+describe file('/var/log/formalign/test_results') do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
@@ -51,24 +51,24 @@ describe file('/var/log/django_base/test_results') do
 end
 
 # Runs app tests
-describe command('ls /var/log/django_base/test_results | tail -1 ') do
+describe command('ls /var/log/formalign/test_results | tail -1 ') do
   its(:stdout) { should match(/^test_\d{8}-\d{6}\.log$/)}
 end
 
-describe command('cat $(ls /var/log/django_base/test_results | tail -1) | grep FAILED') do
+describe command('cat $(ls /var/log/formalign/test_results | tail -1) | grep FAILED') do
   its(:stdout) { should_not match(/FAILED/)}
 end
 
 # nginx is running and site is enabled
-describe file('/etc/nginx/sites-enabled/django_base.conf') do
+describe file('/etc/nginx/sites-enabled/formalign.conf') do
   it { should exist }
   it { should be_symlink }
   it { should be_owned_by 'root'}
   it { should be_grouped_into 'root' }
-  its(:content) { should match (/^# django_base.conf$/) }
+  its(:content) { should match (/^# formalign.conf$/) }
 end
 
-describe file('/etc/nginx/sites-enabled/django_base_down.conf') do
+describe file('/etc/nginx/sites-enabled/formalign_down.conf') do
   it { should_not exist }
 end
 
@@ -85,10 +85,10 @@ end
 # site is up
 if os[:release] == '14.04'
   describe command('curl 192.168.1.85') do
-    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
+    its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Home</title>$))}
   end
 elsif os[:release] == '16.04'
   describe command('curl 192.168.1.86') do
-    its(:stdout) {should match(%r(^\s+<title>django_base Home</title>$))}
+    its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Home</title>$))}
   end
 end

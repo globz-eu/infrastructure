@@ -117,7 +117,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  describe file('/home/db_user/sites/django_base') do
+  describe file('/home/db_user/sites/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'db_user' }
@@ -125,7 +125,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 500 }
   end
 
-  describe file('/home/db_user/sites/django_base/scripts') do
+  describe file('/home/db_user/sites/formalign/scripts') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'db_user' }
@@ -135,7 +135,7 @@ if os[:family] == 'ubuntu'
 
   scripts = ['dbserver.py']
   scripts.each do |s|
-    describe file "/home/db_user/sites/django_base/scripts/#{s}" do
+    describe file "/home/db_user/sites/formalign/scripts/#{s}" do
       it { should exist }
       it { should be_file }
       it { should be_owned_by 'db_user' }
@@ -144,7 +144,7 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  describe file '/home/db_user/sites/django_base/scripts/utilities/commandfileutils.py' do
+  describe file '/home/db_user/sites/formalign/scripts/utilities/commandfileutils.py' do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'db_user' }
@@ -162,7 +162,7 @@ if os[:family] == 'ubuntu'
   end
 
   # Config file for for installation scripts should be present
-  describe file('/home/db_user/sites/django_base/scripts/conf.py') do
+  describe file('/home/db_user/sites/formalign/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
@@ -174,14 +174,14 @@ if os[:family] == 'ubuntu'
         %r(^WEBSERVER_USER = ''$),
         %r(^DB_USER = 'db_user'$),
         %r(^DB_ADMIN_USER = 'postgres'$),
-        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/formalign\.git'$),
         %r(^STATIC_PATH = ''$),
         %r(^MEDIA_PATH = ''$),
         %r(^UWSGI_PATH = ''$),
         %r(^VENV = ''$),
         %r(^REQS_FILE = ''$),
         %r(^SYS_DEPS_FILE = ''$),
-        %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$)
+        %r(^LOG_FILE = '/var/log/formalign/create_db\.log'$)
     ]
     it { should exist }
     it { should be_file }
@@ -196,18 +196,18 @@ if os[:family] == 'ubuntu'
   # test that app database was created
   describe command( "sudo -u postgres psql -l" ) do
     its(:stdout) { should match(
-      %r(\s*django_base\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
+      %r(\s*formalign\s+|\s+postgres\s+|\s+UTF8\s+|\s+en_US.UTF-8\s+|\s+en_US.UTF-8\s+|\s+)
                           ) }
   end
 
   # test that db_user has the right privileges on app_database
-  describe command("sudo -u postgres psql -d django_base -c '\\ddp'") do
+  describe command("sudo -u postgres psql -d formalign -c '\\ddp'") do
     its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
     its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+table\s+|\s+db_user=arwd/postgres)) }
   end
 
   # test that db_user can login to app database
-  describe command( "export PGPASSWORD='db_user_password'; psql -U db_user -h localhost -d django_base -c '\\ddp'" ) do
+  describe command( "export PGPASSWORD='db_user_password'; psql -U db_user -h localhost -d formalign -c '\\ddp'" ) do
     its(:stdout) { should match(%r(\.*postgres\s+|\s+public\s+|\s+sequence\s+|\s+db_user=rU/postgres)) }
   end
 end

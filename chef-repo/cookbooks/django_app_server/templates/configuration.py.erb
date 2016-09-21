@@ -2,6 +2,9 @@
 # File managed by Chef, please do not edit #
 ############################################
 
+from unittest import TestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
 SECRET_KEY = '<%= @secret_key %>'
 DEBUG = <%= @debug %>
 ALLOWED_HOSTS = ['<%= @allowed_host %>']
@@ -19,4 +22,8 @@ DATABASES = {
 }
 
 CHROME_DRIVER = ''
-SERVER_URL = ''
+SERVER_URL = 'liveserver'
+if SERVER_URL == 'liveserver':
+  TEST_CASE = StaticLiveServerTestCase
+else:
+  TEST_CASE = TestCase

@@ -52,28 +52,28 @@ if os[:family] == 'ubuntu'
     it { should be_running }
   end
 
-  describe file('/etc/nginx/sites-available/django_base.conf') do
+  describe file('/etc/nginx/sites-available/formalign.conf') do
     if os[:release] == '14.04'
     params = [
-        /^# django_base.conf$/,
-        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+        /^# formalign.conf$/,
+        %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.1\.85;$/,
-        %r(^\s+alias /home/web_user/sites/django_base/media;),
-        %r(^\s+alias /home/web_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/formalign/media;),
+        %r(^\s+alias /home/web_user/sites/formalign/static;),
+        %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
     ]
     elsif os[:release] == '16.04'
     params = [
-        /^# django_base.conf$/,
-        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+        /^# formalign.conf$/,
+        %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
         /^\s+server_name\s+192\.168\.1\.86;$/,
-        %r(^\s+alias /home/web_user/sites/django_base/media;),
-        %r(^\s+alias /home/web_user/sites/django_base/static;),
-        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
+        %r(^\s+alias /home/web_user/sites/formalign/media;),
+        %r(^\s+alias /home/web_user/sites/formalign/static;),
+        %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
     ]
     end
     it { should exist }
@@ -86,29 +86,29 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  site_down_conf = %w(/etc/nginx/sites-available/django_base_down.conf
- /etc/nginx/sites-enabled/django_base_down.conf)
+  site_down_conf = %w(/etc/nginx/sites-available/formalign_down.conf
+ /etc/nginx/sites-enabled/formalign_down.conf)
   site_down_conf.each() do |f|
     describe file(f) do
       if os[:release] == '14.04'
         params = [
-            /^# django_base_down.conf$/,
+            /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.85;$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;)
+            %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       elsif os[:release] == '16.04'
         params = [
-            /^# django_base_down.conf$/,
+            /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
             /^\s+server_name\s+192\.168\.1\.86;$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;)
+            %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       end
 
-      if f == '/etc/nginx/sites-available/django_base_down.conf'
+      if f == '/etc/nginx/sites-available/formalign_down.conf'
         it { should exist }
         it { should be_file }
         it { should be_mode 400 }
@@ -117,7 +117,7 @@ if os[:family] == 'ubuntu'
         params.each do |p|
           its(:content) { should match(p) }
         end
-      elsif f == '/etc/nginx/sites-enabled/django_base_down.conf'
+      elsif f == '/etc/nginx/sites-enabled/formalign_down.conf'
         it { should_not exist }
       end
     end
@@ -131,7 +131,7 @@ if os[:family] == 'ubuntu'
     it {should be_mode 550}
   end
 
-  describe file('/home/web_user/sites/django_base') do
+  describe file('/home/web_user/sites/formalign') do
     it {should exist}
     it {should be_directory}
     it {should be_owned_by 'web_user'}
@@ -141,7 +141,7 @@ if os[:family] == 'ubuntu'
 
   site_paths = ['static', 'media', 'uwsgi', 'down']
   site_paths.each do |s|
-    describe file("/home/web_user/sites/django_base/#{s}") do
+    describe file("/home/web_user/sites/formalign/#{s}") do
       it {should exist}
       it {should be_directory}
       it {should be_owned_by 'web_user'}
@@ -150,17 +150,17 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  describe file('/home/web_user/sites/django_base/down/index.html') do
+  describe file('/home/web_user/sites/formalign/down/index.html') do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
     it { should be_grouped_into 'www-data' }
     it { should be_mode 440 }
-    its(:content) { should match(%r(^\s+<title>django_base site is down</title>$)) }
+    its(:content) { should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$)) }
   end
 
   # Install scripts should be present
-  describe file('/home/web_user/sites/django_base/scripts') do
+  describe file('/home/web_user/sites/formalign/scripts') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'web_user' }
@@ -170,7 +170,7 @@ if os[:family] == 'ubuntu'
 
   scripts = ['webserver.py', 'djangoapp.py']
   scripts.each do |s|
-    describe file "/home/web_user/sites/django_base/scripts/#{s}" do
+    describe file "/home/web_user/sites/formalign/scripts/#{s}" do
       it { should exist }
       it { should be_file }
       it { should be_owned_by 'web_user' }
@@ -179,7 +179,7 @@ if os[:family] == 'ubuntu'
     end
   end
 
-  describe file '/home/web_user/sites/django_base/scripts/utilities/commandfileutils.py' do
+  describe file '/home/web_user/sites/formalign/scripts/utilities/commandfileutils.py' do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -197,24 +197,24 @@ if os[:family] == 'ubuntu'
   end
 
   # Config file for for installation scripts should be present
-  describe file('/home/web_user/sites/django_base/scripts/conf.py') do
+  describe file('/home/web_user/sites/formalign/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
         %r(^DEBUG = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = ''$),
-        %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+        %r(^APP_HOME_TMP = '/home/web_user/sites/formalign/source'$),
         %r(^APP_USER = ''$),
         %r(^WEB_USER = 'web_user'$),
         %r(^WEBSERVER_USER = 'www-data'$),
-        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
-        %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
-        %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
-        %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/formalign\.git'$),
+        %r(^STATIC_PATH = '/home/web_user/sites/formalign/static'$),
+        %r(^MEDIA_PATH = '/home/web_user/sites/formalign/media'$),
+        %r(^UWSGI_PATH = '/home/web_user/sites/formalign/uwsgi'$),
         %r(^VENV = ''$),
         %r(^REQS_FILE = ''$),
         %r(^SYS_DEPS_FILE = ''$),
-        %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+        %r(^LOG_FILE = '/var/log/formalign/serve_static\.log'$)
     ]
     it { should exist }
     it { should be_file }
@@ -227,7 +227,7 @@ if os[:family] == 'ubuntu'
   end
 
   # Static files should be present
-  describe file('/home/web_user/sites/django_base/static/css') do
+  describe file('/home/web_user/sites/formalign/static/css') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'web_user' }
@@ -235,7 +235,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 550 }
   end
 
-  describe file('/home/web_user/sites/django_base/static/css/bootstrap.css') do
+  describe file('/home/web_user/sites/formalign/static/bootstrap/css/bootstrap.css') do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -243,7 +243,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 440 }
   end
 
-  describe file('/home/web_user/sites/django_base/media/media') do
+  describe file('/home/web_user/sites/formalign/media/media.txt') do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -251,7 +251,7 @@ if os[:family] == 'ubuntu'
     it { should be_mode 440 }
   end
 
-  describe file('/home/web_user/sites/django_base/uwsgi/uwsgi_params') do
+  describe file('/home/web_user/sites/formalign/uwsgi/uwsgi_params') do
     it { should exist }
     it { should be_file }
     it { should be_owned_by 'web_user' }
@@ -260,7 +260,7 @@ if os[:family] == 'ubuntu'
   end
 
   # App log directory should be present
-  describe file('/var/log/django_base') do
+  describe file('/var/log/formalign') do
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'root' }

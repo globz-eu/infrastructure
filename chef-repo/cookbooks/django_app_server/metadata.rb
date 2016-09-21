@@ -23,7 +23,7 @@ maintainer_email 'golgoths@yahoo.fr'
 license 'GNU General Public License'
 description 'Installs/Configures django_app_server'
 long_description 'Installs/Configures django_app_server'
-version '0.1.5'
+version '0.1.8'
 
 depends 'apt', '~> 4.0.1'
 depends 'test-helper'
