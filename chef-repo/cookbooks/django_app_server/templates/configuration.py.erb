@@ -7,6 +7,8 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 SECRET_KEY = '<%= @secret_key %>'
 DEBUG = <%= @debug %>
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = ()
 ALLOWED_HOSTS = ['<%= @allowed_host %>']
 DATABASES = {
     'default': {
