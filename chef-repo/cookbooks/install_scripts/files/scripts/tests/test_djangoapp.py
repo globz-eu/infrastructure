@@ -64,6 +64,7 @@ class AppTest(InstallTest):
     """
     tests InstallDjangoApp uwsgi methods
     """
+
     def setUp(self):
         InstallTest.setUp(self)
 
@@ -160,6 +161,7 @@ class InstallDjangoAppTest(InstallTest):
     """
     tests InstallDjangoApp methods
     """
+
     def setUp(self):
         InstallTest.setUp(self)
         self.test_dir = TEST_DIR
@@ -209,7 +211,7 @@ class InstallDjangoAppTest(InstallTest):
         if self.dist_version == '14.04':
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
-                self.python_version = 'python3.5'
+            self.python_version = 'python3.5'
         os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
         shutil.rmtree(self.venv)
         if self.dist_version == '14.04':
@@ -243,17 +245,17 @@ class InstallDjangoAppTest(InstallTest):
         tests read_reqs returns correct structure
         """
         reqs_list = [
-                ['biopython', '1.66'],
-                ['cssselect', '0.9.1'],
-                ['Django', '1.9.5'],
-                ['django-debug-toolbar', '1.4'],
-                ['django-with-asserts', '0.0.1'],
-                ['lxml', '3.6.0'],
-                ['numpy', '1.11.0'],
-                ['psycopg2', '2.6.1'],
-                ['requests', '2.9.1'],
-                ['sqlparse', '0.1.19'],
-            ]
+            ['biopython', '1.66'],
+            ['cssselect', '0.9.1'],
+            ['Django', '1.9.5'],
+            ['django-debug-toolbar', '1.4'],
+            ['django-with-asserts', '0.0.1'],
+            ['lxml', '3.6.0'],
+            ['numpy', '1.11.0'],
+            ['psycopg2', '2.6.1'],
+            ['requests', '2.9.1'],
+            ['sqlparse', '0.1.19'],
+        ]
         install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, venv=self.venv)
         reqs = install_django_app.read_reqs(self.reqs_file)
         self.assertEqual(reqs_list, reqs, format(reqs))
@@ -263,12 +265,12 @@ class InstallDjangoAppTest(InstallTest):
         tests read_sys_deps returns correct structure
         """
         deps_list = [
-                'libpq-dev',
-                'python3-numpy',
-                'libxml2-dev',
-                'libxslt1-dev',
-                'zlib1g-dev',
-            ]
+            'libpq-dev',
+            'python3-numpy',
+            'libxml2-dev',
+            'libxslt1-dev',
+            'zlib1g-dev',
+        ]
         install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, venv=self.venv)
         deps = install_django_app.read_sys_deps(self.sys_deps_file)
         self.assertEqual(deps_list, deps, deps)
@@ -279,17 +281,17 @@ class InstallDjangoAppTest(InstallTest):
         """
         biopython_reqs = 'numpy==1.11.0'
         reqs_list = [
-                ['biopython', '1.66'],
-                ['cssselect', '0.9.1'],
-                ['Django', '1.9.5'],
-                ['django-debug-toolbar', '1.4'],
-                ['django-with-asserts', '0.0.1'],
-                ['lxml', '3.6.0'],
-                ['numpy', '1.11.0'],
-                ['psycopg2', '2.6.1'],
-                ['requests', '2.9.1'],
-                ['sqlparse', '0.1.19'],
-            ]
+            ['biopython', '1.66'],
+            ['cssselect', '0.9.1'],
+            ['Django', '1.9.5'],
+            ['django-debug-toolbar', '1.4'],
+            ['django-with-asserts', '0.0.1'],
+            ['lxml', '3.6.0'],
+            ['numpy', '1.11.0'],
+            ['psycopg2', '2.6.1'],
+            ['requests', '2.9.1'],
+            ['sqlparse', '0.1.19'],
+        ]
         install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, venv=self.venv)
         cmd = [self.pip, 'install', biopython_reqs]
         msg = 'successfully installed: numpy==1.11.0'
@@ -304,17 +306,17 @@ class InstallDjangoAppTest(InstallTest):
         """
         install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, venv=self.venv)
         reqs_list = [
-                ['biopython', '1.66'],
-                ['cssselect', '0.9.1'],
-                ['Django', '1.9.5'],
-                ['django-debug-toolbar', '1.4'],
-                ['django-with-asserts', '0.0.1'],
-                ['lxml', '3.6.0'],
-                ['numpy', '1.11.0'],
-                ['psycopg2', '2.6.1'],
-                ['requests', '2.9.1'],
-                ['sqlparse', '0.1.19'],
-            ]
+            ['biopython', '1.66'],
+            ['cssselect', '0.9.1'],
+            ['Django', '1.9.5'],
+            ['django-debug-toolbar', '1.4'],
+            ['django-with-asserts', '0.0.1'],
+            ['lxml', '3.6.0'],
+            ['numpy', '1.11.0'],
+            ['psycopg2', '2.6.1'],
+            ['requests', '2.9.1'],
+            ['sqlparse', '0.1.19'],
+        ]
         cmd = [
             self.pip,
             'install',
@@ -481,16 +483,23 @@ class InstallDjangoAppTest(InstallTest):
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo)
         cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
-            '--settings', '%s.settings_admin' % self.app_name
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
+                '--settings', '%s.settings_admin' % self.app_name
+            ],
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
+                '--settings', '%s.settings_admin' % self.app_name
+            ]
         ]
-        msg = 'successfully migrated %s' % self.app_name
+        msg = ['successfully ran makemigrations', 'successfully migrated %s' % self.app_name]
         cwd = os.path.join(self.app_home, self.app_name)
         func = 'migrate'
         args = (self.app_home,)
-        self.run_success([cmd], [msg], func, install_django_app.run_migrations, args)
+        self.run_success(cmd, msg, func, install_django_app.run_migrations, args)
         self.run_cwd(cwd, func, install_django_app.run_migrations, args)
-        self.run_error(cmd, func, install_django_app.run_migrations, args)
+        for c in cmd:
+            self.run_error(c, func, install_django_app.run_migrations, args)
 
     def test_run_app_tests(self):
         """
@@ -555,7 +564,8 @@ class InstallDjangoAppTest(InstallTest):
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
         os.makedirs(os.path.join(self.app_home, self.app_name, 'acceptance_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name, 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name, 'functional_tests', 'pending_tests'),
+                    exist_ok=True)
         os.makedirs(os.path.join(self.app_home, self.app_name, 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
         log_file_now = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
@@ -778,6 +788,7 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: changed permissions of %s files to 400 and directories to 500' % self.app_home,
             'INFO: changed ownership of %s to %s:%s' % (os.path.dirname(self.venv), 'app_user', 'app_user'),
             'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: successfully ran makemigrations',
             'INFO: successfully migrated %s' % self.app_name,
             'INFO: successfully tested %s' % self.app_name,
             'INFO: started uwsgi server',

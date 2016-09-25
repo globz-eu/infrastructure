@@ -39,6 +39,7 @@ class InstallDjangoApp(CommandFileUtils):
     """
     Runs commands using the appropriate run function for the specified distribution. Logs to file.
     """
+
     def __init__(
             self, dist_version, log_file, log_level,
             venv=None, git_repo='https://github.com/globz-eu/django_base.git'
@@ -216,15 +217,29 @@ class InstallDjangoApp(CommandFileUtils):
         """
         runs database migrations for django app
         :param app_home: app root
-        :return: returns run_command return code
+        :return: returns run_command return code as soon as it is not 0
         """
-        cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
-            '--settings', '%s.settings_admin' % self.app_name
+        cmds = [
+            {
+                'cmd': [
+                    os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
+                    '--settings', '%s.settings_admin' % self.app_name
+                ],
+                'msg': 'successfully ran makemigrations'
+            },
+            {
+                'cmd': [
+                    os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
+                    '--settings', '%s.settings_admin' % self.app_name
+                ],
+                'msg': 'successfully migrated %s' % self.app_name
+            }
         ]
-        msg = 'successfully migrated %s' % self.app_name
-        run = self.run_command(cmd, msg, cwd=os.path.join(app_home, self.app_name))
-        return run
+        for cmd in cmds:
+            run = self.run_command(cmd['cmd'], cmd['msg'], cwd=os.path.join(app_home, self.app_name))
+            if run != 0:
+                return run
+        return 0
 
     def run_tests(self, app_home):
         """
@@ -241,7 +256,7 @@ class InstallDjangoApp(CommandFileUtils):
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
         log_file = os.path.join(
-            os.path.dirname(self.log_file), 'test_results',  'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
+            os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )
         run = self.run_command(cmd, msg, cwd=os.path.join(app_home, self.app_name), out=log_file)
         test_files = os.listdir(os.path.dirname(log_file))
