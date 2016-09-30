@@ -46,7 +46,7 @@ suites:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
         redis:
-          install: 'true'
+          install: true
     excludes:
       - centos-7.1
   - name: formalign
@@ -58,6 +58,6 @@ suites:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'
         redis:
-          install: 'true'
+          install: true
     excludes:
       - centos-7.1

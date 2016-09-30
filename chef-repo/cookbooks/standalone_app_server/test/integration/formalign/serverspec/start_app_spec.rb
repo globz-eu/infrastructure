@@ -24,17 +24,19 @@ require 'spec_helper'
 
 set :backend, :exec
 
+app_name = 'formalign'
+
 # manages migrations
-describe command ( "su - app_user -c 'cd && .envs/formalign/bin/python sites/formalign/source/formalign/manage.py makemigrations'" ) do
-  its(:stdout) { should match(/No changes detected/)}
+describe command ( "su - app_user -c 'cd && .envs/#{app_name}/bin/python sites/#{app_name}/source/#{app_name}/manage.py makemigrations base #{app_name}'" ) do
+  its(:stdout) { should match(/^No changes detected in apps/)}
 end
 
-describe command ( "su - app_user -c 'cd && .envs/formalign/bin/python sites/formalign/source/formalign/manage.py migrate'" ) do
+describe command ( "su - app_user -c 'cd && .envs/#{app_name}/bin/python sites/#{app_name}/source/#{app_name}/manage.py migrate base'" ) do
   its(:stdout) { should match(/No migrations to apply\./)}
 end
 
 # runs app tests
-describe file('/var/log/formalign') do
+describe file("/var/log/#{app_name}") do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
@@ -42,7 +44,7 @@ describe file('/var/log/formalign') do
   it { should be_mode 755 }
 end
 
-describe file('/var/log/formalign/test_results') do
+describe file("/var/log/#{app_name}/test_results") do
   it { should exist }
   it { should be_directory }
   it { should be_owned_by 'root' }
@@ -50,25 +52,24 @@ describe file('/var/log/formalign/test_results') do
   it { should be_mode 700 }
 end
 
-# Runs app tests
-describe command('ls /var/log/formalign/test_results | tail -1 ') do
+describe command("ls /var/log/#{app_name}/test_results | tail -1 ") do
   its(:stdout) { should match(/^test_\d{8}-\d{6}\.log$/)}
 end
 
-describe command('cat $(ls /var/log/formalign/test_results | tail -1) | grep FAILED') do
+describe command("cat $(ls /var/log/#{app_name}/test_results | tail -1) | grep FAILED") do
   its(:stdout) { should_not match(/FAILED/)}
 end
 
 # nginx is running and site is enabled
-describe file('/etc/nginx/sites-enabled/formalign.conf') do
+describe file("/etc/nginx/sites-enabled/#{app_name}.conf") do
   it { should exist }
   it { should be_symlink }
   it { should be_owned_by 'root'}
   it { should be_grouped_into 'root' }
-  its(:content) { should match (/^# formalign.conf$/) }
+  its(:content) { should match (/^# #{app_name}.conf$/) }
 end
 
-describe file('/etc/nginx/sites-enabled/formalign_down.conf') do
+describe file("/etc/nginx/sites-enabled/#{app_name}_down.conf") do
   it { should_not exist }
 end
 
@@ -80,6 +81,39 @@ end
 # uwsgi is running
 describe command ( 'pgrep uwsgi' ) do
   its(:stdout) { should match(/^\d+$/) }
+end
+
+# celery is running
+describe file("/var/log/#{app_name}/celery") do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file("/var/run/#{app_name}") do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file("/var/run/#{app_name}/celery") do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file("/var/run/#{app_name}/celery/w1.pid") do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
 end
 
 # site is up

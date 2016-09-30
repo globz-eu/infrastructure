@@ -139,20 +139,6 @@ describe 'standalone_app_server::start_app' do
                                                                           })
       end
 
-      # it 'creates celery pid and log files directory structure' do
-      #   %w(
-      #   /var/log/django_base/celery
-      #   /var/run/django_base
-      #   /var/run/django_base/celery
-      #   ).each do |f|
-      #     expect(chef_run).to create_directory(f).with({
-      #                                                      owner: 'root',
-      #                                                      group: 'root',
-      #                                                      mode: '0700'
-      #                                                  })
-      #   end
-      # end
-
       it 'migrates the database and test the app' do
         expect(chef_run).to run_bash('migrate_and_test').with({
                   cwd: '/home/app_user/sites/django_base/scripts',
