@@ -62,11 +62,12 @@ end
 
 describe 'django_app_server::django_app' do
   ['14.04', '16.04'].each do |version|
-    context "When git app repo is specified, on an Ubuntu #{version} platform" do
+    context "When git app repo is specified and celery is true, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          node.set['django_app_server']['django_app']['celery'] = true
           if version == '14.04'
             node.set['django_app_server']['node_number'] = '000'
           elsif version == '16.04'
@@ -200,6 +201,7 @@ describe 'django_app_server::django_app' do
                 debug: "'DEBUG'",
                 nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
+                celery_pid: '/var/run/django_base/celery',
                 app_home: '/home/app_user/sites/django_base/source',
                 app_user: 'app_user',
                 venv: '/home/app_user/.envs/django_base',
@@ -215,6 +217,7 @@ describe 'django_app_server::django_app' do
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
             %r(^APP_USER = 'app_user'$),
             %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+            %r(^CELERY_PID_PATH = '/var/run/django_base/celery'$),
             %r(^VENV = '/home/app_user/\.envs/django_base'$),
             %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
             %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
@@ -267,6 +270,20 @@ describe 'django_app_server::django_app' do
         ]
         uwsgi_ini.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini').with_content(u)
+        end
+      end
+
+      it 'creates celery pid and log files directory structure' do
+        %w(
+        /var/log/django_base/celery
+        /var/run/django_base
+        /var/run/django_base/celery
+        ).each do |f|
+          expect(chef_run).to create_directory(f).with({
+                     owner: 'root',
+                     group: 'root',
+                     mode: '0700'
+                 })
         end
       end
     end

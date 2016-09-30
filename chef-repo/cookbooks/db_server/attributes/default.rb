@@ -21,6 +21,7 @@ default['db_server']['node_number'] = '000'
 default['db_server']['git']['app_repo'] = false
 app_repo = node['db_server']['git']['app_repo']
 default['db_server']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
+default['db_server']['redis']['install'] = false
 
 if app_repo
   default['install_scripts']['git']['app_repo'] = app_repo

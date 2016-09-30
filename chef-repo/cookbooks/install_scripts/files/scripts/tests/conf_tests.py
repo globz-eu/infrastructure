@@ -40,6 +40,7 @@ GIT_REPO = 'https://github.com/globz-eu/app_name.git'
 STATIC_PATH = '/tmp/scripts_test/web_user/sites/app_name/static_files'
 MEDIA_PATH = '/tmp/scripts_test/web_user/sites/app_name/media_files'
 UWSGI_PATH = '/tmp/scripts_test/web_user/sites/app_name/uwsgi'
+CELERY_PID_PATH = '/tmp/scripts_test/run/celery'
 DOWN_PATH = '/tmp/scripts_test/web_user/sites/app_name/down'
 VENV = '/tmp/scripts_test/app_user/.envs/app_name'
 REQS_FILE = os.path.abspath(

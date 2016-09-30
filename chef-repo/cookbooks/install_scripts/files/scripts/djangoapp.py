@@ -31,7 +31,7 @@ import sys
 import datetime
 import time
 from optparse import OptionParser
-from conf import DIST_VERSION, GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_DEPS_FILE, LOG_FILE
+from conf import DIST_VERSION, GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_DEPS_FILE, LOG_FILE, CELERY_PID_PATH
 from utilities.commandfileutils import CommandFileUtils
 
 
@@ -42,7 +42,7 @@ class InstallDjangoApp(CommandFileUtils):
 
     def __init__(
             self, dist_version, log_file, log_level,
-            venv=None, git_repo='https://github.com/globz-eu/django_base.git'
+            venv=None, git_repo='https://github.com/globz-eu/django_base.git', celery_pid='/var/run/django_base/celery'
     ):
         """
         Initializes parameters. Sets appropriate venv creation command and python version for distribution.
@@ -68,6 +68,7 @@ class InstallDjangoApp(CommandFileUtils):
         self.git_repo = git_repo
         p = re.compile('https://github.com/[\w\-]+/(\w+)\.git')
         self.app_name = p.match(git_repo).group(1)
+        self.celery_pid = os.path.join(celery_pid, 'w1.pid')
 
     def clone_app(self, app_home):
         """
@@ -269,6 +270,61 @@ class InstallDjangoApp(CommandFileUtils):
                 sys.exit(1)
         return run
 
+    def start_celery(self, app_home):
+        """
+        starts celery and beat
+        :param app_home: app root
+        :return: returns run_command return code
+        """
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'),
+            '-m',
+            'celery',
+            'multi',
+            'start',
+            'w1',
+            '-A',
+            self.app_name,
+            '-B',
+            '--scheduler=djcelery.schedulers.DatabaseScheduler',
+            '--pidfile=%s' % self.celery_pid,
+            '--logfile=%s' % os.path.join(os.path.dirname(self.log_file), 'celery', 'w1.log'),
+            '-l',
+            'info'
+        ]
+        cwd = os.path.join(app_home, self.app_name)
+        msg = 'started celery and beat'
+        if not os.path.exists(self.celery_pid):
+            run = self.run_command(cmd, msg, cwd=cwd)
+        else:
+            run = 0
+            self.logging('celery is already running', 'INFO')
+        return run
+
+    def stop_celery(self, app_home):
+        """
+        stops celery and beat
+        :param app_home: app root
+        :return: returns run_command return code
+        """
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'),
+            '-m',
+            'celery',
+            'multi',
+            'stopwait',
+            'w1',
+            '--pidfile=%s' % self.celery_pid,
+        ]
+        cwd = os.path.join(app_home, self.app_name)
+        msg = 'stopped celery and beat'
+        if os.path.exists(self.celery_pid):
+            run = self.run_command(cmd, msg, cwd=cwd)
+        else:
+            run = 0
+            self.logging('did not stop celery, was not running', 'INFO')
+        return run
+
     def start_uwsgi(self, app_home):
         """
         starts uwsgi server
@@ -365,6 +421,8 @@ def main():
                       help='migrate: runs database migrations', default=False)
     parser.add_option('-t', '--run-tests', dest='tests', action='store_true',
                       help='migrate: runs app tests', default=False)
+    parser.add_option('-c', '--celery', dest='celery',
+                      help='celery and beat: start, stop, restart', default=False)
     parser.add_option('-u', '--uwsgi', dest='uwsgi',
                       help='uwsgi: start, stop, restart', default=False)
     parser.add_option('-x', '--remove-app', dest='remove_app', action='store_true',
@@ -373,7 +431,7 @@ def main():
     if len(args) > 2:
         parser.error('incorrect number of arguments')
     install_django_app = InstallDjangoApp(
-        DIST_VERSION, LOG_FILE, options.log_level, venv=VENV, git_repo=GIT_REPO)
+        DIST_VERSION, LOG_FILE, options.log_level, venv=VENV, git_repo=GIT_REPO, celery_pid=CELERY_PID_PATH)
     if options.install:
         install = install_django_app.install_app(APP_HOME, APP_USER, SYS_DEPS_FILE, REQS_FILE)
         run.append(install)
@@ -383,6 +441,18 @@ def main():
     if options.tests:
         tests = install_django_app.run_tests(APP_HOME)
         run.append(tests)
+    if options.celery == 'start':
+        celery = install_django_app.start_celery(APP_HOME)
+        run.append(celery)
+    if options.celery == 'stop':
+        celery = install_django_app.stop_celery(APP_HOME)
+        run.append(celery)
+    if options.celery == 'restart':
+        celery = install_django_app.stop_celery(APP_HOME)
+        run.append(celery)
+        time.sleep(1)
+        celery = install_django_app.start_celery(APP_HOME)
+        run.append(celery)
     if options.uwsgi == 'start':
         uwsgi = install_django_app.start_uwsgi(APP_HOME)
         run.append(uwsgi)

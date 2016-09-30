@@ -32,15 +32,29 @@ unless name == nil
   app_name = name
 end
 
+celery = node['standalone_app_server']['start_app']['celery']
+
 directory "/var/log/#{app_name}/test_results" do
   owner 'root'
   group 'root'
   mode '0700'
 end
 
-bash 'test_and_start_app' do
+bash 'migrate_and_test' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-  code './djangoapp.py -mt -u start'
+  code './djangoapp.py -mt'
+  user 'root'
+end
+
+bash 'start_celery' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -c start'
+  user 'root'
+end if celery
+
+bash 'start_uwsgi' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -u start'
   user 'root'
 end
 

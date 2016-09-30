@@ -46,3 +46,7 @@ if SERVER_URL == 'liveserver':
 else:
   TEST_CASE = TestCase
 FIREFOX_BINARY = '/usr/bin/firefox'
+
+# Celery settings
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

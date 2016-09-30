@@ -17,16 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-name 'django_app_server'
-maintainer 'Stefan Dieterle'
-maintainer_email 'golgoths@yahoo.fr'
-license 'GNU General Public License'
-description 'Installs/Configures django_app_server'
-long_description 'Installs/Configures django_app_server'
-version '0.2.1'
+include_recipe 'apt'
+include_recipe 'chef-vault'
 
-depends 'apt', '~> 4.0.1'
-depends 'test-helper'
-depends 'chef-vault', '~> 1.3.3'
-depends 'poise-python', '~> 1.4.0'
-depends 'install_scripts', '~> 0.1.6'
+if node['db_server']['redis']['install']
+  apt_repository 'redis-server' do
+    repo_name 'redis-server'
+    uri 'ppa:chris-lea/redis-server'
+    deb_src true
+  end
+
+  package 'redis-server'
+end

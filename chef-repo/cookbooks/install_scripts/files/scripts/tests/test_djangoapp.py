@@ -39,7 +39,7 @@ from tests.conf_tests import GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_
 from tests.conf_tests import TEST_DIR
 from tests.helpers import Alternate
 from tests.mocks.commandfileutils_mocks import check_process_mock, own_app_mock
-from tests.mocks.installdjangoapp_mocks import add_app_to_path_mock, copy_config_mock, clone_app_mock
+from tests.mocks.installdjangoapp_mocks import add_app_to_path_mock, copy_config_mock, clone_app_mock, stop_celery_mock
 import tests.mocks.commandfileutils_mocks as mocks
 from utilities.commandfileutils import CommandFileUtils
 from tests.runandlogtest import RunAndLogTest
@@ -62,7 +62,7 @@ class InstallTest(RunAndLogTest):
 
 class AppTest(InstallTest):
     """
-    tests InstallDjangoApp uwsgi methods
+    tests InstallDjangoApp uwsgi and celery methods
     """
 
     def setUp(self):
@@ -97,6 +97,87 @@ class AppTest(InstallTest):
             check_process_mock_false.mock_calls,
             check_process_mock_false.mock_calls
         )
+
+    def test_start_celery(self):
+        """
+        tests that start_celery runs the correct command and writes to log
+        """
+        install_django_app = InstallDjangoApp(
+            self.dist_version, self.log_file, self.log_level,
+            venv=self.venv, git_repo=self.git_repo, celery_pid=self.celery_pid_path
+        )
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'),
+            '-m',
+            'celery',
+            'multi',
+            'start',
+            'w1',
+            '-A',
+            self.app_name,
+            '-B',
+            '--scheduler=djcelery.schedulers.DatabaseScheduler',
+            '--pidfile=%s' % os.path.join(self.celery_pid_path, 'w1.pid'),
+            '--logfile=%s' % os.path.join(os.path.dirname(self.log_file), 'celery', 'w1.log'),
+            '-l',
+            'info'
+        ]
+        cwd = os.path.join(self.app_home, self.app_name)
+        msg = 'started celery and beat'
+        func = 'start_celery'
+        args = (self.app_home,)
+        # when celery is not running
+        if os.path.exists(os.path.join(self.celery_pid_path, 'w1.pid')):
+            os.remove(os.path.join(self.celery_pid_path, 'w1.pid'))
+        self.run_success([cmd], [msg], func, install_django_app.start_celery, args)
+        self.run_cwd(cwd, func, install_django_app.start_celery, args)
+
+        # when celery is running
+        os.makedirs(self.celery_pid_path, exist_ok=True)
+        with open(os.path.join(self.celery_pid_path, 'w1.pid'), 'w') as pid:
+            pid.write('celery pid')
+        msg = 'celery is already running'
+        self.run_success([cmd], [msg], func, install_django_app.start_celery, args)
+
+        # when celery is not running
+        if os.path.exists(os.path.join(self.celery_pid_path, 'w1.pid')):
+            os.remove(os.path.join(self.celery_pid_path, 'w1.pid'))
+        self.run_error(cmd, func, install_django_app.start_celery, args)
+
+    def test_stop_celery(self):
+        """
+        tests that stop_celery runs the correct command and writes to log
+        """
+        install_django_app = InstallDjangoApp(
+            self.dist_version, self.log_file, self.log_level,
+            venv=self.venv, git_repo=self.git_repo, celery_pid=self.celery_pid_path
+        )
+        cmd = [
+            os.path.join(self.venv, 'bin', 'python'),
+            '-m',
+            'celery',
+            'multi',
+            'stopwait',
+            'w1',
+            '--pidfile=%s' % os.path.join(self.celery_pid_path, 'w1.pid'),
+        ]
+        cwd = os.path.join(self.app_home, self.app_name)
+        msg = 'stopped celery and beat'
+        func = 'stop_celery'
+        args = (self.app_home,)
+
+        # when celery is running
+        os.makedirs(self.celery_pid_path, exist_ok=True)
+        with open(os.path.join(self.celery_pid_path, 'w1.pid'), 'w') as pid:
+            pid.write('celery pid')
+        self.run_success([cmd], [msg], func, install_django_app.stop_celery, args)
+        self.run_cwd(cwd, func, install_django_app.stop_celery, args)
+
+        # when celery is not running
+        if os.path.exists(os.path.join(self.celery_pid_path, 'w1.pid')):
+            os.remove(os.path.join(self.celery_pid_path, 'w1.pid'))
+        install_django_app.stop_celery(*args)
+        self.log('INFO: did not stop celery, was not running')
 
     @mock.patch.object(InstallDjangoApp, 'check_process', side_effect=check_process_mock)
     def test_stop_uwsgi(self, check_process_mock):
@@ -752,13 +833,12 @@ class TestInstallDjangoAppMain(InstallTest):
     @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
     @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
     @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
-    @mock.patch.object(InstallDjangoApp, 'check_process', side_effect=check_process_mock)
-    def test_run_main(self, check_process_mock, own_app_mock, copy_config_mock, add_app_to_path_mock):
+    def test_run_main_install_migrate_and_test(self, own_app_mock, copy_config_mock, add_app_to_path_mock):
         """
-        tests run main script with migrate, run-tests and uwsgi start returns no error
+        tests run main script with install, migrate, run-tests parameters returns no error
         """
         mocks.alt_bool = Alternate([False])
-        sys.argv = ['djangoapp', '-imt', '-u', 'start', '-l', 'DEBUG']
+        sys.argv = ['djangoapp', '-imt', '-l', 'DEBUG']
         djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
@@ -772,11 +852,6 @@ class TestInstallDjangoAppMain(InstallTest):
         )
         self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
-        self.assertEqual(
-            [call('uwsgi')],
-            check_process_mock.mock_calls,
-            check_process_mock.mock_calls
-        )
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,
             'INFO: successfully created virtualenv %s' % VENV,
@@ -791,9 +866,83 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: successfully ran makemigrations',
             'INFO: successfully migrated %s' % self.app_name,
             'INFO: successfully tested %s' % self.app_name,
+            'INFO: install django app exited with code 0',
+        ]
+        for m in msgs:
+            self.log(m)
+
+    def test_run_main_start_celery(self):
+        """
+        tests run main script with celery start parameter returns no error
+        """
+        sys.argv = ['djangoapp', '-c', 'start', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+        msg = 'INFO: started celery and beat'
+        self.log(msg)
+
+    def test_run_main_stop_celery(self):
+        """
+        tests run main script with celery stop parameter returns no error
+        """
+        os.makedirs(self.celery_pid_path, exist_ok=True)
+        with open(os.path.join(self.celery_pid_path, 'w1.pid'), 'w') as pid:
+            pid.write('celery pid')
+        sys.argv = ['djangoapp', '-c', 'stop', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+        msg = 'INFO: stopped celery and beat'
+        self.log(msg)
+
+    @mock.patch.object(InstallDjangoApp, 'stop_celery', side_effect=stop_celery_mock)
+    def test_run_main_restart_celery(self, stop_celery_mock):
+        """
+        tests run main script with celery stop parameter returns no error
+        """
+        os.makedirs(self.celery_pid_path, exist_ok=True)
+        with open(os.path.join(self.celery_pid_path, 'w1.pid'), 'w') as pid:
+            pid.write('celery pid')
+        sys.argv = ['djangoapp', '-c', 'restart', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+        self.assertEqual(
+            [call(self.app_home)],
+            stop_celery_mock.mock_calls,
+            stop_celery_mock.mock_calls
+        )
+        msgs = ['INFO: stopped celery and beat', 'INFO: started celery and beat']
+        for msg in msgs:
+            self.log(msg)
+
+    @mock.patch.object(InstallDjangoApp, 'check_process', side_effect=check_process_mock)
+    def test_run_main_start_uwsgi(self, check_process_mock):
+        """
+        tests run main script with uwsgi start parameter returns no error
+        """
+        mocks.alt_bool = Alternate([False])
+        sys.argv = ['djangoapp', '-u', 'start', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+        self.assertEqual(
+            [call('uwsgi')],
+            check_process_mock.mock_calls,
+            check_process_mock.mock_calls
+        )
+        msgs = [
             'INFO: started uwsgi server',
             'INFO: changed permissions of %s to %s' % (os.path.join('/tmp', self.app_name), '777'),
-            'INFO: install django app exited with code 0',
         ]
         for m in msgs:
             self.log(m)

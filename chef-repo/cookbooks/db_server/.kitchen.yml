@@ -35,10 +35,18 @@ suites:
     run_list:
       - recipe[db_server::default]
       - recipe[test-helper::default]
+    excludes:
+      - centos-7.1
+  - name: django_base
+    run_list:
+      - recipe[db_server::default]
+      - recipe[test-helper::default]
     attributes:
       db_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
+        redis:
+          install: 'true'
     excludes:
       - centos-7.1
   - name: formalign
@@ -49,5 +57,7 @@ suites:
       db_server:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'
+        redis:
+          install: 'true'
     excludes:
       - centos-7.1

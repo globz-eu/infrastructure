@@ -42,6 +42,7 @@ else
 end
 
 app_repo = node['django_app_server']['git']['app_repo']
+celery = node['django_app_server']['django_app']['celery']
 
 # install git
 package 'git'
@@ -144,6 +145,7 @@ if app_repo
         debug: "'DEBUG'",
         nginx_conf: '',
         git_repo: app_repo,
+        celery_pid: "/var/run/#{app_name}/celery",
         app_home: "/home/#{app_user}/sites/#{app_name}/source",
         app_user: app_user,
         venv: "/home/#{app_user}/.envs/#{app_name}",
@@ -170,6 +172,21 @@ if app_repo
                   log_file: "/var/log/uwsgi/#{app_name}.log",
                   pid_file: "/tmp/#{app_name}-uwsgi-master.pid"
               })
+  end
+
+  # create the celery file structure
+  if celery
+    %W(
+    /var/log/#{app_name}/celery
+    /var/run/#{app_name}
+    /var/run/#{app_name}/celery
+    ).each do |f|
+      directory f do
+        owner 'root'
+        group 'root'
+        mode '0700'
+      end
+    end
   end
 
   bash 'install_django_app' do

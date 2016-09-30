@@ -59,6 +59,8 @@ suites:
       django_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
+        django_app:
+          celery: 'true'
     excludes: centos-7.1
   - name: formalign
     run_list:
@@ -68,4 +70,6 @@ suites:
       django_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'
+        django_app:
+          celery: 'true'
     excludes: centos-7.1

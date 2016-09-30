@@ -36,6 +36,7 @@ node.default['install_scripts']['users'] = [
     {user: app_user, password: app_user_item['password'], groups: ['www-data'], scripts: 'app'},
     {user: web_user, password: web_user_item['password'], groups: ['www-data'], scripts: 'web'}
 ]
+node.default['django_app_server']['django_app']['celery'] = node['standalone_app_server']['start_app']['celery']
 
 include_recipe 'install_scripts::user'
 include_recipe 'install_scripts::scripts'

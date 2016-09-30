@@ -29,6 +29,7 @@ describe 'standalone_app_server::update' do
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['django_app_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
+          node.set['standalone_app_server']['start_app']['celery'] = true
           if version == '14.04'
             node.set['standalone_app_server']['node_number'] = '000'
           elsif version == '16.04'
@@ -50,6 +51,22 @@ describe 'standalone_app_server::update' do
            cwd: '/home/web_user/sites/django_base/scripts',
            code: './webserver.py -s down',
            user: 'root'
+        )
+      end
+
+      it 'runs stop_uwsgi' do
+        expect( chef_run ).to run_bash('stop_uwsgi').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: './djangoapp.py -u stop',
+            user: 'root'
+        )
+      end
+
+      it 'runs stop_celery' do
+        expect( chef_run ).to run_bash('stop_celery').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: './djangoapp.py -c stop',
+            user: 'root'
         )
       end
 
@@ -80,7 +97,23 @@ describe 'standalone_app_server::update' do
       it 'runs reinstall_app' do
         expect( chef_run ).to run_bash('reinstall_app').with(
             cwd: '/home/app_user/sites/django_base/scripts',
-            code: './djangoapp.py -imt -u start',
+            code: './djangoapp.py -imt',
+            user: 'root'
+        )
+      end
+
+      it 'runs restart_celery' do
+        expect( chef_run ).to run_bash('restart_celery').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: './djangoapp.py -c start',
+            user: 'root'
+        )
+      end
+
+      it 'runs restart_uwsgi' do
+        expect( chef_run ).to run_bash('restart_uwsgi').with(
+            cwd: '/home/app_user/sites/django_base/scripts',
+            code: './djangoapp.py -u start',
             user: 'root'
         )
       end

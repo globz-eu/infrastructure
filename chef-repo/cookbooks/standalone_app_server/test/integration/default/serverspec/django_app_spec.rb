@@ -184,6 +184,7 @@ if os[:family] == 'ubuntu'
         %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
         %r(^APP_USER = 'app_user'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^CELERY_PID_PATH = '/var/run/django_base/celery'$),
         %r(^VENV = '/home/app_user/\.envs/django_base'$),
         %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
         %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
@@ -271,10 +272,10 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file should be present
-  configuration_files = [
-      '/home/app_user/sites/django_base/conf.d/configuration.py',
-      '/home/app_user/sites/django_base/source/django_base/configuration.py'
-  ]
+  configuration_files = %w(
+  /home/app_user/sites/django_base/conf.d/configuration.py
+  /home/app_user/sites/django_base/source/django_base/configuration.py
+  )
   configuration_files.each do |f|
     describe file(f) do
       if os[:release] == '14.04'
@@ -314,10 +315,10 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file for admin tasks should be present
-  settings_admin_files = [
-      '/home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py',
-      '/home/app_user/sites/django_base/conf.d/settings_admin.py'
-  ]
+  settings_admin_files = %w(
+  /home/app_user/sites/django_base/source/django_base/django_base/settings_admin.py
+  /home/app_user/sites/django_base/conf.d/settings_admin.py
+  )
   settings_admin_files.each do |f|
     describe file(f) do
       params = [
@@ -337,10 +338,10 @@ if os[:family] == 'ubuntu'
   end
 
   # uWSGI ini file should be present
-  uwsgi_conf_files = [
-      '/home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini',
-      '/home/app_user/sites/django_base/source/django_base_uwsgi.ini'
-  ]
+  uwsgi_conf_files = %w(
+  /home/app_user/sites/django_base/conf.d/django_base_uwsgi.ini
+  /home/app_user/sites/django_base/source/django_base_uwsgi.ini
+  )
   uwsgi_conf_files.each do |f|
     describe file(f) do
       params = [

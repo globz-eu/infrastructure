@@ -16,17 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: db_server
+# Serverspec:: default
 
-name 'django_app_server'
-maintainer 'Stefan Dieterle'
-maintainer_email 'golgoths@yahoo.fr'
-license 'GNU General Public License'
-description 'Installs/Configures django_app_server'
-long_description 'Installs/Configures django_app_server'
-version '0.2.1'
+require 'spec_helper'
 
-depends 'apt', '~> 4.0.1'
-depends 'test-helper'
-depends 'chef-vault', '~> 1.3.3'
-depends 'poise-python', '~> 1.4.0'
-depends 'install_scripts', '~> 0.1.6'
+set :backend, :exec
+
+describe file('/var/log/chef-kitchen/chef-client.log') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
+  its(:content) { should_not match(/ERROR/)}
+  its(:content) { should_not match(/FATAL/)}
+end

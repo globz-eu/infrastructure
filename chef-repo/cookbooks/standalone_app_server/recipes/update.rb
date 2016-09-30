@@ -36,11 +36,25 @@ unless name == nil
   app_name = name
 end
 
+celery = node['standalone_app_server']['start_app']['celery']
+
 bash 'server_down' do
   cwd "/home/#{web_user}/sites/#{app_name}/scripts"
   code './webserver.py -s down'
   user 'root'
 end
+
+bash 'stop_uwsgi' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -u stop'
+  user 'root'
+end
+
+bash 'stop_celery' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -c stop'
+  user 'root'
+end if celery
 
 bash 'restore_static' do
   cwd "/home/#{web_user}/sites/#{app_name}/scripts"
@@ -62,7 +76,19 @@ end
 
 bash 'reinstall_app' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
-  code './djangoapp.py -imt -u start'
+  code './djangoapp.py -imt'
+  user 'root'
+end
+
+bash 'restart_celery' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -c start'
+  user 'root'
+end if celery
+
+bash 'restart_uwsgi' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -u start'
   user 'root'
 end
 

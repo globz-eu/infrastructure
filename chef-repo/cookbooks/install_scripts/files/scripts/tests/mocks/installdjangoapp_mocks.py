@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =====================================================================
 """
 import os
-from tests.conf_tests import DIST_VERSION, VENV, LOG_FILE, DEBUG
+from tests.conf_tests import DIST_VERSION, VENV, LOG_FILE, DEBUG, GIT_REPO, CELERY_PID_PATH
 from utilities.commandfileutils import CommandFileUtils
+from djangoapp import InstallDjangoApp
 
 
 __author__ = 'Stefan Dieterle'
@@ -58,4 +59,12 @@ def add_app_to_path_mock(app_home):
 
 def copy_config_mock(app_home):
     os.makedirs(os.path.join(app_home, 'app_name', 'app_name'), exist_ok=True)
+    return 0
+
+
+def stop_celery_mock(app_home):
+    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
+    cfu.logging('stopped celery and beat', 'INFO')
+    if os.path.exists(os.path.join(CELERY_PID_PATH, 'w1.pid')):
+        os.remove(os.path.join(CELERY_PID_PATH, 'w1.pid'))
     return 0

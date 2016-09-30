@@ -184,6 +184,7 @@ if os[:family] == 'ubuntu'
         %r(^APP_HOME = '/home/app_user/sites/formalign/source'$),
         %r(^APP_USER = 'app_user'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/formalign\.git'$),
+        %r(^CELERY_PID_PATH = '/var/run/formalign/celery'$),
         %r(^VENV = '/home/app_user/\.envs/formalign'$),
         %r(^REQS_FILE = '/home/app_user/sites/formalign/source/formalign/requirements\.txt'$),
         %r(^SYS_DEPS_FILE = '/home/app_user/sites/formalign/source/formalign/system_dependencies\.txt'$),
@@ -271,10 +272,10 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file should be present
-  configuration_files = [
-      '/home/app_user/sites/formalign/conf.d/configuration.py',
-      '/home/app_user/sites/formalign/source/formalign/configuration.py'
-  ]
+  configuration_files = %w(
+  /home/app_user/sites/formalign/conf.d/configuration.py
+  /home/app_user/sites/formalign/source/formalign/configuration.py
+  )
   configuration_files.each do |f|
     describe file(f) do
       if os[:release] == '14.04'
@@ -314,10 +315,10 @@ if os[:family] == 'ubuntu'
   end
 
   # Django app configuration file for admin tasks should be present
-  settings_admin_files = [
-      '/home/app_user/sites/formalign/source/formalign/formalign/settings_admin.py',
-      '/home/app_user/sites/formalign/conf.d/settings_admin.py'
-  ]
+  settings_admin_files = %w(
+  /home/app_user/sites/formalign/source/formalign/formalign/settings_admin.py
+  /home/app_user/sites/formalign/conf.d/settings_admin.py
+  )
   settings_admin_files.each do |f|
     describe file(f) do
       params = [
@@ -337,10 +338,10 @@ if os[:family] == 'ubuntu'
   end
 
   # uWSGI ini file should be present
-  uwsgi_conf_files = [
-      '/home/app_user/sites/formalign/conf.d/formalign_uwsgi.ini',
-      '/home/app_user/sites/formalign/source/formalign_uwsgi.ini'
-  ]
+  uwsgi_conf_files = %w(
+  /home/app_user/sites/formalign/conf.d/formalign_uwsgi.ini
+  /home/app_user/sites/formalign/source/formalign_uwsgi.ini
+  )
   uwsgi_conf_files.each do |f|
     describe file(f) do
       params = [

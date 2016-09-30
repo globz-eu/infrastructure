@@ -51,9 +51,14 @@ suites:
       - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
+      db_server:
+        redis:
+          install: 'true'
       standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
+        start_app:
+          celery: 'true'
     excludes: centos-7.1
   - name: update
     run_list:
@@ -61,15 +66,26 @@ suites:
       - recipe[standalone_app_server::update]
       - recipe[test-helper::default]
     attributes:
+      db_server:
+        redis:
+          install: 'true'
       standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/django_base.git'
+        start_app:
+          celery: 'true'
     excludes: centos-7.1
   - name: formalign
     run_list:
       - recipe[standalone_app_server::default]
       - recipe[test-helper::default]
     attributes:
+      db_server:
+        redis:
+          install: 'true'
+      django_app_server:
+        django_app:
+          celery: 'true'
       standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'

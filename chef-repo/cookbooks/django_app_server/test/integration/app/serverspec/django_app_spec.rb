@@ -167,6 +167,7 @@ if os[:family] == 'ubuntu'
         %r(^APP_HOME = '/home/app_user/sites/#{app_name}/source'$),
         %r(^APP_USER = 'app_user'$),
         %r(^GIT_REPO = 'https://github\.com/globz-eu/#{app_name}\.git'$),
+        %r(^CELERY_PID_PATH = '/var/run/#{app_name}/celery'$),
         %r(^VENV = '/home/app_user/\.envs/#{app_name}'$),
         %r(^REQS_FILE = '/home/app_user/sites/#{app_name}/source/#{app_name}/requirements\.txt'$),
         %r(^SYS_DEPS_FILE = '/home/app_user/sites/#{app_name}/source/#{app_name}/system_dependencies\.txt'$),
@@ -334,9 +335,10 @@ if os[:family] == 'ubuntu'
   end
 
   # uWSGI ini file should be present
-  uwsgi_conf_files = %W(/home/app_user/sites/#{app_name}/conf.d/#{app_name}_uwsgi.ini
- /home/app_user/sites/#{app_name}/source/#{app_name}_uwsgi.ini)
-  uwsgi_conf_files.each do |f|
+  %W(
+  /home/app_user/sites/#{app_name}/conf.d/#{app_name}_uwsgi.ini
+  /home/app_user/sites/#{app_name}/source/#{app_name}_uwsgi.ini
+  ).each do |f|
     describe file(f) do
       params = [
           %r(^master-fifo\s+=\s+/tmp/#{app_name}/fifo0$),
@@ -361,5 +363,31 @@ if os[:family] == 'ubuntu'
         its(:content) { should match(p)}
       end
     end
+  end
+
+
+  # celery file structure is present
+  describe file("/var/log/#{app_name}/celery") do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 700 }
+  end
+
+  describe file("/var/run/#{app_name}") do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 700 }
+  end
+
+  describe file("/var/run/#{app_name}/celery") do
+    it { should exist }
+    it { should be_directory }
+    it { should be_owned_by 'root' }
+    it { should be_grouped_into 'root' }
+    it { should be_mode 700 }
   end
 end

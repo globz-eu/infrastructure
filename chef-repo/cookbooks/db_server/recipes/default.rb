@@ -35,3 +35,4 @@ if node['install_scripts']['users'].empty?
 end
 
 include_recipe 'db_server::postgresql'
+include_recipe 'db_server::redis'

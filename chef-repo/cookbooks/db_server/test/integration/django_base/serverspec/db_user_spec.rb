@@ -16,17 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: db_server
+# Spec:: db_user
 
-name 'django_app_server'
-maintainer 'Stefan Dieterle'
-maintainer_email 'golgoths@yahoo.fr'
-license 'GNU General Public License'
-description 'Installs/Configures django_app_server'
-long_description 'Installs/Configures django_app_server'
-version '0.2.1'
+require 'spec_helper'
 
-depends 'apt', '~> 4.0.1'
-depends 'test-helper'
-depends 'chef-vault', '~> 1.3.3'
-depends 'poise-python', '~> 1.4.0'
-depends 'install_scripts', '~> 0.1.6'
+set :backend, :exec
+
+describe user( 'db_user' ) do
+  it { should exist }
+  it { should belong_to_group 'db_user' }
+  it { should belong_to_group 'db_user' }
+  it { should have_home_directory '/home/db_user' }
+  it { should have_login_shell '/bin/bash' }
+  its(:encrypted_password) { should match('$6$xKJVG30L$GN..e105dLVkI5JElirjwif2VoZtMldkCvbgRmFJAU4tC1KbRkMjEJIkkEREtvbcv38HFPARVc6cWV7YoEbxR/') }
+end

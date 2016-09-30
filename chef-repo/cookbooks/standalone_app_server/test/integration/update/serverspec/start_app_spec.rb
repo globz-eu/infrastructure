@@ -25,11 +25,11 @@ require 'spec_helper'
 set :backend, :exec
 
 # manages migrations
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py makemigrations'" ) do
-  its(:stdout) { should match(/No changes detected/)}
+describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py makemigrations base django_base'" ) do
+  its(:stdout) { should match(/^No changes detected in apps/)}
 end
 
-describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py migrate'" ) do
+describe command ( "su - app_user -c 'cd && .envs/django_base/bin/python sites/django_base/source/django_base/manage.py migrate base'" ) do
   its(:stdout) { should match(/No migrations to apply\./)}
 end
 
@@ -80,6 +80,39 @@ end
 # uwsgi is running
 describe command ( 'pgrep uwsgi' ) do
   its(:stdout) { should match(/^\d+$/) }
+end
+
+# celery is running
+describe file('/var/log/django_base/celery') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file('/var/run/django_base') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file('/var/run/django_base/celery') do
+  it { should exist }
+  it { should be_directory }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 700 }
+end
+
+describe file('/var/run/django_base/celery/w1.pid') do
+  it { should exist }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
 end
 
 # site is up
