@@ -67,7 +67,8 @@ if os[:family] == 'ubuntu'
   # check formalign/source ownership and permissions
   Find.find('/home/app_user/sites/formalign/source/formalign') do |f|
     unless f =~ %r(/home/app_user/sites/formalign/source/formalign/\.git/.*) or
-    f =~ %r(/home/app_user/sites/formalign/source/formalign/.*__pycache__.*)
+    f =~ %r(/home/app_user/sites/formalign/source/formalign/.*__pycache__.*) or
+    f =~ %r(/home/app_user/sites/formalign/source/formalign/reports*)
       if FileTest.directory?(f)
         describe file(f) do
           it { should be_directory }

@@ -563,7 +563,7 @@ class InstallDjangoAppTest(InstallTest):
         """
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo)
-        cmd = [
+        cmds = [
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
                 '--settings', '%s.settings_admin' % self.app_name
@@ -577,9 +577,9 @@ class InstallDjangoAppTest(InstallTest):
         cwd = os.path.join(self.app_home, self.app_name)
         func = 'migrate'
         args = (self.app_home,)
-        self.run_success(cmd, msg, func, install_django_app.run_migrations, args)
+        self.run_success(cmds, msg, func, install_django_app.run_migrations, args)
         self.run_cwd(cwd, func, install_django_app.run_migrations, args)
-        for c in cmd:
+        for c in cmds:
             self.run_error(c, func, install_django_app.run_migrations, args)
 
     def test_run_app_tests(self):
@@ -597,21 +597,32 @@ class InstallDjangoAppTest(InstallTest):
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
-        cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
-            '--settings', '%s.settings_admin' % self.app_name
+        cmds = [
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
+                '--settings', '%s.settings_admin' % self.app_name
+            ],
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
+                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+            ]
         ]
-        msg = 'successfully tested %s' % self.app_name
+        msgs = [
+            'successfully ran unit tests for %s' % self.app_name,
+            'successfully ran functional tests for %s' % self.app_name,
+        ]
         cwd = os.path.join(self.app_home, self.app_name)
         func = 'run_tests'
         args = (self.app_home,)
-        self.run_success([cmd], [msg], func, install_django_app.run_tests, args)
+        self.run_success(cmds, msgs, func, install_django_app.run_tests, args)
         self.run_cwd(cwd, func, install_django_app.run_tests, args)
-        self.run_error(cmd, func, install_django_app.run_tests, args)
+        for c in cmds:
+            self.run_error(c, func, install_django_app.run_tests, args)
 
     def test_run_app_tests_with_acceptance_tests(self):
         """
-        tests that run_tests runs the right command, excluding acceptance tests, from the right directory and writes to log
+        tests that run_tests runs the right command, excluding acceptance tests, from the right directory and writes to
+        log
         """
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
@@ -624,18 +635,27 @@ class InstallDjangoAppTest(InstallTest):
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
-        cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
-            '--exclude-dir', './acceptance_tests',
-            '--settings', '%s.settings_admin' % self.app_name
+        cmds = [
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test', '--exclude-dir', './acceptance_tests',
+                '--settings', '%s.settings_admin' % self.app_name
+            ],
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
+                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+            ]
         ]
-        msg = 'successfully tested %s' % self.app_name
+        msgs = [
+            'successfully ran unit tests for %s' % self.app_name,
+            'successfully ran functional tests for %s' % self.app_name,
+        ]
         cwd = os.path.join(self.app_home, self.app_name)
         func = 'run_tests'
         args = (self.app_home,)
-        self.run_success([cmd], [msg], func, install_django_app.run_tests, args)
+        self.run_success(cmds, msgs, func, install_django_app.run_tests, args)
         self.run_cwd(cwd, func, install_django_app.run_tests, args)
-        self.run_error(cmd, func, install_django_app.run_tests, args)
+        for c in cmds:
+            self.run_error(c, func, install_django_app.run_tests, args)
 
     def test_run_app_tests_with_pending_tests(self):
         """
@@ -656,20 +676,30 @@ class InstallDjangoAppTest(InstallTest):
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
-        cmd = [
-            os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
-            '--exclude-dir', './acceptance_tests',
-            '--exclude-dir', './base/unit_tests/pending_tests',
-            '--exclude-dir', './%s/functional_tests/pending_tests' % self.app_name,
-            '--settings', '%s.settings_admin' % self.app_name
+        cmds = [
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
+                '--exclude-dir', './acceptance_tests',
+                '--exclude-dir', './base/unit_tests/pending_tests',
+                '--exclude-dir', './%s/functional_tests/pending_tests' % self.app_name,
+                '--settings', '%s.settings_admin' % self.app_name
+            ],
+            [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
+                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+            ]
         ]
-        msg = 'successfully tested %s' % self.app_name
+        msgs = [
+            'successfully ran unit tests for %s' % self.app_name,
+            'successfully ran functional tests for %s' % self.app_name,
+        ]
         cwd = os.path.join(self.app_home, self.app_name)
         func = 'run_tests'
         args = (self.app_home,)
-        self.run_success([cmd], [msg], func, install_django_app.run_tests, args)
+        self.run_success(cmds, msgs, func, install_django_app.run_tests, args)
         self.run_cwd(cwd, func, install_django_app.run_tests, args)
-        self.run_error(cmd, func, install_django_app.run_tests, args)
+        for c in cmds:
+            self.run_error(c, func, install_django_app.run_tests, args)
 
     def test_run_tests_exits_on_failed_test(self):
         """
@@ -865,7 +895,8 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
             'INFO: successfully ran makemigrations',
             'INFO: successfully migrated %s' % self.app_name,
-            'INFO: successfully tested %s' % self.app_name,
+            'INFO: successfully ran unit tests for %s' % self.app_name,
+            'INFO: successfully ran functional tests for %s' % self.app_name,
             'INFO: install django app exited with code 0',
         ]
         for m in msgs:

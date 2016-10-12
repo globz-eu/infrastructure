@@ -253,13 +253,25 @@ class InstallDjangoApp(CommandFileUtils):
         for p in pending:
             cmd.extend(['--exclude-dir', p])
         cmd.extend(['--settings', '%s.settings_admin' % self.app_name])
-        msg = 'successfully tested %s' % self.app_name
+        cmds = [
+            {
+                'cmd': cmd,
+                'msg': 'successfully ran unit tests for %s' % self.app_name,
+            },
+            {
+                'cmd': [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
+                        '--tags', '~@skip', '--no-skipped', '--junit', '--settings',
+                        '%s.settings_admin' % self.app_name],
+                'msg': 'successfully ran functional tests for %s' % self.app_name,
+            }
+        ]
         now = datetime.datetime.utcnow()
         os.makedirs(os.path.join(os.path.dirname(self.log_file), 'test_results'), exist_ok=True)
         log_file = os.path.join(
             os.path.dirname(self.log_file), 'test_results', 'test_%s.log' % (now.strftime('%Y%m%d-%H%M%S'))
         )
-        run = self.run_command(cmd, msg, cwd=os.path.join(app_home, self.app_name), out=log_file)
+        for cmd in cmds:
+            self.run_command(cmd['cmd'], cmd['msg'], cwd=os.path.join(app_home, self.app_name), out=log_file)
         test_files = os.listdir(os.path.dirname(log_file))
         test_files.sort(reverse=True)
         with open(os.path.join(os.path.dirname(log_file), test_files[0])) as log:
@@ -268,7 +280,7 @@ class InstallDjangoApp(CommandFileUtils):
             if 'FAILED' in l:
                 self.logging('%s tests failed' % self.app_name, 'ERROR')
                 sys.exit(1)
-        return run
+        return 0
 
     def start_celery(self, app_home):
         """
