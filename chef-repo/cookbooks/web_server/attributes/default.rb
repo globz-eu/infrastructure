@@ -28,9 +28,16 @@ app_repo = node['web_server']['git']['app_repo']
 default['web_server']['nginx']['git']['scripts_repo'] = 'https://github.com/globz-eu/scripts.git'
 default['web_server']['nginx']['server_name'] = false
 default['web_server']['nginx']['app_home'] = false
+default['web_server']['nginx']['https'] = false
+ssl = node['web_server']['nginx']['https']
 
 default['basic_node']['node_number'] = node_nr
-default['basic_node']['firewall']['web_server'] = true
+
+if ssl
+  default['basic_node']['firewall']['web_server'] = ['http', 'https']
+else
+  default['basic_node']['firewall']['web_server'] = ['http']
+end
 
 if app_repo
   default['install_scripts']['git']['app_repo'] = app_repo

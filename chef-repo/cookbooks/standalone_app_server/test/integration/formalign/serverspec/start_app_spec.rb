@@ -119,10 +119,16 @@ end
 # site is up
 if os[:release] == '14.04'
   describe command('curl 192.168.1.85') do
+    its(:stdout) {should match(%r(<head><title>301 Moved Permanently</title></head>))}
+  end
+  describe command('curl -k https://192.168.1.85') do
     its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Home</title>$))}
   end
 elsif os[:release] == '16.04'
   describe command('curl 192.168.1.86') do
+    its(:stdout) {should match(%r(<head><title>301 Moved Permanently</title></head>))}
+  end
+  describe command('curl -k https://192.168.1.86') do
     its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Home</title>$))}
   end
 end

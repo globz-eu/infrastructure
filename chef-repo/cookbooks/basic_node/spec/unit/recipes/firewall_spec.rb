@@ -28,7 +28,7 @@ describe 'basic_node::firewall' do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['basic_node']['firewall']['web_server'] = true
+          node.set['basic_node']['firewall']['web_server'] = 'http'
         end.converge(described_recipe)
       end
 

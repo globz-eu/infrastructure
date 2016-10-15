@@ -32,8 +32,10 @@ if os[:family] == 'ubuntu'
     expected_rules = [
         %r{^\[(\s|\d)\d\]\s+22/tcp\s+ALLOW IN\s+Anywhere\s*$},
         %r{^\[(\s|\d)\d\]\s+80/tcp\s+ALLOW IN\s+Anywhere\s*$},
+        %r{^\[(\s|\d)\d\]\s+443/tcp\s+ALLOW IN\s+Anywhere\s*$},
         %r{^\[(\s|\d)\d\]\s+22/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
         %r{^\[(\s|\d)\d\]\s+80/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
+        %r{^\[(\s|\d)\d\]\s+443/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
         %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
         %r{^\[(\s|\d)\d\]\s+53,67,68/udp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
         %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+\(v6\)\s+ALLOW OUT\s+Anywhere\s+\(v6\)\s+\(out\)$},
@@ -61,7 +63,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/#{app_name}/sockets/#{app_name}\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.84;$/,
+        /^\s+server_name\s+192\.168\.1\.84\s+www\.192\.168\.1\.84;$/,
         %r(^\s+alias /home/web_user/sites/#{app_name}/media;),
         %r(^\s+alias /home/web_user/sites/#{app_name}/static;),
         %r(^\s+include\s+/home/web_user/sites/#{app_name}/uwsgi/uwsgi_params;$)
@@ -72,7 +74,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/#{app_name}/sockets/#{app_name}\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.85;$/,
+        /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
         %r(^\s+alias /home/web_user/sites/#{app_name}/media;),
         %r(^\s+alias /home/web_user/sites/#{app_name}/static;),
         %r(^\s+include\s+/home/web_user/sites/#{app_name}/uwsgi/uwsgi_params;$)
@@ -95,8 +97,8 @@ if os[:family] == 'ubuntu'
         params = [
             /^# #{app_name}_down.conf$/,
             %r(^\s+index index.html;$),
-            /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.84;$/,
+            /^\s+listen\s+443 ssl;$/,
+            /^\s+server_name\s+192\.168\.1\.84\s+www\.192\.168\.1\.84;$/,
             %r(^\s+root /home/web_user/sites/#{app_name}/down;),
             %r(^\s+alias /home/web_user/sites/#{app_name}/media;),
             %r(^\s+alias /home/web_user/sites/#{app_name}/static;),
@@ -105,8 +107,8 @@ if os[:family] == 'ubuntu'
         params = [
             /^# #{app_name}_down.conf$/,
             %r(^\s+index index.html;$),
-            /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.85;$/,
+            /^\s+listen\s+443 ssl;$/,
+            /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
             %r(^\s+root /home/web_user/sites/#{app_name}/down;),
             %r(^\s+alias /home/web_user/sites/#{app_name}/media;),
             %r(^\s+alias /home/web_user/sites/#{app_name}/static;),
@@ -272,8 +274,20 @@ if os[:family] == 'ubuntu'
     it { should be_mode 755 }
   end
 
-  describe command('curl localhost') do
-    its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$))}
+  if os[:release] == '14.04'
+    describe command('curl 192.168.1.84') do
+      its(:stdout) {should match(%r(<head><title>301 Moved Permanently</title></head>))}
+    end
+    describe command('curl -k https://192.168.1.84') do
+      its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$))}
+    end
+  elsif os[:release] == '16.04'
+    describe command('curl 192.168.1.85') do
+      its(:stdout) {should match(%r(<head><title>301 Moved Permanently</title></head>))}
+    end
+    describe command('curl -k https://192.168.1.85') do
+      its(:stdout) {should match(%r(^\s+<title id="head-title">Formalign\.eu Site Down</title>$))}
+    end
   end
 
   describe file('/etc/nginx/sites-enabled/default') do

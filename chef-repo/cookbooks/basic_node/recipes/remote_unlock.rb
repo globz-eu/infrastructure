@@ -73,14 +73,14 @@ template '/etc/initramfs-tools/initramfs.conf' do
       netmask: node_ip_item['local_mask'],
       dropbear: 'DROPBEAR=y'
             })
+  notifies :run, 'execute[update-initramfs -u]', :immediately
 end
 
 execute 'update-initramfs -u' do
   action :nothing
-  subscribes :run, 'template[/etc/initramfs-tools/initramfs.conf]', :immediate
+  notifies :run , 'execute[update-rc.d -f dropbear remove]', :immediately
 end
 
 execute 'update-rc.d -f dropbear remove' do
   action :nothing
-  subscribes :run, 'execute[update-initramfs -u]', :immediate
 end

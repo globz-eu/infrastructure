@@ -30,8 +30,10 @@ if os[:family] == 'ubuntu'
     expected_rules = [
         %r{^\[(\s|\d)\d\]\s+22/tcp\s+ALLOW IN\s+Anywhere\s*$},
         %r{^\[(\s|\d)\d\]\s+80/tcp\s+ALLOW IN\s+Anywhere\s*$},
+        %r{^\[(\s|\d)\d\]\s+443/tcp\s+ALLOW IN\s+Anywhere\s*$},
         %r{^\[(\s|\d)\d\]\s+22/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
         %r{^\[(\s|\d)\d\]\s+80/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
+        %r{^\[(\s|\d)\d\]\s+443/tcp\s+\(v6\)\s+ALLOW IN\s+Anywhere\s+\(v6\)\s*$},
         %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
         %r{^\[(\s|\d)\d\]\s+53,67,68/udp\s+ALLOW OUT\s+Anywhere\s+\(out\)$},
         %r{^\[(\s|\d)\d\]\s+22,53,80,443/tcp\s+\(v6\)\s+ALLOW OUT\s+Anywhere\s+\(v6\)\s+\(out\)$},
@@ -59,7 +61,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.85;$/,
+        /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
         %r(^\s+alias /home/web_user/sites/formalign/media;),
         %r(^\s+alias /home/web_user/sites/formalign/static;),
         %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
@@ -70,7 +72,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.86;$/,
+        /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
         %r(^\s+alias /home/web_user/sites/formalign/media;),
         %r(^\s+alias /home/web_user/sites/formalign/static;),
         %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
@@ -88,14 +90,14 @@ if os[:family] == 'ubuntu'
 
   site_down_conf = %w(/etc/nginx/sites-available/formalign_down.conf
  /etc/nginx/sites-enabled/formalign_down.conf)
-  site_down_conf.each() do |f|
+  site_down_conf.each do |f|
     describe file(f) do
       if os[:release] == '14.04'
         params = [
             /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.85;$/,
+            /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
             %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       elsif os[:release] == '16.04'
@@ -103,7 +105,7 @@ if os[:family] == 'ubuntu'
             /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.86;$/,
+            /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
             %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       end

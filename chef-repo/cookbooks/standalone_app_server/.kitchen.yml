@@ -86,6 +86,9 @@ suites:
       django_app_server:
         django_app:
           celery: true
+      web_server:
+        nginx:
+          https: true
       standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'

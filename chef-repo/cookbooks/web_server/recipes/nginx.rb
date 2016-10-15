@@ -42,6 +42,7 @@ else
 end
 
 app_repo = node['web_server']['git']['app_repo']
+ssl = node['web_server']['nginx']['https']
 
 package 'nginx'
 
@@ -102,22 +103,99 @@ if app_repo
 
   # TODO: adapt to tcp sockets option
   # TODO: adapt to https
-  template "/etc/nginx/sites-available/#{app_name}.conf" do
-    owner 'root'
-    group 'root'
-    mode '0400'
-    source 'app_name.conf.erb'
-    variables({
-        app_name: app_name,
-        server_unix_socket: "server unix:///home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock;",
-        server_tcp_socket: '# server 127.0.0.1:8001;',
-        listen_port: '80',
-        server_name: server_name,
-        web_user: web_user,
-        static_path: static_path,
-        media_path: media_path,
-        uwsgi_path: uwsgi_path
-              })
+  if ssl
+    template "/etc/nginx/sites-available/#{app_name}.conf" do
+      owner 'root'
+      group 'root'
+      mode '0400'
+      source 'app_name_https.conf.erb'
+      variables({
+                    app_name: app_name,
+                    server_unix_socket: "server unix:///home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock;",
+                    server_tcp_socket: '# server 127.0.0.1:8001;',
+                    listen_port: '443',
+                    server_name: server_name,
+                    static_path: static_path,
+                    media_path: media_path,
+                    uwsgi_path: uwsgi_path
+                })
+    end
+
+    template "/etc/nginx/sites-available/#{app_name}_down.conf" do
+      owner 'root'
+      group 'root'
+      mode '0400'
+      source 'app_name_down_https.conf.erb'
+      variables({
+                    app_name: app_name,
+                    listen_port: '443',
+                    server_name: server_name,
+                    down_path: down_path,
+                    static_path: static_path,
+                    media_path: media_path,
+                })
+    end
+
+    directory '/etc/nginx/ssl' do
+      owner 'root'
+      group 'www-data'
+      mode '0550'
+    end
+
+    cert = chef_vault_item('web_user', "certificate#{node_nr}")['certificate']
+    key = chef_vault_item('web_user', "certificate#{node_nr}")['key']
+
+    template '/etc/nginx/ssl/server.crt' do
+      owner 'root'
+      group 'www-data'
+      mode '0640'
+      source 'server.crt.erb'
+      variables({
+          server_crt: cert
+                })
+    end
+
+    template '/etc/nginx/ssl/server.key' do
+      owner 'root'
+      group 'www-data'
+      mode '0640'
+      source 'server.key.erb'
+      variables({
+                    server_key: key
+                })
+    end
+  else
+    template "/etc/nginx/sites-available/#{app_name}.conf" do
+      owner 'root'
+      group 'root'
+      mode '0400'
+      source 'app_name.conf.erb'
+      variables({
+                    app_name: app_name,
+                    server_unix_socket: "server unix:///home/#{app_user}/sites/#{app_name}/sockets/#{app_name}.sock;",
+                    server_tcp_socket: '# server 127.0.0.1:8001;',
+                    listen_port: '80',
+                    server_name: server_name,
+                    static_path: static_path,
+                    media_path: media_path,
+                    uwsgi_path: uwsgi_path
+                })
+    end
+
+    template "/etc/nginx/sites-available/#{app_name}_down.conf" do
+      owner 'root'
+      group 'root'
+      mode '0400'
+      source 'app_name_down.conf.erb'
+      variables({
+                    app_name: app_name,
+                    listen_port: '80',
+                    server_name: server_name,
+                    down_path: down_path,
+                    static_path: static_path,
+                    media_path: media_path,
+                })
+    end
   end
 
   template "#{down_path}/index.html" do
@@ -131,20 +209,7 @@ if app_repo
     not_if "ls #{down_path}/index.html"
   end
 
-  template "/etc/nginx/sites-available/#{app_name}_down.conf" do
-    owner 'root'
-    group 'root'
-    mode '0400'
-    source 'app_name_down.conf.erb'
-    variables({
-                  app_name: app_name,
-                  listen_port: '80',
-                  server_name: server_name,
-                  down_path: down_path,
-                  static_path: static_path,
-                  media_path: media_path,
-              })
-  end
+
 
   file '/etc/nginx/sites-enabled/default' do
     action :delete

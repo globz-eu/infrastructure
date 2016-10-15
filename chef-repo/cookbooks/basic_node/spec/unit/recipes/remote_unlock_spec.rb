@@ -121,18 +121,18 @@ describe 'basic_node::remote_unlock' do
         initramfs_conf.each do |i|
           expect(chef_run).to render_file('/etc/initramfs-tools/initramfs.conf').with_content(i)
         end
+        resource = chef_run.template('/etc/initramfs-tools/initramfs.conf')
+        expect(resource).to notify('execute[update-initramfs -u]').to(:run).immediately
       end
 
       it 'runs the "update-initramfs" command' do
         expect(chef_run).to_not run_execute('update-initramfs -u')
         resource = chef_run.execute('update-initramfs -u')
-        expect(resource).to subscribe_to('template[/etc/initramfs-tools/initramfs.conf]').on(:run).immediately
+        expect(resource).to notify('execute[update-rc.d -f dropbear remove]').to(:run).immediately
       end
 
       it 'runs the "update-rc.d -f dropbear remove" command' do
         expect(chef_run).to_not run_execute('update-rc.d -f dropbear remove')
-        resource = chef_run.execute('update-rc.d -f dropbear remove')
-        expect(resource).to subscribe_to('execute[update-initramfs -u]').on(:run).immediately
       end
     end
   end
