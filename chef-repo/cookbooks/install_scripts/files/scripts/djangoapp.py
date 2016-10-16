@@ -193,7 +193,7 @@ class InstallDjangoApp(CommandFileUtils):
         app_conf = os.path.join(os.path.dirname(app_home), 'conf.d')
         conf = [
             {'file': 'configuration.py', 'move_to': os.path.join(app_home, self.app_name)},
-            {'file': 'settings_admin.py', 'move_to': os.path.join(app_home, self.app_name, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(app_home, self.app_name, self.app_name.lower())},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': app_home}
         ]
 
