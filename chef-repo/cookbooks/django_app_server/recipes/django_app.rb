@@ -163,6 +163,7 @@ if app_repo
     source 'app_name_uwsgi.ini.erb'
     variables({
                   app_name: app_name,
+                  module: app_name.downcase,
                   app_user: app_user,
                   fifo: "/tmp/#{app_name}/fifo0",
                   web_user: 'www-data',

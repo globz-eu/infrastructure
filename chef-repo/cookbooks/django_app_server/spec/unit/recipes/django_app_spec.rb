@@ -244,6 +244,7 @@ describe 'django_app_server::django_app' do
             source: 'app_name_uwsgi.ini.erb',
             variables: {
                 app_name: 'django_base',
+                module: 'django_base',
                 app_user: 'app_user',
                 fifo: '/tmp/django_base/fifo0',
                 web_user: 'www-data',
