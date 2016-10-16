@@ -296,7 +296,7 @@ class InstallDjangoApp(CommandFileUtils):
             'start',
             'w1',
             '-A',
-            self.app_name,
+            self.app_name.lower(),
             '-B',
             '--scheduler=djcelery.schedulers.DatabaseScheduler',
             '--pidfile=%s' % self.celery_pid,
