@@ -24,7 +24,7 @@ require 'spec_helper'
 
 set :backend, :exec
 
-app_name = 'formalign'
+app_name = 'django_base'
 
 # manages migrations
 describe command ( "su - app_user -c 'cd && .envs/#{app_name}/bin/python sites/#{app_name}/source/#{app_name}/manage.py makemigrations base #{app_name}'" ) do

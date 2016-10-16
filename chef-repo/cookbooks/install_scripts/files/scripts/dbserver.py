@@ -73,7 +73,7 @@ class CreateDB(CommandFileUtils):
                 last = ''
                 for l in log:
                     last = l
-            if last == 'ERROR:  database "%s" already exists\n' % self.db_name:
+            if last == 'ERROR:  database "%s" already exists\n' % self.db_name.lower():
                 self.logging('skipped database creation, \'%s\' already exists' % self.db_name, 'INFO')
                 run.append(0)
             else:
@@ -94,7 +94,7 @@ class CreateDB(CommandFileUtils):
                 last = ''
                 for l in log:
                     last = l
-            if last == 'ERROR:  database "%s" does not exist\n' % self.db_name:
+            if last == 'ERROR:  database "%s" does not exist\n' % self.db_name.lower():
                 self.logging('skipped drop database, \'%s\' does not exist' % self.db_name, 'INFO')
                 run = 0
             else:

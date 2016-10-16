@@ -67,7 +67,8 @@ if os[:family] == 'ubuntu'
   # check django_base/source ownership and permissions
   Find.find('/home/app_user/sites/django_base/source/django_base') do |f|
     unless f =~ %r(/home/app_user/sites/django_base/source/django_base/\.git/.*) or
-    f =~ %r(/home/app_user/sites/django_base/source/django_base/.*__pycache__.*)
+    f =~ %r(/home/app_user/sites/django_base/source/django_base/.*__pycache__.*) or
+    f =~ %r(/home/app_user/sites/django_base/source/django_base/reports*)
       if FileTest.directory?(f)
         describe file(f) do
           it { should be_directory }

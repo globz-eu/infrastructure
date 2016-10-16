@@ -23,5 +23,5 @@ default['basic_node']['node_admin']['secret_path'] = '/etc/chef/encrypted_data_b
 default['basic_node']['mail']['ssmtp_conf']['TLS'] = 'YES'
 default['basic_node']['mail']['ssmtp_conf']['port'] = '587'
 default['basic_node']['firewall']['mail'] = true
-default['basic_node']['firewall']['web_server'] = false
+default['basic_node']['firewall']['web_server'] = []
 default['basic_node']['remote_unlock']['encryption'] = false

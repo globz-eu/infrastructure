@@ -74,6 +74,8 @@ suites:
           app_repo: 'https://github.com/globz-eu/django_base.git'
         start_app:
           celery: true
+        update:
+          purge_db: false
     excludes: centos-7.1
   - name: formalign
     run_list:

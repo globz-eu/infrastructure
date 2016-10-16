@@ -23,6 +23,7 @@
 include_recipe 'chef-vault'
 
 node_nr = node['standalone_app_server']['node_number']
+purge_db = node['standalone_app_server']['update']['purge_db']
 
 db_user_item = chef_vault_item('pg_server', "db_user#{node_nr}")
 db_user = db_user_item['user']
@@ -72,6 +73,7 @@ bash 'db_reset' do
   cwd "/home/#{db_user}/sites/#{app_name}/scripts"
   code './dbserver.py -r'
   user 'root'
+  only_if { purge_db }
 end
 
 bash 'reinstall_app' do

@@ -23,7 +23,7 @@ maintainer_email 'golgoths@yahoo.fr'
 license 'GNU General Public License'
 description 'Installs/Configures standalone_app_server'
 long_description 'Installs/Configures standalone_app_server'
-version '0.2.3'
+version '0.2.4'
 
 depends 'basic_node', '~> 0.2.0'
 depends 'django_app_server', '~> 0.2.1'
