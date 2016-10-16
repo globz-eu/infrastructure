@@ -224,14 +224,14 @@ class InstallDjangoApp(CommandFileUtils):
             {
                 'cmd': [
                     os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
-                    '--settings', '%s.settings_admin' % self.app_name
+                    '--settings', '%s.settings_admin' % self.app_name.lower()
                 ],
                 'msg': 'successfully ran makemigrations'
             },
             {
                 'cmd': [
                     os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
-                    '--settings', '%s.settings_admin' % self.app_name
+                    '--settings', '%s.settings_admin' % self.app_name.lower()
                 ],
                 'msg': 'successfully migrated %s' % self.app_name
             }
@@ -252,7 +252,7 @@ class InstallDjangoApp(CommandFileUtils):
         cmd = [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test']
         for p in pending:
             cmd.extend(['--exclude-dir', p])
-        cmd.extend(['--settings', '%s.settings_admin' % self.app_name])
+        cmd.extend(['--settings', '%s.settings_admin' % self.app_name.lower()])
         cmds = [
             {
                 'cmd': cmd,
@@ -261,7 +261,7 @@ class InstallDjangoApp(CommandFileUtils):
             {
                 'cmd': [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
                         '--tags', '~@skip', '--no-skipped', '--junit', '--settings',
-                        '%s.settings_admin' % self.app_name],
+                        '%s.settings_admin' % self.app_name.lower()],
                 'msg': 'successfully ran functional tests for %s' % self.app_name,
             }
         ]
