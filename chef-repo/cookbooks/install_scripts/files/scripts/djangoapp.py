@@ -344,7 +344,7 @@ class InstallDjangoApp(CommandFileUtils):
         :return: returns run_command return code
         """
         uwsgi = self.check_process('uwsgi')
-        cmd = ['uwsgi', '--ini', os.path.join(app_home, '%s_uwsgi.ini' % self.app_name)]
+        cmd = ['uwsgi', '--ini', os.path.join(app_home, '%s_uwsgi.ini' % self.app_name.lower())]
         msg = 'started uwsgi server'
         cwd = os.path.join(app_home, self.app_name)
         if not uwsgi:
