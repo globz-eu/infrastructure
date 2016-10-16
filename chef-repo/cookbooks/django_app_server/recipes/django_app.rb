@@ -127,7 +127,7 @@ if app_repo
     group app_user
     mode '0400'
     variables({
-                  app_name: app_name,
+                  app_name: app_name.downcase,
                   db_admin_user: pg_user_vault['user'],
                   db_admin_password: pg_user_vault['password'],
               })
