@@ -23,7 +23,7 @@ maintainer_email 'you@example.com'
 license 'all_rights'
 description 'Creates user, Installs/Configures install_scripts'
 long_description 'Creates user, Installs/Configures install_scripts'
-version '0.1.11'
+version '0.1.12'
 
 depends 'apt', '~> 4.0.1'
 depends 'test-helper'
