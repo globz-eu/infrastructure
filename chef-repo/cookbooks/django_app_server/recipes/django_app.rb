@@ -31,6 +31,7 @@ include_recipe 'chef-vault'
 node_number = node['django_app_server']['node_number']
 app_user_vault = chef_vault_item('app_user', "app_user#{node['django_app_server']['node_number']}")
 app_user = app_user_vault['user']
+init_user_vault = chef_vault_item('django_app', "init_users#{node['django_app_server']['node_number']}")
 django_app_vault = chef_vault_item('django_app', "app#{node['django_app_server']['node_number']}")
 db_user_vault = chef_vault_item('pg_server', "db_user#{node['django_app_server']['node_number']}")
 pg_user_vault = chef_vault_item('pg_server', "postgres#{node['django_app_server']['node_number']}")
@@ -113,9 +114,12 @@ if app_repo
                   allowed_host: allowed_host,
                   engine: node['django_app_server']['django_app']['engine'],
                   app_name: app_name,
+                  db_name: app_name.downcase,
                   db_user: db_user_vault['user'],
                   db_user_password: db_user_vault['password'],
-                  db_host: node['django_app_server']['django_app']['db_host']
+                  db_host: node['django_app_server']['django_app']['db_host'],
+                  init_users: init_user_vault['users'],
+                  init_superuser: init_user_vault['superuser'],
               })
   end
 

@@ -1,0 +1,20 @@
+{
+  "id": "init_users001",
+  "users": [
+    {
+      "username": "user0",
+      "email": "user0@example.com",
+      "password": "user0_password"
+    },
+    {
+      "username": "user1",
+      "email": "user1@example.com",
+      "password": "user1_password"
+    }
+  ],
+  "superuser": {
+    "username": "superuser",
+    "email": "superuser@example.com",
+    "password": "superuser_password"
+  }
+}

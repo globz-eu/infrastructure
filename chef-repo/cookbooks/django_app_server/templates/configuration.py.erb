@@ -20,12 +20,12 @@ ALLOWED_HOSTS = ['<%= @allowed_host %>']
 DATABASES = {
     'default': {
     'ENGINE': '<%= @engine %>',
-    'NAME': '<%= @app_name %>',
+    'NAME': '<%= @db_name %>',
     'USER': '<%= @db_user %>',
     'PASSWORD': "<%= @db_user_password %>",
     'HOST': '<%= @db_host %>',
     'TEST': {
-    'NAME': 'test_<%= @app_name %>',
+    'NAME': 'test_<%= @db_name %>',
     }
   }
 }
@@ -50,3 +50,11 @@ FIREFOX_BINARY = '/usr/bin/firefox'
 # Celery settings
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Initial users
+INITIAL_USERS = [
+<% @init_users.each do |user| -%>
+    ('<%= user['username'] %>', '<%= user['email'] %>', '<%= user['password'] %>'),
+<% end -%>
+]
+INITIAL_SUPERUSER = ('<%= @init_superuser['username'] %>', '<%= @init_superuser['email'] %>', '<%= @init_superuser['password'] %>')

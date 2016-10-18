@@ -287,7 +287,11 @@ if os[:family] == 'ubuntu'
             %r(^\s+'NAME': '#{app_name}',$),
             %r(^\s+'USER': 'db_user',$),
             %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_#{app_name}',$)
+            %r(^\s+'NAME': 'test_#{app_name}',$),
+            %r(^INITIAL_USERS = \[$),
+            %r(^\s+\('user0', 'user0@example\.com', 'user0_password'\),$),
+            %r(^\s+\('user1', 'user1@example\.com', 'user1_password'\),$),
+            %r(^INITIAL_SUPERUSER = \('superuser', 'superuser@example\.com', 'superuser_password'\)$),
         ]
       elsif os[:release] == '16.04'
         params = [
@@ -299,7 +303,11 @@ if os[:family] == 'ubuntu'
             %r(^\s+'NAME': '#{app_name}',$),
             %r(^\s+'USER': 'db_user',$),
             %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_#{app_name}',$)
+            %r(^\s+'NAME': 'test_#{app_name}',$),
+            %r(^INITIAL_USERS = \[$),
+            %r(^\s+\('user0', 'user0@example\.com', 'user0_password'\),$),
+            %r(^\s+\('user1', 'user1@example\.com', 'user1_password'\),$),
+            %r(^INITIAL_SUPERUSER = \('superuser', 'superuser@example\.com', 'superuser_password'\)$),
         ]
       end
       it { should exist }

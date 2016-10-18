@@ -146,9 +146,15 @@ describe 'django_app_server::django_app' do
                 allowed_host: allowed_host,
                 engine: 'django.db.backends.postgresql_psycopg2',
                 app_name: 'django_base',
+                db_name: 'django_base',
                 db_user: 'db_user',
                 db_user_password: 'db_user_password',
-                db_host: 'localhost'
+                db_host: 'localhost',
+                init_users: [
+                    {"username"=>"user0", "email"=>"user0@example.com", "password"=>"user0_password"},
+                    {"username"=>"user1", "email"=>"user1@example.com", "password"=>"user1_password"}
+                ],
+                init_superuser: {"username"=> "superuser", "email"=> "superuser@example.com", "password"=> "superuser_password"}
             }
         )
         config = [
@@ -161,7 +167,11 @@ describe 'django_app_server::django_app' do
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^\s+'HOST': 'localhost',$),
             %r(^\s+'NAME': 'test_django_base',$),
-            %r(^SERVER_URL = 'liveserver'$)
+            %r(^SERVER_URL = 'liveserver'$),
+            %r(^INITIAL_USERS = \[$),
+            %r(^\s+\('user0', 'user0@example\.com', 'user0_password'\),$),
+            %r(^\s+\('user1', 'user1@example\.com', 'user1_password'\),$),
+            %r(^INITIAL_SUPERUSER = \('superuser', 'superuser@example\.com', 'superuser_password'\)$),
         ]
         config.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/configuration.py').with_content(u)

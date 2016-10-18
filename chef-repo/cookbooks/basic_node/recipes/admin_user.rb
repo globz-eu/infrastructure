@@ -26,7 +26,7 @@ node_admin_item = chef_vault_item('basic_node', "node_admin#{node['basic_node'][
 
 user node_admin_item['user'] do
   home "/home/#{node_admin_item['user']}"
-  supports :manage_home => true
+  manage_home true
   password node_admin_item['password']
   shell '/bin/bash'
 end

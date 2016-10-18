@@ -29,7 +29,7 @@ unless users.empty?
 
     user user_name do
       home "/home/#{user_name}"
-      supports :manage_home => true
+      manage_home true
       shell '/bin/bash'
       password user_pwd
     end if user_name and user_pwd

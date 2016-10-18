@@ -82,6 +82,20 @@ bash 'reinstall_app' do
   user 'root'
 end
 
+bash 'create_users_executable' do
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
+  code 'chmod +x ./create_users.py'
+  user 'root'
+  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/create_users.py"
+end
+
+bash 'create_users' do
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
+  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./create_users.py"
+  user 'root'
+  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/create_users.py"
+end
+
 bash 'restart_celery' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
   code './djangoapp.py -c start'

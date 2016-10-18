@@ -113,7 +113,7 @@ class ServeStatic(InstallDjangoApp):
         :return: returns 0 if it reaches the end of its flow
         """
         static_files = [
-            {'from_path': os.path.join(self.app_home, self.app_name, 'static', 'site_down', 'index.html'),
+            {'from_path': os.path.join(self.app_home, self.app_name, 'static', 'base', 'site_down', 'index.html'),
              'to_path': down_path, 'file_type': 'file'},
             {'from_path': os.path.join(self.app_home, self.app_name, 'static'),
              'to_path': static_path, 'file_type': 'dir'},

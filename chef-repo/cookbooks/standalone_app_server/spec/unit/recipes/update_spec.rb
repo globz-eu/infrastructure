@@ -40,6 +40,7 @@ describe 'standalone_app_server::update' do
 
       before do
         stub_command("ls /home/web_user/sites/django_base/down/index.html").and_return(false)
+        stub_command("ls /home/app_user/sites/django_base/source/django_base/create_users.py").and_return(true)
       end
 
       it 'converges successfully' do
@@ -148,6 +149,7 @@ describe 'standalone_app_server::update' do
 
       before do
         stub_command("ls /home/web_user/sites/django_base/down/index.html").and_return(false)
+        stub_command("ls /home/app_user/sites/django_base/source/django_base/create_users.py").and_return(true)
       end
 
       it 'converges successfully' do
@@ -206,6 +208,22 @@ describe 'standalone_app_server::update' do
         expect( chef_run ).to run_bash('reinstall_app').with(
             cwd: '/home/app_user/sites/django_base/scripts',
             code: './djangoapp.py -imt',
+            user: 'root'
+        )
+      end
+
+      it 'runs make create_users executable' do
+        expect(chef_run).to run_bash('create_users_executable').with(
+            cwd: '/home/app_user/sites/django_base/source/django_base',
+            code: 'chmod +x ./create_users.py',
+            user: 'root'
+        )
+      end
+
+      it 'runs create_users' do
+        expect(chef_run).to run_bash('create_users').with(
+            cwd: '/home/app_user/sites/django_base/source/django_base',
+            code: '/home/app_user/.envs/django_base/bin/python ./create_users.py',
             user: 'root'
         )
       end
