@@ -30,6 +30,7 @@ default['django_app_server']['django_app']['allowed_host'] = false
 default['django_app_server']['django_app']['engine'] = 'django.db.backends.postgresql_psycopg2'
 default['django_app_server']['django_app']['db_host'] = 'localhost'
 default['django_app_server']['django_app']['celery'] = false
+default['django_app_server']['django_app']['db_user'] = 'db_user'
 default['django_app_server']['uwsgi']['processes'] = '2'
 default['django_app_server']['uwsgi']['socket'] = 'unix'
 

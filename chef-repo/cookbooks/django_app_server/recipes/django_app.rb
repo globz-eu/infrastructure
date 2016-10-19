@@ -42,6 +42,17 @@ else
   allowed_host = node_ip_item['public_ip']
 end
 
+if node['django_app_server']['django_app']['db_user'] == 'db_user'
+  db_user = db_user_vault['user']
+  db_password = db_user_vault['password']
+elsif node['django_app_server']['django_app']['db_user'] == 'postgres'
+  db_user = pg_user_vault['user']
+  db_password = pg_user_vault['password']
+else
+  db_user = pg_user_vault['user']
+  db_password = pg_user_vault['password']
+end
+
 app_repo = node['django_app_server']['git']['app_repo']
 celery = node['django_app_server']['django_app']['celery']
 
@@ -115,8 +126,8 @@ if app_repo
                   engine: node['django_app_server']['django_app']['engine'],
                   app_name: app_name,
                   db_name: app_name.downcase,
-                  db_user: db_user_vault['user'],
-                  db_user_password: db_user_vault['password'],
+                  db_user: db_user,
+                  db_user_password: db_password,
                   db_host: node['django_app_server']['django_app']['db_host'],
                   init_users: init_user_vault['users'],
                   init_superuser: init_user_vault['superuser'],
