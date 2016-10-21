@@ -67,7 +67,7 @@ class ServeStatic(InstallDjangoApp):
                     if file_type == 'dir':
                         if os.listdir(to_path):
                             msg = 'content already present in %s' % to_path
-                            self.logging(msg, 'INFO')
+                            self.write_to_log(msg, 'INFO')
                             return 1
                         else:
                             if os.path.exists(to_path):
@@ -79,25 +79,25 @@ class ServeStatic(InstallDjangoApp):
                     elif file_type == 'file':
                         if os.path.isfile(os.path.join(to_path, os.path.basename(from_path))):
                             msg = '%s is already present in %s' % (os.path.basename(from_path), to_path)
-                            self.logging(msg, 'INFO')
+                            self.write_to_log(msg, 'INFO')
                             return 1
                         else:
                             shutil.move(from_path, to_path)
                             msg = '%s moved to %s' % (os.path.basename(from_path), to_path)
                     else:
                         msg = 'unknown file type %s' % file_type
-                        self.logging(msg, 'ERROR')
+                        self.write_to_log(msg, 'ERROR')
                         sys.exit(1)
-                    self.logging(msg, 'INFO')
+                    self.write_to_log(msg, 'INFO')
                 else:
                     raise FileNotFoundError(from_path)
             except FileNotFoundError as error:
                 msg = 'file not found: ' + error.args[0]
-                self.logging(msg, 'ERROR')
+                self.write_to_log(msg, 'ERROR')
                 sys.exit(1)
         else:
             msg = 'cannot move app files, some path is not specified'
-            self.logging(msg, 'ERROR')
+            self.write_to_log(msg, 'ERROR')
             sys.exit(1)
         return 0
 
@@ -130,7 +130,7 @@ class ServeStatic(InstallDjangoApp):
                 self.own(static['to_path'], web_user, webserver_user)
                 self.permissions(static['to_path'], '440', '550', recursive=True)
         shutil.rmtree(self.app_home)
-        self.logging('serve static exited with code 0\n', 'INFO')
+        self.write_to_log('serve static exited with code 0\n', 'INFO')
         return 0
 
     def remove_static(self, down_path, static_path, media_path, uwsgi_path):
@@ -148,10 +148,10 @@ class ServeStatic(InstallDjangoApp):
                 self.permissions(path, '770', '770', recursive=True)
                 shutil.rmtree(path)
                 os.makedirs(path)
-                self.logging('removed files in %s\n' % path, 'INFO')
+                self.write_to_log('removed files in %s\n' % path, 'INFO')
             else:
                 os.makedirs(path)
-                self.logging('added missing path %s\n' % path, 'INFO')
+                self.write_to_log('added missing path %s\n' % path, 'INFO')
         return 0
 
     def site_toggle_up_down(self, up_down='up'):
@@ -181,11 +181,11 @@ class ServeStatic(InstallDjangoApp):
                     raise FileNotFoundError(os.path.join(self.nginx_conf, 'sites-available', '%s.conf' % to))
             except FileNotFoundError as error:
                 msg = 'file not found: ' + error.args[0]
-                self.logging(msg, 'ERROR')
+                self.write_to_log(msg, 'ERROR')
                 sys.exit(1)
         else:
             msg = '%s is already enabled' % to
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
         return 0
 
 
@@ -198,7 +198,7 @@ def main():
     usage = "usage: %prog [options] arg"
     parser = OptionParser(usage)
     parser.add_option('-l', '--log-level', dest='log_level',
-                      help='log-level: DEBUG, INFO, ERROR, FATAL', default='INFO')
+                      help='log-level: DEBUG, INFO, WARNING, ERROR, CRITICAL', default='INFO')
     parser.add_option('-m', '--move-static', dest='move_static', action='store_true',
                       help='move-static: moves static files from app to server static folders', default=False)
     parser.add_option('-x', '--remove-static', dest='remove_static', action='store_true',

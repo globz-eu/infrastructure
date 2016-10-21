@@ -34,7 +34,7 @@ web_user = web_user_item['user']
 app_repo = node['django_app_server']['git']['app_repo']
 /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
 unless name == nil
-  app_name = name
+  app_name = name.downcase
 end
 
 celery = node['standalone_app_server']['start_app']['celery']

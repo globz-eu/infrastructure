@@ -23,11 +23,10 @@ from unittest import TestCase
 from unittest.mock import call
 from unittest import mock
 import os
-import sys
+import re
 import shutil
 import stat
 import datetime
-import re
 from utilities.commandfileutils import CommandFileUtils
 from tests.conf_tests import DIST_VERSION, DEBUG, APP_HOME, LOG_FILE
 from tests.runandlogtest import RunAndLogTest
@@ -57,7 +56,7 @@ class RunCommandTest(TestCase):
         :param test: tests presence (True) or absence (False)
         """
         with open(self.log_file) as log:
-            log_list = [l[24:] for l in log]
+            log_list = [l[20:] for l in log]
             if test:
                 self.assertTrue('%s\n' % message in log_list, log_list)
             else:
@@ -117,91 +116,105 @@ class CommandFileUtilsTest(RunAndLogTest):
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
 
-    # def log(self, message, test=True):
-    #     with open(self.log_file) as log:
-    #         log_list = [l[24:] for l in log]
-    #         if test:
-    #             self.assertTrue('%s\n' % message in log_list, log_list)
-    #         else:
-    #             self.assertFalse('%s\n' % message in log_list, log_list)
-
     def test_commandfileutils_exits_on_unknown_dist_version(self):
         try:
             CommandFileUtils('Invalid_dist_version', self.log_file, self.log_level)
         except SystemExit as error:
             self.assertEqual(1, error.code, 'CommandFileUtils exited with: %s' % str(error))
-            self.log('FATAL: distribution not supported')
+            self.log('CRITICAL: distribution not supported')
 
-    def test_logging(self):
+    def test_write_to_log(self):
         """
-        tests that logging writes messages to log
+        tests that write_to_log writes messages to log
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
         msgs = [
             ['debug message', 'DEBUG'],
             ['info message', 'INFO'],
+            ['warning message', 'WARNING'],
             ['error message', 'ERROR'],
-            ['fatal message', 'FATAL']
+            ['critical message', 'CRITICAL']
         ]
         for m, ll in msgs:
-            runlog.logging(m, ll)
+            runlog.write_to_log(m, ll)
             self.log('%s: %s' % (ll, m))
 
-    def test_logging_adds_timestamp_to_message(self):
+    def test_write_sequencially_to_log(self):
         """
-        tests that logging adds the current time to messages
+        tests that write_to_log writes all messages to log
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
         msgs = [
             ['debug message', 'DEBUG'],
             ['info message', 'INFO'],
+            ['warning message', 'WARNING'],
             ['error message', 'ERROR'],
-            ['fatal message', 'FATAL']
+            ['critical message', 'CRITICAL']
+        ]
+        for m, ll in msgs:
+            runlog.write_to_log(m, ll)
+        for m, ll in msgs:
+            self.log('%s: %s' % (ll, m))
+
+    def test_write_to_log_adds_timestamp_to_message(self):
+        """
+        tests that write_to_log adds the current time to messages
+        """
+        runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
+        msgs = [
+            ['debug message', 'DEBUG'],
+            ['info message', 'INFO'],
+            ['warning message', 'WARNING'],
+            ['error message', 'ERROR'],
+            ['critical message', 'CRITICAL']
         ]
         now = datetime.datetime.utcnow()
         for m, ll in msgs:
-            runlog.logging(m, ll)
+            runlog.write_to_log(m, ll)
         with open(self.log_file) as log:
-            log_list = [l[:19] for l in log]
+            log_list = [l[:19] for l in log][-5:]
             for l in log_list:
                 self.assertEqual(now.strftime('%Y-%m-%d %H:%M:%S'), l, l)
 
-    def test_logging_exits_when_log_level_is_not_specified(self):
+    def test_write_to_log_exits_when_log_level_is_not_specified(self):
         """
-        tests that logging uses default log level (DEBUG) when level is not specified and exits when log level is
+        tests that write_to_log uses default log level (DEBUG) when level is not specified and exits when log level is
         invalid
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
         msgs = [
+            ['warning message', 'WARNING'],
+            ['other warning message', 'WARNING'],
             ['debug message', 'IMPORTANT'],
-            ['info message', False],
+            ['info message', 'INFO'],
+            ['default info message', False],
         ]
         for m, ll in msgs:
             try:
-                runlog.logging(m, ll)
-                self.log('DEBUG: info message')
+                runlog.write_to_log(m, ll)
+                self.log('%s: %s' % (ll, m))
             except SystemExit as error:
-                self.assertEqual(1, error.code, '%s exited with: %s' % ('logging', str(error)))
+                self.assertEqual(1, error.code, '%s exited with: %s' % ('write_to_log', str(error)))
                 self.log('ERROR: log level "%s" is not specified or not valid' % ll)
 
-    def test_logging_only_logs_messages_of_appropriate_log_level(self):
+    def test_write_to_log_only_logs_messages_of_appropriate_log_level(self):
         """
-        tests that logging only writes messages with appropriate log level to log
+        tests that write_to_log only writes messages with appropriate log level to log
         """
         runlog = CommandFileUtils(self.dist_version, self.log_file, 'ERROR')
         msgs_log = [
             ['error message', 'ERROR'],
-            ['fatal message', 'FATAL']
+            ['CRITICAL message', 'CRITICAL']
         ]
         msgs_no_log = [
             ['debug message', 'DEBUG'],
             ['info message', 'INFO'],
         ]
         for m, ll in msgs_log:
-            runlog.logging(m, ll)
+            runlog.write_to_log(m, ll)
             self.log('%s: %s' % (ll, m))
         for m, ll in msgs_no_log:
-            runlog.logging(m, ll)
+            runlog.write_to_log(m, ll)
             self.log('%s: %s' % (ll, m), test=False)
 
     def test_run_command(self):
@@ -222,7 +235,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, runlog.logging, ('INFO', ), runlog.logging, ('INFO', ))
+        runlog.walktree(self.app_home, runlog.write_to_log, ('INFO', ), runlog.write_to_log, ('INFO', ))
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name',
                  '/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
         for p in paths:
@@ -234,7 +247,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, d_callback=runlog.logging, d_args=('INFO', ))
+        runlog.walktree(self.app_home, d_callback=runlog.write_to_log, d_args=('INFO', ))
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
         for p in paths:
             self.log('INFO: %s' % p)
@@ -246,7 +259,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, f_callback=runlog.logging)
+        runlog.walktree(self.app_home, f_callback=runlog.write_to_log)
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
         for p in paths:
             self.log('DEBUG: %s' % p)
@@ -257,7 +270,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, f_callback=runlog.logging, f_args=('INFO', ))
+        runlog.walktree(self.app_home, f_callback=runlog.write_to_log, f_args=('INFO', ))
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
         for p in paths:
             self.log('INFO: %s' % p)
@@ -269,7 +282,7 @@ class CommandFileUtilsTest(RunAndLogTest):
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, d_callback=runlog.logging)
+        runlog.walktree(self.app_home, d_callback=runlog.write_to_log)
         paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
         for p in paths:
             self.log('DEBUG: %s' % p)
@@ -418,3 +431,71 @@ class CommandFileUtilsTest(RunAndLogTest):
         self.assertTrue(proc, '%s process is running: %s' % ('python', proc))
         proc = runlog.check_process('SomeVeryUnlikelyProcessName')
         self.assertFalse(proc, proc)
+
+
+class WriteToLogTest(TestCase):
+    """
+    Tests write_to_log functionality in TestCase situation (when log file is deleted between tests)
+    """
+    def setUp(self):
+        self.dist_version = DIST_VERSION
+        self.log_file = LOG_FILE
+        if os.path.isfile(self.log_file):
+            os.remove(self.log_file)
+
+    def log(self, message, test=True, regex=False):
+        """
+        tests the presence or absence of a message or regex in the log file
+        :param message: message to test
+        :param test: tests presence (True) or absence (False)
+        :param regex: tests using regex if True
+        """
+        with open(self.log_file) as log:
+            log_list = [l[20:] for l in log]
+            if test:
+                if regex:
+                    matches = [l for l in log_list if re.match(message, l)]
+                    self.assertTrue(matches, '%s not found' % message)
+                else:
+                    self.assertTrue('%s\n' % message in log_list, 'message: \'%s\', log_list: %s' % (message, log_list))
+            else:
+                if regex:
+                    matches = [l for l in log_list if re.match(message, l)]
+                    self.assertFalse(matches, '"%s" found in %s' % (message, matches))
+                else:
+                    self.assertFalse('%s\n' % message in log_list, log_list)
+
+    def test_basic_functionality(self):
+        """
+        tests basic logging functionality
+        """
+        runlog = CommandFileUtils(self.dist_version, self.log_file, 'DEBUG')
+        msgs = [
+            ['debug message', 'DEBUG'],
+            ['info message', 'INFO'],
+            ['warning message', 'WARNING'],
+            ['error message', 'ERROR'],
+            ['critical message', 'CRITICAL']
+        ]
+        for m, ll in msgs:
+            runlog.write_to_log(m, ll)
+        for m, ll in msgs:
+            self.log('%s: %s' % (ll, m))
+
+    def test_level_functionality(self):
+        """
+        tests logging functionality when log level is higher than DEBUG
+        """
+        runlog = CommandFileUtils(self.dist_version, self.log_file, 'INFO')
+        msgs = [
+            ['debug message', 'DEBUG'],
+            ['info message', 'INFO'],
+            ['warning message', 'WARNING'],
+            ['error message', 'ERROR'],
+            ['critical message', 'CRITICAL']
+        ]
+        for m, ll in msgs:
+            runlog.write_to_log(m, ll)
+        for m, ll in msgs[1:]:
+            self.log('%s: %s' % (ll, m))
+        self.log('%s: %s' % (msgs[0][1], msgs[0][0]), test=False)

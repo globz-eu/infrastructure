@@ -17,6 +17,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+name 'chef_server'
+maintainer 'Stefan Dieterle'
+maintainer_email 'golgoths@yahoo.fr'
+license 'GNU General Public License'
+description 'Installs/Configures chef_server'
+long_description 'Installs/Configures chef_server'
+version '0.1.0'
+
+depends 'basic_node', '~> 0.2.0'
+depends 'chef-vault', '~> 1.3.3'
+depends 'apt', '~> 4.0.1'
+depends 'test-helper'
+depends 'firewall', '~> 2.5.2'

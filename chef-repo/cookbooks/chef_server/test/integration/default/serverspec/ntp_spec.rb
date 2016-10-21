@@ -17,6 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+require 'spec_helper'
+
+set :backend, :exec
+
+describe package('ntp') do
+  it { should be_installed }
+end
+
+describe service('ntp') do
+  it { should be_enabled }
+  it { should be_running }
+end

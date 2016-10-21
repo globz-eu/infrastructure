@@ -23,9 +23,10 @@ import sys
 import os
 import shutil
 import stat
-import datetime
+import time
 import subprocess
 import psutil
+import logging
 from subprocess import CalledProcessError
 
 __author__ = 'Stefan Dieterle'
@@ -53,38 +54,48 @@ class CommandFileUtils:
             self.run = subprocess.run
             self.check = True
         else:
-            self.logging('distribution not supported', 'FATAL')
+            self.write_to_log('distribution not supported', 'CRITICAL')
             sys.exit(1)
         self.pending_dirs = []
+        logging.Formatter.converter = time.gmtime
+        # logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
+        #                     datefmt='%Y-%m-%d %H:%M:%S')
 
-    def logging(self, msg, level=None):
+    def write_to_log(self, msg, level='DEBUG'):
         """
         Logs message to file according if message level is equal or higher to general log level.
         :param msg: message to be logged
         :param level: message level
         :return: nothing
         """
-        if not level:
-            level = self.log_level
         log_levels = [
             'DEBUG',
             'INFO',
+            'WARNING',
             'ERROR',
-            'FATAL'
+            'CRITICAL',
         ]
-        now = datetime.datetime.utcnow()
+
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.log_level)
+
+        handler = logging.FileHandler(self.log_file)
+        formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        handler.setLevel(self.log_level)
+        logger.addHandler(handler)
+
         if level in log_levels:
-            if log_levels.index(level) >= log_levels.index(self.log_level):
-                with open(self.log_file, 'a') as log:
-                    log.write('%s %s: %s\n' % (now.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], level, msg))
+            logging_level = getattr(logger, level.lower())
         else:
-            with open(self.log_file, 'a') as log:
-                log.write(
-                    '%s ERROR: log level "%s" is not specified or not valid\n' % (
-                        now.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], level
-                    )
-                )
-                sys.exit(1)
+            logging_level = logger.error
+            msg = 'log level "%s" is not specified or not valid\n' % level
+            logging_level(msg)
+            sys.exit(1)
+        logging_level(msg)
+
+        logger.removeHandler(handler)
 
     def run_command(self, cmd, msg, cwd=None, out=None, log_error=True):
         """
@@ -93,6 +104,7 @@ class CommandFileUtils:
         :param cmd: command to be run
         :param msg: message to be logged
         :param cwd: current working directory for command (default is None)
+        :param log_error: boolean, controls whether command errors are logged
         :return: 0 on success, exits with 1 if command fails
         """
         if self.check:
@@ -104,20 +116,20 @@ class CommandFileUtils:
                 with open(out, 'a') as log:
                     kwargs.update(dict(cwd=cwd, stdout=log, stderr=log))
                     self.run(cmd, **kwargs)
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
             elif self.log_level == 'DEBUG':
                 with open(self.log_file, 'a') as log:
                     kwargs.update(dict(cwd=cwd, stdout=log, stderr=log))
                     self.run(cmd, **kwargs)
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
             else:
                 kwargs.update(dict(cwd=cwd))
                 self.run(cmd, **kwargs)
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
         except CalledProcessError as error:
             if log_error:
                 err_msg = '%s exited with exit code %s' % (' '.join(error.cmd), str(error.returncode))
-                self.logging(err_msg, 'ERROR')
+                self.write_to_log(err_msg, 'ERROR')
             sys.exit(1)
         return 0
 
@@ -145,7 +157,7 @@ class CommandFileUtils:
                     self.walktree(pathname, f_callback, f_args, d_callback, d_args)
                 except PermissionError as error:
                     msg = '%s on: %s' % (error.strerror, error.filename)
-                    self.logging(msg, 'ERROR')
+                    self.write_to_log(msg, 'ERROR')
                     sys.exit(1)
             elif stat.S_ISREG(mode):
                 try:
@@ -156,10 +168,10 @@ class CommandFileUtils:
                             f_callback(pathname)
                 except PermissionError as error:
                     msg = '%s on: %s' % (error.strerror, error.filename)
-                    self.logging(msg, 'ERROR')
+                    self.write_to_log(msg, 'ERROR')
                     sys.exit(1)
             else:
-                self.logging('Unknown file type: %s' % pathname, 'ERROR')
+                self.write_to_log('Unknown file type: %s' % pathname, 'ERROR')
 
     def permissions(self, path='.', file_permissions='640', dir_permissions='750', recursive=False):
         """
@@ -187,10 +199,10 @@ class CommandFileUtils:
                 msg = 'changed permissions of %s files to %s and directories to %s' % (
                     path, file_permissions, dir_permissions
                 )
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
             except PermissionError as error:
                 msg = '%s on: %s' % (error.strerror, error.filename)
-                self.logging(msg, 'ERROR')
+                self.write_to_log(msg, 'ERROR')
                 sys.exit(1)
             return 0
         else:
@@ -199,13 +211,13 @@ class CommandFileUtils:
                 msg = 'changed permissions of %s to %s' % (
                     path, file_permissions
                 )
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
             elif os.path.isdir(path):
                 os.chmod(path, *d_args)
                 msg = 'changed permissions of %s to %s' % (
                     path, dir_permissions
                 )
-                self.logging(msg, 'INFO')
+                self.write_to_log(msg, 'INFO')
 
     def own(self, path, owner, group):
         """
@@ -220,10 +232,10 @@ class CommandFileUtils:
             shutil.chown(path, owner, group)
             self.walktree(path, shutil.chown, args, shutil.chown, args)
             msg = 'changed ownership of %s to %s:%s' % (path, owner, group)
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
         except PermissionError as error:
             msg = '%s on: %s' % (error.strerror, error.filename)
-            self.logging(msg, 'ERROR')
+            self.write_to_log(msg, 'ERROR')
             sys.exit(1)
         return 0
 

@@ -36,8 +36,8 @@ db_name = false
 if app_repo
   /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
   if name
-    app_name = name
-    db_name = name
+    app_name = name.downcase
+    db_name = name.downcase
   end
 end
 

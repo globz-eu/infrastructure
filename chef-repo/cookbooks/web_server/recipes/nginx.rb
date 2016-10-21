@@ -55,7 +55,7 @@ package 'git'
 if app_repo
   /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
   if name
-    app_name = name
+    app_name = name.downcase
   end
 
   static_path = "/home/#{web_user}/sites/#{app_name}/static"

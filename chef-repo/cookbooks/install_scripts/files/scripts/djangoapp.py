@@ -84,7 +84,7 @@ class InstallDjangoApp(CommandFileUtils):
             return run
         else:
             msg = 'app %s already exists at %s' % (self.app_name, app_home)
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
             return 0
 
     def create_venv(self):
@@ -98,7 +98,7 @@ class InstallDjangoApp(CommandFileUtils):
             return run
         else:
             msg = 'virtualenv %s already exists' % self.venv
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
             return 0
 
     def read_sys_deps(self, deps_file):
@@ -151,7 +151,7 @@ class InstallDjangoApp(CommandFileUtils):
             return run
         else:
             msg = 'biopython was not found in requirements, skipped installation of numpy'
-            self.logging(msg, 'DEBUG')
+            self.write_to_log(msg, 'DEBUG')
             return 0
 
     def install_requirements(self, reqs):
@@ -180,7 +180,7 @@ class InstallDjangoApp(CommandFileUtils):
         with open(pth_file, 'w+') as pth:
             pth.write(app_path + '\n')
             msg = self.app_name + ' has been added to python path in ' + self.venv
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
         return 0
 
     def copy_config(self, app_home):
@@ -199,7 +199,7 @@ class InstallDjangoApp(CommandFileUtils):
 
         for c in conf:
             if os.path.isfile(os.path.join(c['move_to'], c['file'])):
-                self.logging('%s is already present in %s' % (c['file'], self.app_name), 'INFO')
+                self.write_to_log('%s is already present in %s' % (c['file'], self.app_name), 'INFO')
             else:
                 try:
                     shutil.copy(
@@ -207,10 +207,10 @@ class InstallDjangoApp(CommandFileUtils):
                         os.path.join(c['move_to'], c['file'])
                     )
                     msg = 'app configuration file ' + c['file'] + ' was copied to app'
-                    self.logging(msg, 'INFO')
+                    self.write_to_log(msg, 'INFO')
                 except FileNotFoundError:
                     msg = 'could not copy ' + c['file']
-                    self.logging(msg, 'ERROR')
+                    self.write_to_log(msg, 'ERROR')
                     sys.exit(1)
         return 0
 
@@ -278,7 +278,7 @@ class InstallDjangoApp(CommandFileUtils):
             log_list = [l for l in log]
         for l in log_list:
             if 'FAILED' in l:
-                self.logging('%s tests failed' % self.app_name, 'ERROR')
+                self.write_to_log('%s tests failed' % self.app_name, 'ERROR')
                 sys.exit(1)
         return 0
 
@@ -310,7 +310,7 @@ class InstallDjangoApp(CommandFileUtils):
             run = self.run_command(cmd, msg, cwd=cwd)
         else:
             run = 0
-            self.logging('celery is already running', 'INFO')
+            self.write_to_log('celery is already running', 'INFO')
         return run
 
     def stop_celery(self, app_home):
@@ -334,7 +334,7 @@ class InstallDjangoApp(CommandFileUtils):
             run = self.run_command(cmd, msg, cwd=cwd)
         else:
             run = 0
-            self.logging('did not stop celery, was not running', 'INFO')
+            self.write_to_log('did not stop celery, was not running', 'INFO')
         return run
 
     def start_uwsgi(self, app_home):
@@ -353,7 +353,7 @@ class InstallDjangoApp(CommandFileUtils):
             run = self.run_command(cmd, msg, cwd=cwd)
         else:
             run = 0
-            self.logging('uwsgi is already running', 'INFO')
+            self.write_to_log('uwsgi is already running', 'INFO')
         return run
 
     def stop_uwsgi(self):
@@ -366,11 +366,11 @@ class InstallDjangoApp(CommandFileUtils):
         if uwsgi:
             with open(os.path.join('/tmp', self.app_name, 'fifo0'), 'w') as fifo:
                 fifo.write('q')
-            self.logging(msg, 'INFO')
+            self.write_to_log(msg, 'INFO')
             run = 0
         else:
             run = 0
-            self.logging('did not stop uwsgi, was not running', 'INFO')
+            self.write_to_log('did not stop uwsgi, was not running', 'INFO')
         return run
 
     def install_app(self, app_home, app_user, deps_file, reqs_file):
@@ -397,7 +397,7 @@ class InstallDjangoApp(CommandFileUtils):
         venvs = [os.path.dirname(self.venv), self.venv]
         for venv in venvs:
             self.permissions(venv, dir_permissions='500')
-        self.logging('install django app exited with code 0\n', 'INFO')
+        self.write_to_log('install django app exited with code 0\n', 'INFO')
         return 0
 
     def remove_app(self, app_home, app_user):
@@ -412,7 +412,7 @@ class InstallDjangoApp(CommandFileUtils):
             os.makedirs(app_home)
             self.own(app_home, app_user, app_user)
             self.permissions(app_home, dir_permissions='500')
-            self.logging('removed %s' % self.app_name, 'INFO')
+            self.write_to_log('removed %s' % self.app_name, 'INFO')
         return 0
 
 
@@ -428,7 +428,7 @@ def main():
     parser.add_option('-i', '--install', dest='install', action='store_true',
                       help='install: installs django app, requirements and dependencies', default=False)
     parser.add_option('-l', '--log-level', dest='log_level',
-                      help='log-level: DEBUG, INFO, ERROR, FATAL', default='INFO')
+                      help='log-level: DEBUG, INFO, WARNING, ERROR, CRITICAL', default='INFO')
     parser.add_option('-m', '--migrate', dest='migrate', action='store_true',
                       help='migrate: runs database migrations', default=False)
     parser.add_option('-t', '--run-tests', dest='tests', action='store_true',

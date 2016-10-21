@@ -101,16 +101,15 @@ class RunAndLogTest(TestCase):
         :param message: message to test
         :param test: tests presence (True) or absence (False)
         :param regex: tests using regex if True
-        :return:
         """
         with open(self.log_file) as log:
-            log_list = [l[24:] for l in log]
+            log_list = [l[20:] for l in log]
             if test:
                 if regex:
                     matches = [l for l in log_list if re.match(message, l)]
                     self.assertTrue(matches, '%s not found' % message)
                 else:
-                    self.assertTrue('%s\n' % message in log_list, log_list)
+                    self.assertTrue('%s\n' % message in log_list, 'message: \'%s\', log_list: %s' % (message, log_list))
             else:
                 if regex:
                     matches = [l for l in log_list if re.match(message, l)]

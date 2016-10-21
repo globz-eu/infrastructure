@@ -16,7 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: chef_server
+# Recipe:: install_chef_server
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+require 'spec_helper'
+
+set :backend, :exec
+
+describe file('/home/chef_user/scripts/install_script') do
+  it {should exist}
+  it {should be_file}
+  it {should be_owned_by 'chef_user'}
+  it {should be_grouped_into 'chef_user'}
+  it {should be_mode 640}
+end
+
+describe package('chef-server') do
+  it {should be_installed}
+end

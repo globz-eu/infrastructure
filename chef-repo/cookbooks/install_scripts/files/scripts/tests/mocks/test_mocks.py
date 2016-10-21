@@ -115,7 +115,7 @@ class InstallMockTests(RunAndLogTest):
             os.path.join(APP_HOME_TMP, 'app_name/static/static_file'),
             os.path.join(APP_HOME_TMP, 'app_name/media/media_file'),
             os.path.join(APP_HOME_TMP, 'app_name/uwsgi_params'),
-            os.path.join(APP_HOME_TMP, 'app_name/static/site_down/index.html'),
+            os.path.join(APP_HOME_TMP, 'app_name/static/base/site_down/index.html'),
         ]
         for static_file in static_files:
             self.assertTrue(os.path.isfile(static_file), static_file)

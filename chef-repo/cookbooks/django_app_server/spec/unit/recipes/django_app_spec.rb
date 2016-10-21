@@ -55,7 +55,6 @@ describe 'django_app_server::django_app' do
             mode: '0500',
         )
       end
-
     end
   end
 end
@@ -146,7 +145,6 @@ describe 'django_app_server::django_app' do
                 allowed_host: allowed_host,
                 engine: 'django.db.backends.postgresql_psycopg2',
                 app_name: 'django_base',
-                db_name: 'django_base',
                 db_user: 'db_user',
                 db_user_password: 'db_user_password',
                 db_host: 'localhost',

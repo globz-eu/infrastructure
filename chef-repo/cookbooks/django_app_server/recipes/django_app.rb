@@ -70,7 +70,7 @@ end
 if app_repo
   /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
   unless name == nil
-    app_name = name
+    app_name = name.downcase
   end
 
   if node['django_app_server']['uwsgi']['socket'] == 'unix'
@@ -125,7 +125,6 @@ if app_repo
                   allowed_host: allowed_host,
                   engine: node['django_app_server']['django_app']['engine'],
                   app_name: app_name,
-                  db_name: app_name.downcase,
                   db_user: db_user,
                   db_user_password: db_password,
                   db_host: node['django_app_server']['django_app']['db_host'],
@@ -142,7 +141,7 @@ if app_repo
     group app_user
     mode '0400'
     variables({
-                  app_name: app_name.downcase,
+                  app_name: app_name,
                   db_admin_user: pg_user_vault['user'],
                   db_admin_password: pg_user_vault['password'],
               })
@@ -178,7 +177,7 @@ if app_repo
     source 'app_name_uwsgi.ini.erb'
     variables({
                   app_name: app_name,
-                  module: app_name.downcase,
+                  module: app_name,
                   app_user: app_user,
                   fifo: "/tmp/#{app_name}/fifo0",
                   web_user: 'www-data',

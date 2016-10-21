@@ -225,7 +225,7 @@ class AppTest(InstallTest):
             os.path.join(self.app_home, self.app_name, 'static/static_file'),
             os.path.join(self.app_home, self.app_name, 'media/media_file'),
             os.path.join(self.app_home, '%s_uwsgi_params' % self.app_name),
-            os.path.join(self.app_home, self.app_name, 'static/site_down/index.html'),
+            os.path.join(self.app_home, self.app_name, 'static/base/site_down/index.html'),
             os.path.join(self.app_home, self.app_name)
         ]
         install_django_app = InstallDjangoApp(
@@ -259,7 +259,7 @@ class InstallDjangoAppTest(InstallTest):
             InstallDjangoApp('Invalid_dist_version', self.log_file, self.log_level)
         except SystemExit as error:
             self.assertEqual(1, error.code, 'CommandFileUtils exited with: %s' % str(error))
-            self.log('FATAL: distribution not supported')
+            self.log('CRITICAL: distribution not supported')
 
     def test_clone_app(self):
         """
@@ -604,7 +604,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
             ]
         ]
         msgs = [
@@ -642,7 +642,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
             ]
         ]
         msgs = [
@@ -686,7 +686,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit ', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
             ]
         ]
         msgs = [

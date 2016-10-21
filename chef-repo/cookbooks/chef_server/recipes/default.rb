@@ -16,7 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook Name:: chef_server
+# Recipe:: default
 
-require 'chefspec'
-require 'chefspec/berkshelf'
-require 'chef-vault/test_fixtures'
+include_recipe 'apt::default'
+include_recipe 'chef-vault'
+include_recipe 'basic_node::admin_user'
+include_recipe 'basic_node::firewall'
+include_recipe 'basic_node::openssh'
+include_recipe 'basic_node::ntp'

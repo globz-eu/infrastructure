@@ -32,7 +32,7 @@ def clone_app_mock(app_home):
         ['static', 'static/static_file', 'static'],
         ['media', 'media/media_file', 'media'],
         ['', 'uwsgi_params', 'uwsgi_params'],
-        ['static/site_down', 'static/site_down/index.html', 'index.html']
+        ['static/base/site_down', 'static/base/site_down/index.html', 'index.html']
     ]
     for static_dir, static_file_path, static_name in static_files:
         os.makedirs(os.path.join(app_home, 'app_name', static_dir), exist_ok=True)
@@ -40,7 +40,7 @@ def clone_app_mock(app_home):
         with open(static_file_abs_path, 'w') as static_file:
             static_file.write('%s stuff\n' % static_name)
     cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
-    cfu.logging('successfully cloned %s to %s' % ('app_name', app_home), 'INFO')
+    cfu.write_to_log('successfully cloned %s to %s' % ('app_name', app_home), 'INFO')
 
 
 def add_app_to_path_mock(app_home):
@@ -64,7 +64,7 @@ def copy_config_mock(app_home):
 
 def stop_celery_mock(app_home):
     cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
-    cfu.logging('stopped celery and beat', 'INFO')
+    cfu.write_to_log('stopped celery and beat', 'INFO')
     if os.path.exists(os.path.join(CELERY_PID_PATH, 'w1.pid')):
         os.remove(os.path.join(CELERY_PID_PATH, 'w1.pid'))
     return 0

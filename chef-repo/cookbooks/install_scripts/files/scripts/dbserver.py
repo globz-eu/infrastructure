@@ -77,10 +77,10 @@ class CreateDB(CommandFileUtils):
                     last == 'ERROR:  database "%s" already exists\n' % self.db_name or
                     last == 'ERROR:  database "%s" already exists\n' % self.db_name.lower()
             ):
-                self.logging('skipped database creation, \'%s\' already exists' % self.db_name, 'INFO')
+                self.write_to_log('skipped database creation, \'%s\' already exists' % self.db_name, 'INFO')
                 run.append(0)
             else:
-                self.logging('create_db exited with error', 'ERROR')
+                self.write_to_log('create_db exited with error', 'ERROR')
                 sys.exit(1)
         for r in run:
             if r != 0:
@@ -101,10 +101,10 @@ class CreateDB(CommandFileUtils):
                     last == 'ERROR:  database "%s" does not exist\n' % self.db_name or
                     last == 'ERROR:  database "%s" does not exist\n' % self.db_name.lower()
             ):
-                self.logging('skipped drop database, \'%s\' does not exist' % self.db_name, 'INFO')
+                self.write_to_log('skipped drop database, \'%s\' does not exist' % self.db_name, 'INFO')
                 run = 0
             else:
-                self.logging('create_db exited with error', 'ERROR')
+                self.write_to_log('create_db exited with error', 'ERROR')
                 sys.exit(1)
         return run
 
@@ -116,7 +116,7 @@ def main():
     parser.add_option('-c', '--create', dest='create', action='store_true',
                       help='create: creates database and manages default privileges', default=False)
     parser.add_option('-l', '--log-level', dest='log_level',
-                      help='log-level: DEBUG, INFO, ERROR, FATAL', default='INFO')
+                      help='log-level: DEBUG, INFO, WARNING, ERROR, CRITICAL', default='INFO')
     parser.add_option('-x', '--drop', dest='drop', action='store_true',
                       help='drop: drops database', default=False)
     parser.add_option('-r', '--reset', dest='reset', action='store_true',

@@ -24,7 +24,7 @@ users = node['install_scripts']['users']
 app_repo = node['install_scripts']['git']['app_repo']
 /https:\/\/github.com\/[\w\-]+\/(?<name>\w+)\.git/ =~ app_repo
 unless name == nil
-  app_name = name
+  app_name = name.downcase
 end
 scripts = {web: %w(scripts/webserver.py scripts/djangoapp.py), app: ['scripts/djangoapp.py'], db: ['scripts/dbserver.py']}
 

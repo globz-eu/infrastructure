@@ -114,7 +114,7 @@ class ServeStaticTest(StaticTest):
             ServeStatic('Invalid_dist_version', self.app_home, self.log_file, self.log_level)
         except SystemExit as error:
             self.assertEqual(1, error.code, 'CommandFileUtils exited with: %s' % str(error))
-            self.log('FATAL: distribution not supported')
+            self.log('CRITICAL: distribution not supported')
 
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
     def test_move_dirs(self, clone_app_mock):
