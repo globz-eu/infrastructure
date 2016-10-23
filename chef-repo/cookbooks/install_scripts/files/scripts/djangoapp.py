@@ -105,7 +105,7 @@ class InstallDjangoApp(CommandFileUtils):
         """
         parses system_dependencies file
         :param: deps_file: system_dependencies file
-        :return: ['dependency_1', ... , 'dependency_n']
+        :return: dependency list: ['dependency_1', ... , 'dependency_n']
         """
         with open(deps_file) as system_dependencies:
             deps_list = [line.rstrip() for line in system_dependencies]
