@@ -28,7 +28,7 @@ app_name = 'django_base'
 
 # manages migrations
 describe command ( "su - app_user -c 'cd && .envs/#{app_name}/bin/python sites/#{app_name}/source/#{app_name}/manage.py makemigrations base #{app_name}'" ) do
-  its(:stdout) { should match(/^No changes detected in apps '#{app_name}', 'base'$/)}
+  its(:stdout) { should match(/^No changes detected in apps/)}
 end
 
 describe command ( "su - app_user -c 'cd && .envs/#{app_name}/bin/python sites/#{app_name}/source/#{app_name}/manage.py migrate base'" ) do
@@ -118,11 +118,11 @@ end
 
 # site is up
 if os[:release] == '14.04'
-  describe command('curl 192.168.1.85') do
+  describe command('curl 192.168.1.86') do
     its(:stdout) {should match(%r(^\s+<title>#{app_name} Home</title>$))}
   end
 elsif os[:release] == '16.04'
-  describe command('curl 192.168.1.86') do
+  describe command('curl 192.168.1.87') do
     its(:stdout) {should match(%r(^\s+<title>#{app_name} Home</title>$))}
   end
 end

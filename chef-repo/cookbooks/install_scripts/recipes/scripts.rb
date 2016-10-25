@@ -30,6 +30,11 @@ scripts = {web: %w(scripts/webserver.py scripts/djangoapp.py), app: ['scripts/dj
 
 package 'python3-pip'
 
+bash 'update_pip' do
+  code 'pip3 install --upgrade pip'
+  user 'root'
+end
+
 unless users.empty?
   directory "/var/log/#{app_name}" do
     owner 'root'

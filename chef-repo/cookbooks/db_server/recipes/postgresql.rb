@@ -85,7 +85,7 @@ if db_name
     source 'conf.py.erb'
     variables({
         dist_version: node['platform_version'],
-        debug: 'DEBUG',
+        log_level: 'DEBUG',
         nginx_conf: '',
         git_repo: app_repo,
         app_home: '',
@@ -99,7 +99,8 @@ if db_name
         media_path: '',
         uwsgi_path: '',
         down_path: '',
-        log_file: "/var/log/#{app_name}/create_db.log"
+        log_file: "/var/log/#{app_name}/create_db.log",
+        fifo_dir: ''
               })
   end
 

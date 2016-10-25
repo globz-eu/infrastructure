@@ -79,7 +79,7 @@ if app_repo
     source 'conf.py.erb'
     variables({
                   dist_version: node['platform_version'],
-                  debug: 'DEBUG',
+                  log_level: 'DEBUG',
                   nginx_conf: '',
                   git_repo: app_repo,
                   app_home: app_home,
@@ -91,7 +91,8 @@ if app_repo
                   media_path: media_path,
                   uwsgi_path: uwsgi_path,
                   down_path: down_path,
-                  log_file: "/var/log/#{app_name}/serve_static.log"
+                  log_file: "/var/log/#{app_name}/serve_static.log",
+                  fifo_dir: ''
               })
   end
 
@@ -102,7 +103,6 @@ if app_repo
   end
 
   # TODO: adapt to tcp sockets option
-  # TODO: adapt to https
   if ssl
     template "/etc/nginx/sites-available/#{app_name}.conf" do
       owner 'root'

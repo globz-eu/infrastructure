@@ -19,9 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =====================================================================
 """
 import os
-from tests.conf_tests import DIST_VERSION, VENV, LOG_FILE, DEBUG, GIT_REPO, CELERY_PID_PATH
+from tests.conf_tests import DIST_VERSION, VENV, LOG_FILE, LOG_LEVEL, CELERY_PID_PATH
 from utilities.commandfileutils import CommandFileUtils
-from djangoapp import InstallDjangoApp
 
 
 __author__ = 'Stefan Dieterle'
@@ -39,7 +38,7 @@ def clone_app_mock(app_home):
         static_file_abs_path = os.path.join(app_home, 'app_name', static_file_path)
         with open(static_file_abs_path, 'w') as static_file:
             static_file.write('%s stuff\n' % static_name)
-    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
+    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, LOG_LEVEL)
     cfu.write_to_log('successfully cloned %s to %s' % ('app_name', app_home), 'INFO')
 
 
@@ -63,7 +62,7 @@ def copy_config_mock(app_home):
 
 
 def stop_celery_mock(app_home):
-    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
+    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, LOG_LEVEL)
     cfu.write_to_log('stopped celery and beat', 'INFO')
     if os.path.exists(os.path.join(CELERY_PID_PATH, 'w1.pid')):
         os.remove(os.path.join(CELERY_PID_PATH, 'w1.pid'))

@@ -207,7 +207,7 @@ describe 'db_server::postgresql' do
             source: 'conf.py.erb',
             variables: {
                 dist_version: version,
-                debug: 'DEBUG',
+                log_level: 'DEBUG',
                 nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '',
@@ -221,12 +221,13 @@ describe 'db_server::postgresql' do
                 media_path: '',
                 uwsgi_path: '',
                 down_path: '',
-                log_file: '/var/log/django_base/create_db.log'
+                log_file: '/var/log/django_base/create_db.log',
+                fifo_dir: ''
             }
         )
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
-            %r(^DEBUG = 'DEBUG'$),
+            %r(^LOG_LEVEL = 'DEBUG'$),
             %r(^NGINX_CONF = ''$),
             %r(^APP_HOME = ''$),
             %r(^APP_HOME_TMP = ''$),
@@ -242,7 +243,8 @@ describe 'db_server::postgresql' do
             %r(^VENV = ''$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
-            %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$)
+            %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$),
+            %r(^FIFO_DIR = ''$)
         ]
         install_app_conf.each do |u|
           expect(chef_run).to render_file(

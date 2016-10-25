@@ -162,7 +162,7 @@ if os[:family] == 'ubuntu'
   describe file("/home/app_user/sites/#{app_name}/scripts/conf.py") do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
-        %r(^DEBUG = 'DEBUG'$),
+        %r(^LOG_LEVEL = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = '/home/app_user/sites/#{app_name}/source'$),
         %r(^APP_USER = 'app_user'$),
@@ -171,7 +171,8 @@ if os[:family] == 'ubuntu'
         %r(^VENV = '/home/app_user/\.envs/#{app_name}'$),
         %r(^REQS_FILE = '/home/app_user/sites/#{app_name}/source/#{app_name}/requirements\.txt'$),
         %r(^SYS_DEPS_FILE = '/home/app_user/sites/#{app_name}/source/#{app_name}/system_dependencies\.txt'$),
-        %r(^LOG_FILE = '/var/log/#{app_name}/install\.log'$)
+        %r(^LOG_FILE = '/var/log/#{app_name}/install\.log'$),
+        %r(^FIFO_DIR = '/tmp/#{app_name}'$)
     ]
     it { should exist }
     it { should be_file }

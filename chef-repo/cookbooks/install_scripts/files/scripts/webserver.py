@@ -211,10 +211,8 @@ def main():
     if len(args) > 2:
         parser.error('incorrect number of arguments')
 
-    if options.log_level:
-        log_level = options.log_level
     kwargs = {'git_repo': GIT_REPO, 'nginx_conf': NGINX_CONF} if NGINX_CONF else {'git_repo': GIT_REPO}
-    serve_django_static = ServeStatic(DIST_VERSION, APP_HOME_TMP, LOG_FILE, log_level, **kwargs)
+    serve_django_static = ServeStatic(DIST_VERSION, APP_HOME_TMP, LOG_FILE, options.log_level, **kwargs)
 
     if options.move_static:
         static = serve_django_static.serve_static(

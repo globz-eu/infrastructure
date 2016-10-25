@@ -19,7 +19,7 @@ platforms:
       network:
         - ['private_network', {ip: '10.10.1.18'}]
 #        - ['private_network', {ip: '192.168.122.13'}]
-        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.85'}]
+        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.86'}]
       customize:
         memory: 2048
         cpus: 2
@@ -33,7 +33,7 @@ platforms:
       network:
         - ['private_network', {ip: '10.10.1.19'}]
 #        - ['private_network', {ip: '192.168.122.14'}]
-        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.86'}]
+        - ['public_network', {dev: 'br1', mode: 'bridge', type: 'bridge', ip: '192.168.1.87'}]
       customize:
         memory: 2048
         cpus: 2

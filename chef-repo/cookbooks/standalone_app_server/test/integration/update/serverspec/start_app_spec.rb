@@ -118,11 +118,11 @@ end
 
 # site is up
 if os[:release] == '14.04'
-  describe command('curl 192.168.1.85') do
+  describe command('curl 192.168.1.86') do
     its(:stdout) {should match(%r(^\s+<title>#{app_name} Home</title>$))}
   end
 elsif os[:release] == '16.04'
-  describe command('curl 192.168.1.86') do
+  describe command('curl 192.168.1.87') do
     its(:stdout) {should match(%r(^\s+<title>#{app_name} Home</title>$))}
   end
 end

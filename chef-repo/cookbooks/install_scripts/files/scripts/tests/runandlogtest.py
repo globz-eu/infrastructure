@@ -25,7 +25,7 @@ import subprocess
 from subprocess import CalledProcessError
 from unittest import TestCase
 from unittest.mock import MagicMock
-from tests.conf_tests import DIST_VERSION, LOG_FILE, DEBUG, CELERY_PID_PATH
+from tests.conf_tests import DIST_VERSION, LOG_FILE, LOG_LEVEL, CELERY_PID_PATH
 from tests.helpers import remove_test_dir
 
 __author__ = 'Stefan Dieterle'
@@ -35,7 +35,7 @@ class RunAndLogTest(TestCase):
     def setUp(self):
         self.dist_version = DIST_VERSION
         self.log_file = LOG_FILE
-        self.log_level = DEBUG
+        self.log_level = LOG_LEVEL
         self.celery_pid_path = CELERY_PID_PATH
         if self.dist_version == '14.04':
             self.run = subprocess.check_call

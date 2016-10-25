@@ -76,6 +76,13 @@ describe 'install_scripts::scripts' do
         expect(chef_run).to install_package('python3-pip')
       end
 
+      it 'updates pip' do
+        expect(chef_run).to run_bash('update_pip').with(
+            code: 'pip3 install --upgrade pip',
+            user: 'root'
+        )
+      end
+
       it 'creates the /var/log/django_base directory' do
         expect(chef_run).to create_directory('/var/log/django_base').with(
             owner: 'root',

@@ -165,7 +165,7 @@ if os[:family] == 'ubuntu'
   describe file('/home/db_user/sites/django_base/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
-        %r(^DEBUG = 'DEBUG'$),
+        %r(^LOG_LEVEL = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = ''$),
         %r(^APP_HOME_TMP = ''$),
@@ -181,7 +181,8 @@ if os[:family] == 'ubuntu'
         %r(^VENV = ''$),
         %r(^REQS_FILE = ''$),
         %r(^SYS_DEPS_FILE = ''$),
-        %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$)
+        %r(^LOG_FILE = '/var/log/django_base/create_db\.log'$),
+        %r(^FIFO_DIR = ''$)
     ]
     it { should exist }
     it { should be_file }

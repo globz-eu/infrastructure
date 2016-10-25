@@ -61,7 +61,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
+        /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
         %r(^\s+alias /home/web_user/sites/formalign/media;),
         %r(^\s+alias /home/web_user/sites/formalign/static;),
         %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
@@ -72,7 +72,7 @@ if os[:family] == 'ubuntu'
         %r(^\s+server unix:///home/app_user/sites/formalign/sockets/formalign\.sock; # for a file socket$),
         /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
         /^\s+listen\s+80;$/,
-        /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
+        /^\s+server_name\s+192\.168\.1\.87\s+www\.192\.168\.1\.87;$/,
         %r(^\s+alias /home/web_user/sites/formalign/media;),
         %r(^\s+alias /home/web_user/sites/formalign/static;),
         %r(^\s+include\s+/home/web_user/sites/formalign/uwsgi/uwsgi_params;$)
@@ -97,7 +97,7 @@ if os[:family] == 'ubuntu'
             /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.85\s+www\.192\.168\.1\.85;$/,
+            /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
             %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       elsif os[:release] == '16.04'
@@ -105,7 +105,7 @@ if os[:family] == 'ubuntu'
             /^# formalign_down.conf$/,
             %r(^\s+index index.html;$),
             /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.86\s+www\.192\.168\.1\.86;$/,
+            /^\s+server_name\s+192\.168\.1\.87\s+www\.192\.168\.1\.87;$/,
             %r(^\s+root /home/web_user/sites/formalign/down;)
         ]
       end
@@ -202,7 +202,7 @@ if os[:family] == 'ubuntu'
   describe file('/home/web_user/sites/formalign/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
-        %r(^DEBUG = 'DEBUG'$),
+        %r(^LOG_LEVEL = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = ''$),
         %r(^APP_HOME_TMP = '/home/web_user/sites/formalign/source'$),
@@ -216,7 +216,8 @@ if os[:family] == 'ubuntu'
         %r(^VENV = ''$),
         %r(^REQS_FILE = ''$),
         %r(^SYS_DEPS_FILE = ''$),
-        %r(^LOG_FILE = '/var/log/formalign/serve_static\.log'$)
+        %r(^LOG_FILE = '/var/log/formalign/serve_static\.log'$),
+        %r(^FIFO_DIR = ''$)
     ]
     it { should exist }
     it { should be_file }

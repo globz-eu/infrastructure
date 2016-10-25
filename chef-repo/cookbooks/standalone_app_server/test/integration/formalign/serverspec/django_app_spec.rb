@@ -180,7 +180,7 @@ if os[:family] == 'ubuntu'
   describe file('/home/app_user/sites/formalign/scripts/conf.py') do
     params = [
         %r(^DIST_VERSION = '#{os[:release]}'$),
-        %r(^DEBUG = 'DEBUG'$),
+        %r(^LOG_LEVEL = 'DEBUG'$),
         %r(^NGINX_CONF = ''$),
         %r(^APP_HOME = '/home/app_user/sites/formalign/source'$),
         %r(^APP_USER = 'app_user'$),
@@ -189,7 +189,8 @@ if os[:family] == 'ubuntu'
         %r(^VENV = '/home/app_user/\.envs/formalign'$),
         %r(^REQS_FILE = '/home/app_user/sites/formalign/source/formalign/requirements\.txt'$),
         %r(^SYS_DEPS_FILE = '/home/app_user/sites/formalign/source/formalign/system_dependencies\.txt'$),
-        %r(^LOG_FILE = '/var/log/formalign/install\.log'$)
+        %r(^LOG_FILE = '/var/log/formalign/install\.log'$),
+        %r(^FIFO_DIR = '/tmp/formalign'$)
     ]
     it { should exist }
     it { should be_file }
@@ -282,7 +283,7 @@ if os[:family] == 'ubuntu'
       if os[:release] == '14.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.1\.85'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.86'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
@@ -294,7 +295,7 @@ if os[:family] == 'ubuntu'
       elsif os[:release] == '16.04'
         params = [
             %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(ALLOWED_HOSTS = \['192\.168\.1\.86'\]$),
+            %r(ALLOWED_HOSTS = \['192\.168\.1\.87'\]$),
             %r(^\s+'PASSWORD': "db_user_password",$),
             %r(^DEBUG = False$),
             %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),

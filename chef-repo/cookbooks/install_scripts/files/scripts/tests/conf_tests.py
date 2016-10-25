@@ -24,10 +24,10 @@ import os
 __author__ = 'Stefan Dieterle'
 
 TEST_DIR = '/tmp/scripts_test'
-FIFO_DIR = '/tmp/app_name'
+FIFO_DIR = '/tmp/scripts_test/fifo/app_name'
 
 DIST_VERSION = '16.04'
-DEBUG = 'DEBUG'
+LOG_LEVEL = 'DEBUG'
 NGINX_CONF = '/tmp/scripts_test/etc/nginx'
 APP_HOME = '/tmp/scripts_test/app_user/sites/app_name/source'
 APP_HOME_TMP = '/tmp/scripts_test/web_user/sites/app_name/source'

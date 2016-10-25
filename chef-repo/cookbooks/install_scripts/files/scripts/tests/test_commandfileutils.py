@@ -28,7 +28,7 @@ import shutil
 import stat
 import datetime
 from utilities.commandfileutils import CommandFileUtils
-from tests.conf_tests import DIST_VERSION, DEBUG, APP_HOME, LOG_FILE
+from tests.conf_tests import DIST_VERSION, LOG_FILE, TEST_DIR, LOG_LEVEL
 from tests.runandlogtest import RunAndLogTest
 from tests.mocks.commandfileutils_mocks import own_app_mock
 from tests.helpers import remove_test_dir
@@ -43,8 +43,7 @@ class RunCommandTest(TestCase):
     def setUp(self):
         self.dist_version = DIST_VERSION
         self.log_file = LOG_FILE
-        self.log_level = DEBUG
-        self.app_home = APP_HOME
+        self.log_level = LOG_LEVEL
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
         remove_test_dir()
@@ -110,7 +109,7 @@ class CommandFileUtilsTest(RunAndLogTest):
     """
     def setUp(self):
         RunAndLogTest.setUp(self)
-        self.app_home = APP_HOME
+        self.test_dir = TEST_DIR
         if self.dist_version == '14.04':
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
@@ -230,60 +229,60 @@ class CommandFileUtilsTest(RunAndLogTest):
         self.run_error(cmd, func, runlog.run_command, args)
 
     def test_walktree(self):
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, runlog.write_to_log, ('INFO', ), runlog.write_to_log, ('INFO', ))
-        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name',
-                 '/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
+        runlog.walktree(self.test_dir, runlog.write_to_log, ('INFO', ), runlog.write_to_log, ('INFO', ))
+        paths = ['/tmp/scripts_test/dir',
+                 '/tmp/scripts_test/dir/file']
         for p in paths:
             self.log('INFO: %s' % p)
 
     def test_walktree_with_no_file_function(self):
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, d_callback=runlog.write_to_log, d_args=('INFO', ))
-        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
+        runlog.walktree(self.test_dir, d_callback=runlog.write_to_log, d_args=('INFO', ))
+        paths = ['/tmp/scripts_test/dir']
         for p in paths:
             self.log('INFO: %s' % p)
             self.log('ERROR:', test=False, regex=True)
 
     def test_walktree_with_no_file_function_args(self):
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, f_callback=runlog.write_to_log)
-        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
+        runlog.walktree(self.test_dir, f_callback=runlog.write_to_log)
+        paths = ['/tmp/scripts_test/dir/file']
         for p in paths:
             self.log('DEBUG: %s' % p)
 
     def test_walktree_with_no_directory_function(self):
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, f_callback=runlog.write_to_log, f_args=('INFO', ))
-        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name/file']
+        runlog.walktree(self.test_dir, f_callback=runlog.write_to_log, f_args=('INFO', ))
+        paths = ['/tmp/scripts_test/dir/file']
         for p in paths:
             self.log('INFO: %s' % p)
             self.log('ERROR:', test=False, regex=True)
 
     def test_walktree_with_no_directory_function_args(self):
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        runlog.walktree(self.app_home, d_callback=runlog.write_to_log)
-        paths = ['/tmp/scripts_test/app_user/sites/app_name/source/app_name']
+        runlog.walktree(self.test_dir, d_callback=runlog.write_to_log)
+        paths = ['/tmp/scripts_test/dir']
         for p in paths:
             self.log('DEBUG: %s' % p)
 
@@ -310,54 +309,56 @@ class CommandFileUtilsTest(RunAndLogTest):
             ['644', '755', '-rw-r--r--', 'drwxr-xr-x'],
             ['755', '755', '-rwxr-xr-x', 'drwxr-xr-x']
         ]
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
 
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
 
         for i in test_permissions:
-            os.makedirs(os.path.join(self.app_home, 'app_name'))
+            os.makedirs(os.path.join(self.test_dir, 'dir'))
             with open(app_home_nested_file, 'w') as file:
                 file.write('some text')
 
-            runlog.permissions(self.app_home, i[0], i[1], recursive=True)
+            runlog.permissions(self.test_dir, i[0], i[1], recursive=True)
             app_home_files = []
             app_home_dirs = []
-            for root, dirs, files in os.walk(self.app_home):
+            for root, dirs, files in os.walk(self.test_dir):
                 for name in files:
                     app_home_files.append(os.path.join(root, name))
                 for name in dirs:
                     app_home_dirs.append(os.path.join(root, name))
-                app_home_dirs.append(self.app_home)
+                app_home_dirs.append(self.test_dir)
             for a in app_home_files:
                 self.assertEqual(i[2], stat.filemode(os.stat(a).st_mode), stat.filemode(os.stat(a).st_mode))
             for a in app_home_dirs:
                 self.assertEqual(i[3], stat.filemode(os.stat(a).st_mode), stat.filemode(os.stat(a).st_mode))
 
             self.log('INFO: changed permissions of %s files to %s and directories to %s' % (
-                self.app_home, i[0], i[1]
+                self.test_dir, i[0], i[1]
             ))
 
-            os.chmod(self.app_home, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-            for root, dirs, files in os.walk(self.app_home):
+            os.chmod(self.test_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+            for root, dirs, files in os.walk(self.test_dir):
                 for name in dirs:
                     os.chmod(os.path.join(root, name), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-            shutil.rmtree(self.app_home)
+            shutil.rmtree(self.test_dir)
 
     def test_permissions_non_recursive(self):
         """
         tests permissions assigns permissions recursively and writes to log
         """
         test_permissions = [
-            [{'path': '/tmp/scripts_test/app_user/sites/app_name/source', 'dir_permissions': '500'}, 'dr-x------'],
-            [{'path': '/tmp/scripts_test/app_user/sites/app_name/source/app_name', 'dir_permissions': '770'}, 'drwxrwx---'],
-            [{'path': '/tmp/scripts_test/app_user/sites/app_name/source/app_name/file', 'file_permissions': '400'}, '-r--------'],
+            [{'path': '/tmp/scripts_test', 'dir_permissions': '500'}, 'dr-x------'],
+            [{'path': '/tmp/scripts_test/dir', 'dir_permissions': '770'},
+             'drwxrwx---'],
+            [{'path': '/tmp/scripts_test/dir/file', 'file_permissions': '400'},
+             '-r--------'],
         ]
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
 
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
 
         for i in test_permissions:
-            os.makedirs(os.path.join(self.app_home, 'app_name'))
+            os.makedirs(os.path.join(self.test_dir, 'dir'))
             with open(app_home_nested_file, 'w') as file:
                 file.write('some text')
 
@@ -369,11 +370,11 @@ class CommandFileUtilsTest(RunAndLogTest):
             elif os.path.isfile(i[0]['path']):
                 self.log('INFO: changed permissions of %s to %s' % (i[0]['path'], i[0]['file_permissions']))
 
-            os.chmod(self.app_home, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-            for root, dirs, files in os.walk(self.app_home):
+            os.chmod(self.test_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+            for root, dirs, files in os.walk(self.test_dir):
                 for name in dirs:
                     os.chmod(os.path.join(root, name), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-            shutil.rmtree(self.app_home)
+            shutil.rmtree(self.test_dir)
 
     def test_check_pending_returns_correct_list(self):
         """
@@ -390,15 +391,15 @@ class CommandFileUtilsTest(RunAndLogTest):
         """
         tests that get_pending_dirs returns a list of directory paths for pending tests
         """
-        os.makedirs(os.path.join(self.app_home, 'app_name', 'acceptance_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'app_name', 'app_name', 'functional_tests', 'pending_tests'), exist_ok=True)
-        os.makedirs(os.path.join(self.app_home, 'app_name', 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.test_dir, 'dir', 'acceptance_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.test_dir, 'dir', 'dir', 'functional_tests', 'pending_tests'), exist_ok=True)
+        os.makedirs(os.path.join(self.test_dir, 'dir', 'base', 'unit_tests', 'pending_tests'), exist_ok=True)
         cfu = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
-        pending_dirs = cfu.get_pending_dirs(self.app_home, 'app_name')
+        pending_dirs = cfu.get_pending_dirs(self.test_dir, 'dir')
         expected_pending_dirs = [
             os.path.join('.', 'acceptance_tests'),
             os.path.join('.', 'base', 'unit_tests', 'pending_tests'),
-            os.path.join('.', 'app_name', 'functional_tests', 'pending_tests'),
+            os.path.join('.', 'dir', 'functional_tests', 'pending_tests'),
         ]
         self.assertEqual(expected_pending_dirs, pending_dirs, pending_dirs)
 
@@ -407,19 +408,19 @@ class CommandFileUtilsTest(RunAndLogTest):
         """
         tests that own manages ownership and writes to log.
         """
-        app_home_nested_file = os.path.join(self.app_home, 'app_name', 'file')
-        os.makedirs(os.path.join(self.app_home, 'app_name'))
+        app_home_nested_file = os.path.join(self.test_dir, 'dir', 'file')
+        os.makedirs(os.path.join(self.test_dir, 'dir'))
         with open(app_home_nested_file, 'w') as file:
             file.write('some text')
         user = 'app_user'
         group = 'app_user'
         runlog = CommandFileUtils(self.dist_version, self.log_file, self.log_level)
 
-        runlog.own(self.app_home, user, group)
+        runlog.own(self.test_dir, user, group)
 
-        self.assertEqual([call(self.app_home, user, group)], own_app_mock.mock_calls, own_app_mock.mock_calls)
+        self.assertEqual([call(self.test_dir, user, group)], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
-        self.log('INFO: changed ownership of %s to %s:%s' % (self.app_home, user, user))
+        self.log('INFO: changed ownership of %s to %s:%s' % (self.test_dir, user, user))
 
     def test_check_process(self):
         """

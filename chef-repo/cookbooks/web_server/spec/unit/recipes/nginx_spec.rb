@@ -127,7 +127,7 @@ describe 'web_server::nginx' do
             source: 'conf.py.erb',
             variables: {
                 dist_version: version,
-                debug: 'DEBUG',
+                log_level: 'DEBUG',
                 nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '',
@@ -139,12 +139,13 @@ describe 'web_server::nginx' do
                 media_path: '/home/web_user/sites/django_base/media',
                 uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
                 down_path: '/home/web_user/sites/django_base/down',
-                log_file: '/var/log/django_base/serve_static.log'
+                log_file: '/var/log/django_base/serve_static.log',
+                fifo_dir: ''
             }
         )
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
-            %r(^DEBUG = 'DEBUG'$),
+            %r(^LOG_LEVEL = 'DEBUG'$),
             %r(^NGINX_CONF = ''$),
             %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
             %r(^APP_HOME = ''$),
@@ -159,7 +160,8 @@ describe 'web_server::nginx' do
             %r(^VENV = ''$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
-            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
+            %r(^FIFO_DIR = ''$)
         ]
         install_app_conf.each do |u|
           expect(chef_run).to render_file(
@@ -487,7 +489,7 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
             source: 'conf.py.erb',
             variables: {
                 dist_version: version,
-                debug: 'DEBUG',
+                log_level: 'DEBUG',
                 nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 app_home: '',
@@ -499,12 +501,13 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
                 media_path: '/home/web_user/sites/django_base/media',
                 uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
                 down_path: '/home/web_user/sites/django_base/down',
-                log_file: '/var/log/django_base/serve_static.log'
+                log_file: '/var/log/django_base/serve_static.log',
+                fifo_dir: ''
             }
         )
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
-            %r(^DEBUG = 'DEBUG'$),
+            %r(^LOG_LEVEL = 'DEBUG'$),
             %r(^NGINX_CONF = ''$),
             %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
             %r(^APP_HOME = ''$),
@@ -519,7 +522,8 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
             %r(^VENV = ''$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
-            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$)
+            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
+            %r(^FIFO_DIR = ''$)
         ]
         install_app_conf.each do |u|
           expect(chef_run).to render_file(

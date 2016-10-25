@@ -156,7 +156,7 @@ if app_repo
     mode '0400'
     variables({
         dist_version: node['platform_version'],
-        debug: "'DEBUG'",
+        log_level: "'DEBUG'",
         nginx_conf: '',
         git_repo: app_repo,
         celery_pid: "/var/run/#{app_name}/celery",
@@ -165,7 +165,8 @@ if app_repo
         venv: "/home/#{app_user}/.envs/#{app_name}",
         reqs_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/requirements.txt",
         sys_deps_file: "/home/#{app_user}/sites/#{app_name}/source/#{app_name}/system_dependencies.txt",
-        log_file: "/var/log/#{app_name}/install.log"
+        log_file: "/var/log/#{app_name}/install.log",
+        fifo_dir: "/tmp/#{app_name}"
               })
   end
 

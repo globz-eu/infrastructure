@@ -33,10 +33,9 @@ import datetime
 from unittest import mock
 from unittest.mock import call
 import djangoapp
-from djangoapp import InstallDjangoApp
-from djangoapp import main
+from djangoapp import InstallDjangoApp, main
 from tests.conf_tests import GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_DEPS_FILE
-from tests.conf_tests import TEST_DIR
+from tests.conf_tests import TEST_DIR, FIFO_DIR
 from tests.helpers import Alternate
 from tests.mocks.commandfileutils_mocks import check_process_mock, own_app_mock
 from tests.mocks.installdjangoapp_mocks import add_app_to_path_mock, copy_config_mock, clone_app_mock, stop_celery_mock
@@ -67,6 +66,7 @@ class AppTest(InstallTest):
 
     def setUp(self):
         InstallTest.setUp(self)
+        self.fifo_dir = FIFO_DIR
 
     @mock.patch('djangoapp.InstallDjangoApp.check_process', side_effect=check_process_mock)
     def test_start_uwsgi(self, check_process_mock_false):
@@ -184,11 +184,14 @@ class AppTest(InstallTest):
         """
         tests that stop_uwsgi writes to fifo and writes to log
         """
+        djangoapp.FIFO_DIR = self.fifo_dir
         mocks.alt_bool = Alternate([True])
-        os.makedirs(os.path.join('/tmp', self.app_name))
-        install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, git_repo=self.git_repo)
+        os.makedirs(os.path.join(self.fifo_dir, self.app_name))
+        install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, git_repo=self.git_repo,
+                                              fifo_dir=self.fifo_dir
+                                              )
         install_django_app.stop_uwsgi()
-        with open(os.path.join('/tmp', self.app_name, 'fifo0')) as fifo:
+        with open(os.path.join(self.fifo_dir, 'fifo0')) as fifo:
             fifo_list = [l for l in fifo]
         self.assertEqual(['q'], fifo_list, fifo_list)
         self.log('INFO: stopped uwsgi server')
@@ -819,9 +822,13 @@ class InstallDjangoAppTest(InstallTest):
 
 
 class TestInstallDjangoAppMain(InstallTest):
+    """
+    Tests django_app.main()
+    """
     def setUp(self):
         InstallTest.setUp(self)
         self.app_user = APP_USER
+        self.fifo_dir = FIFO_DIR
 
     @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
     @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
@@ -983,7 +990,7 @@ class TestInstallDjangoAppMain(InstallTest):
         """
         tests that main with parameter -u stop stops uwsgi
         """
-        os.makedirs(os.path.join('/tmp', self.app_name))
+        os.makedirs(os.path.join(self.fifo_dir, self.app_name))
         mocks.alt_bool = Alternate([True])
         sys.argv = ['djangoapp', '-u', 'stop', '-l', 'DEBUG']
         djangoapp.DIST_VERSION = self.dist_version
@@ -1004,7 +1011,7 @@ class TestInstallDjangoAppMain(InstallTest):
         """
         tests that main with parameter -u stop stops uwsgi
         """
-        os.makedirs(os.path.join('/tmp', self.app_name))
+        os.makedirs(os.path.join(self.fifo_dir, self.app_name))
         mocks.alt_bool = Alternate([True, False])
         sys.argv = ['djangoapp', '-u', 'restart', '-l', 'DEBUG']
         djangoapp.DIST_VERSION = self.dist_version
@@ -1033,7 +1040,7 @@ class TestInstallDjangoAppMain(InstallTest):
         tests that main with parameter -x removes app
         """
         clone_app_mock(self.app_home)
-        os.makedirs(os.path.join('/tmp', self.app_name))
+        os.makedirs(os.path.join(self.fifo_dir, self.app_name))
         mocks.alt_bool = Alternate([True])
         sys.argv = ['djangoapp', '-x', '-l', 'DEBUG']
         djangoapp.DIST_VERSION = self.dist_version

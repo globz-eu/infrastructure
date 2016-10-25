@@ -59,7 +59,7 @@ if os[:release] == '16.04'
   end
 
   describe command ( 'pip3 -V' ) do
-    pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/lib/python3/dist-packages \(python 3\.5\))
+    pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/local/lib/python3\.5/dist-packages \(python 3\.5\))
     its(:stdout) { should match(pip3_version)}
   end
 

@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from tests.helpers import Alternate
-from tests.conf_tests import DIST_VERSION, LOG_FILE, DEBUG
+from tests.conf_tests import DIST_VERSION, LOG_FILE, LOG_LEVEL
 from utilities.commandfileutils import CommandFileUtils
 
 __author__ = 'Stefan Dieterle'
@@ -34,5 +34,5 @@ def check_process_mock(process):
 
 
 def own_app_mock(path, owner, group):
-    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, DEBUG)
+    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, LOG_LEVEL)
     cfu.write_to_log('changed ownership of %s to %s:%s' % (path, owner, group), 'INFO')

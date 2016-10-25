@@ -206,7 +206,7 @@ describe 'django_app_server::django_app' do
             source: 'conf.py.erb',
             variables: {
                 dist_version: version,
-                debug: "'DEBUG'",
+                log_level: "'DEBUG'",
                 nginx_conf: '',
                 git_repo: 'https://github.com/globz-eu/django_base.git',
                 celery_pid: '/var/run/django_base/celery',
@@ -215,12 +215,13 @@ describe 'django_app_server::django_app' do
                 venv: '/home/app_user/.envs/django_base',
                 reqs_file: '/home/app_user/sites/django_base/source/django_base/requirements.txt',
                 sys_deps_file: '/home/app_user/sites/django_base/source/django_base/system_dependencies.txt',
-                log_file: '/var/log/django_base/install.log'
+                log_file: '/var/log/django_base/install.log',
+                fifo_dir: '/tmp/django_base'
             }
         )
         install_app_conf = [
             %r(^DIST_VERSION = '#{version}'$),
-            %r(^DEBUG = 'DEBUG'$),
+            %r(^LOG_LEVEL = 'DEBUG'$),
             %r(^NGINX_CONF = ''$),
             %r(^APP_HOME = '/home/app_user/sites/django_base/source'$),
             %r(^APP_USER = 'app_user'$),
@@ -229,7 +230,8 @@ describe 'django_app_server::django_app' do
             %r(^VENV = '/home/app_user/\.envs/django_base'$),
             %r(^REQS_FILE = '/home/app_user/sites/django_base/source/django_base/requirements\.txt'$),
             %r(^SYS_DEPS_FILE = '/home/app_user/sites/django_base/source/django_base/system_dependencies\.txt'$),
-            %r(^LOG_FILE = '/var/log/django_base/install\.log'$)
+            %r(^LOG_FILE = '/var/log/django_base/install\.log'$),
+            %r(^FIFO_DIR = '/tmp/django_base'$)
         ]
         install_app_conf.each do |u|
           expect(chef_run).to render_file('/home/app_user/sites/django_base/scripts/conf.py').with_content(u)

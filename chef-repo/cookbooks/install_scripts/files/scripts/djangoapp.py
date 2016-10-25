@@ -32,6 +32,7 @@ import datetime
 import time
 from optparse import OptionParser
 from conf import DIST_VERSION, GIT_REPO, APP_HOME, APP_USER, VENV, REQS_FILE, SYS_DEPS_FILE, LOG_FILE, CELERY_PID_PATH
+from conf import FIFO_DIR
 from utilities.commandfileutils import CommandFileUtils
 
 
@@ -42,7 +43,8 @@ class InstallDjangoApp(CommandFileUtils):
 
     def __init__(
             self, dist_version, log_file, log_level,
-            venv=None, git_repo='https://github.com/globz-eu/django_base.git', celery_pid='/var/run/django_base/celery'
+            venv=None, git_repo='https://github.com/globz-eu/django_base.git', celery_pid='/var/run/django_base/celery',
+            fifo_dir='/tmp'
     ):
         """
         Initializes parameters. Sets appropriate venv creation command and python version for distribution.
@@ -68,6 +70,7 @@ class InstallDjangoApp(CommandFileUtils):
         self.git_repo = git_repo
         p = re.compile('https://github.com/[\w\-]+/(\w+)\.git')
         self.app_name = p.match(git_repo).group(1)
+        self.fifo_dir = fifo_dir
         self.celery_pid = os.path.join(celery_pid, 'w1.pid')
 
     def clone_app(self, app_home):
@@ -364,7 +367,7 @@ class InstallDjangoApp(CommandFileUtils):
         uwsgi = self.check_process('uwsgi')
         msg = 'stopped uwsgi server'
         if uwsgi:
-            with open(os.path.join('/tmp', self.app_name, 'fifo0'), 'w') as fifo:
+            with open(os.path.join(self.fifo_dir, 'fifo0'), 'w') as fifo:
                 fifo.write('q')
             self.write_to_log(msg, 'INFO')
             run = 0
@@ -442,8 +445,12 @@ def main():
     (options, args) = parser.parse_args()
     if len(args) > 2:
         parser.error('incorrect number of arguments')
+
     install_django_app = InstallDjangoApp(
-        DIST_VERSION, LOG_FILE, options.log_level, venv=VENV, git_repo=GIT_REPO, celery_pid=CELERY_PID_PATH)
+        DIST_VERSION, LOG_FILE, options.log_level, venv=VENV, git_repo=GIT_REPO, celery_pid=CELERY_PID_PATH,
+        fifo_dir=FIFO_DIR
+    )
+
     if options.install:
         install = install_django_app.install_app(APP_HOME, APP_USER, SYS_DEPS_FILE, REQS_FILE)
         run.append(install)
