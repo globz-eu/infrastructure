@@ -29,6 +29,7 @@ default['web_server']['nginx']['git']['scripts_repo'] = 'https://github.com/glob
 default['web_server']['nginx']['server_name'] = false
 default['web_server']['nginx']['app_home'] = false
 default['web_server']['nginx']['https'] = false
+default['web_server']['nginx']['www'] = false
 ssl = node['web_server']['nginx']['https']
 
 default['basic_node']['node_number'] = node_nr

@@ -91,6 +91,7 @@ suites:
       web_server:
         nginx:
           https: true
+          www: true
       standalone_app_server:
         git:
           app_repo: 'https://github.com/globz-eu/formalign.git'

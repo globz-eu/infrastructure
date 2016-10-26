@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook:: install_scripts
-# Serverspec:: default
+# Server Spec:: default
 
 require 'spec_helper'
 

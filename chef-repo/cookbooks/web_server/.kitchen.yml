@@ -72,4 +72,5 @@ suites:
             app_repo: 'https://github.com/globz-eu/formalign.git'
           nginx:
             https: true
+            www: true
     excludes: centos-7.1

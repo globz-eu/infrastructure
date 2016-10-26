@@ -254,12 +254,13 @@ end
 
 describe 'web_server::nginx' do
   ['14.04', '16.04'].each do |version|
-    context "When git repo is specified and https is true, on an Ubuntu #{version} platform" do
+    context "When git repo is specified and https and www are true, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
           node.set['web_server']['git']['app_repo'] = 'https://github.com/globz-eu/django_base.git'
           node.set['web_server']['nginx']['https'] = true
+          node.set['web_server']['nginx']['www'] = true
           if version == '14.04'
             node.set['web_server']['node_number'] = '000'
           elsif version == '16.04'

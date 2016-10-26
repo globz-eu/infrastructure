@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook:: django_app_server
-# Spec:: app_user
+# Server Spec:: app_user
 
 require 'spec_helper'
 

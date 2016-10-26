@@ -20,17 +20,57 @@
 # Cookbook Name:: standalone_app_server
 # Server Spec:: default
 
-require 'spec_helper'
+app_name = 'django_base'
+ips = {'14.04' => '192.168.1.86', '16.04' => '192.168.1.87'}
+https = false
+www = false
 
-set :backend, :exec
+require 'default'
 
-# converges successfully
-describe file('/var/log/chef-kitchen/chef-client.log') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'root' }
-  it { should be_grouped_into 'root' }
-  it { should be_mode 644 }
-  its(:content) { should_not match(/ERROR/)}
-  its(:content) { should_not match(/FATAL/)}
-end
+# Cookbook:: db_server
+# Server Spec:: db_user
+
+require 'db_user'
+
+# Cookbook:: db_server
+# Server Spec:: postgresql
+
+require 'postgresql'
+postgresql_spec(app_name)
+
+# Cookbook:: db_server
+# Server Spec:: redis
+
+require 'redis'
+
+# Cookbook:: web_server
+# Spec:: web_user
+
+require 'web_user'
+
+# Cookbook:: web_server
+# Server Spec:: nginx
+
+require 'nginx'
+nginx_spec(app_name, ips, https, www)
+
+# Cookbook:: django_app_server
+# Server Spec:: app_user
+
+require 'app_user'
+
+# Cookbook Name:: django_app_server
+# Server Spec:: python
+
+require 'python'
+
+# Cookbook Name:: django_app_server
+# Server Spec:: django_app
+
+require 'django_app'
+django_app_spec(app_name)
+
+# Cookbook Name:: django_app_server
+# Server Spec:: uwsgi
+
+require 'uwsgi'

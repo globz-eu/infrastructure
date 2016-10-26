@@ -11,13 +11,13 @@ index index.html;
 # Redirect http to https
 server {
   listen 80;
-  server_name <%= @server_name %> www.<%= @server_name %>;
+  server_name <%= @server_name %><% if node['web_server']['nginx']['www'] %> www.<%= @server_name %><% end %>;
   return 301 https://$server_name$request_uri;
 }
 
 server {
   # the domain name it will serve for
-  server_name <%= @server_name %> www.<%= @server_name %>;
+  server_name <%= @server_name %><% if node['web_server']['nginx']['www'] %> www.<%= @server_name %><% end %>;
   charset     utf-8;
   # the port your site will be served on
   listen      <%= @listen_port %> ssl;
