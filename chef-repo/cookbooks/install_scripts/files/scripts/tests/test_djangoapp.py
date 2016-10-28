@@ -494,7 +494,7 @@ class InstallDjangoAppTest(InstallTest):
         os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
-            {'file': 'configuration.py', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -519,7 +519,7 @@ class InstallDjangoAppTest(InstallTest):
         tests that copy_config does nothing when config files are already present in app
         """
         conf = [
-            {'file': 'configuration.py', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -554,10 +554,10 @@ class InstallDjangoAppTest(InstallTest):
         """
         os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
-        self.copy_config_exits_when_conf_file_missing('configuration.py')
+        self.copy_config_exits_when_conf_file_missing('settings.json')
 
-        with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', 'configuration.py'), 'w') as file:
-            file.write('configuration.py\n')
+        with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', 'settings.json'), 'w') as file:
+            file.write('settings.json\n')
         self.copy_config_exits_when_conf_file_missing('settings_admin.py')
 
     def test_migrate(self):
@@ -751,6 +751,24 @@ class InstallDjangoAppTest(InstallTest):
             log_file_regex.match(kwargs['stderr'].name), kwargs['stderr'].name
         )
 
+    def test_collect_static(self):
+        """
+        tests that collect_static runs the right command and writes to log
+        """
+        install_django_app = InstallDjangoApp(
+            self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo)
+        cmd = [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic',
+                '--noinput', '--settings', '%s.settings_admin' % self.app_name
+        ]
+        msg = 'successfully collected static for %s' % self.app_name
+        cwd = os.path.join(self.app_home, self.app_name)
+        func = 'collect_static'
+        args = (self.app_home,)
+        self.run_success([cmd], [msg], func, install_django_app.collect_static, args)
+        self.run_cwd(cwd, func, install_django_app.run_migrations, args)
+        self.run_error(cmd, func, install_django_app.run_migrations, args)
+
     @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
     @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
     def test_install_app(self, copy_config_mock, add_app_to_path_mock):
@@ -870,12 +888,12 @@ class TestInstallDjangoAppMain(InstallTest):
     @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
     @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
     @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
-    def test_run_main_install_migrate_and_test(self, own_app_mock, copy_config_mock, add_app_to_path_mock):
+    def test_run_main_install_migrate_collect_static_and_test(self, own_app_mock, copy_config_mock, add_app_to_path_mock):
         """
-        tests run main script with install, migrate, run-tests parameters returns no error
+        tests run main script with install, migrate, collect-static and run-tests parameters returns no error
         """
         mocks.alt_bool = Alternate([False])
-        sys.argv = ['djangoapp', '-imt', '-l', 'DEBUG']
+        sys.argv = ['djangoapp', '-imts', '-l', 'DEBUG']
         djangoapp.DIST_VERSION = self.dist_version
         try:
             main()
@@ -891,7 +909,7 @@ class TestInstallDjangoAppMain(InstallTest):
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,
-            'INFO: successfully created virtualenv %s' % VENV,
+            'INFO: successfully created virtualenv %s' % self.venv,
             'INFO: successfully installed: numpy==1.11.0',
             'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
             'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
@@ -902,6 +920,7 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
             'INFO: successfully ran makemigrations',
             'INFO: successfully migrated %s' % self.app_name,
+            'INFO: successfully collected static for %s' % self.app_name,
             'INFO: successfully ran unit tests for %s' % self.app_name,
             'INFO: successfully ran functional tests for %s' % self.app_name,
             'INFO: install django app exited with code 0',

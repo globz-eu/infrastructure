@@ -26,7 +26,7 @@ import shutil
 from optparse import OptionParser
 from djangoapp import InstallDjangoApp
 from conf import DIST_VERSION, GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, LOG_FILE, STATIC_PATH
-from conf import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, NGINX_CONF
+from conf import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, NGINX_CONF, REQS_FILE, SYS_DEPS_FILE, VENV
 
 __author__ = 'Stefan Dieterle'
 
@@ -37,33 +37,45 @@ class ServeStatic(InstallDjangoApp):
     """
 
     def __init__(self, dist_version, app_home, log_file, log_level,
-                 git_repo='https://github.com/globz-eu/django_base.git', nginx_conf='/etc/nginx'):
-        InstallDjangoApp.__init__(self, dist_version, log_file, log_level, git_repo=git_repo)
+                 git_repo='https://github.com/globz-eu/django_base.git', nginx_conf='/etc/nginx',
+                 sys_deps_file='system_dependencies.txt', reqs_file='requirements.txt', venv=''):
+        InstallDjangoApp.__init__(self, dist_version, log_file, log_level, git_repo=git_repo, venv=venv)
         self.app_home = app_home
         self.nginx_conf = nginx_conf
         if self.dist_version == '14.04':
             self.nginx_cmd = ['service', 'nginx', 'restart']
         elif self.dist_version == '16.04':
             self.nginx_cmd = ['systemctl', 'restart', 'nginx']
+        self.sys_deps_file = os.path.join(self.app_home, self.app_name, sys_deps_file)
+        self.reqs_file = os.path.join(self.app_home, self.app_name, reqs_file)
 
-    def move(self, from_path=None, to_path=None, file_type=None):
+    def move(self, from_path=None, to_path=None, file_type=None, web_user='web_user', reqs_file='', sys_deps_file=''):
         """
-        moves static content from django app (and clones it if absent) to static_path
+        moves static content from django app (and clones it and install venv and dependencies if absent) to static_path
+        :param sys_deps_file: system package dependencies file from django app
+        :param reqs_file: python package requirements file from django app
+        :param web_user: web user username
         :param file_type: type of from path (file or dir)
         :param from_path: directory or file path in app to move
         :param to_path: path to directory to move static content to
         :return: 0 if move reaches the end of its flow
         """
-        if from_path and to_path and file_type:
+        if not reqs_file:
+            reqs_file = self.reqs_file
+        if not sys_deps_file:
+            sys_deps_file = self.sys_deps_file
 
+        if from_path and to_path and file_type:
             try:
                 if os.path.exists(to_path):
                     if file_type == 'dir':
                         if not os.listdir(to_path):
-                            self.clone_app(self.app_home)
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file, chmod_app=False)
+                            self.collect_static(self.app_home)
                     elif file_type == 'file':
                         if not os.path.isfile(os.path.join(to_path, os.path.basename(from_path))):
-                            self.clone_app(self.app_home)
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file, chmod_app=False)
+                            self.collect_static(self.app_home)
                     if file_type == 'dir':
                         if os.listdir(to_path):
                             msg = 'content already present in %s' % to_path
@@ -92,7 +104,15 @@ class ServeStatic(InstallDjangoApp):
                 else:
                     raise FileNotFoundError(from_path)
             except FileNotFoundError as error:
-                msg = 'file not found: ' + error.args[0]
+                if error.filename and error.filename2:
+                    filename = '%s and %s' % (error.filename, error.filename2)
+                elif error.filename and not error.filename2:
+                    filename = '%s' % error.filename
+                elif error.filename2 and not error.filename:
+                    filename = '%s' % error.filename2
+                else:
+                    filename = error.args[0]
+                msg = 'file not found: %s' % filename
                 self.write_to_log(msg, 'ERROR')
                 sys.exit(1)
         else:
@@ -124,6 +144,7 @@ class ServeStatic(InstallDjangoApp):
         ]
 
         for static in static_files:
+            static['web_user'] = web_user
             os.makedirs(self.app_home, exist_ok=True)
             move = self.move(**static)
             if not move:
@@ -199,8 +220,9 @@ def main():
     parser = OptionParser(usage)
     parser.add_option('-l', '--log-level', dest='log_level',
                       help='log-level: DEBUG, INFO, WARNING, ERROR, CRITICAL', default='INFO')
-    parser.add_option('-m', '--move-static', dest='move_static', action='store_true',
-                      help='move-static: moves static files from app to server static folders', default=False)
+    parser.add_option('-m', '--serve-static', dest='serve_static', action='store_true',
+                      help='serve-static: collects static files and moves them from app to server static folders',
+                      default=False)
     parser.add_option('-x', '--remove-static', dest='remove_static', action='store_true',
                       help='removes static files from server static folders', default=False)
     parser.add_option('-r', '--reload-static', dest='reload_static', action='store_true',
@@ -211,10 +233,20 @@ def main():
     if len(args) > 2:
         parser.error('incorrect number of arguments')
 
-    kwargs = {'git_repo': GIT_REPO, 'nginx_conf': NGINX_CONF} if NGINX_CONF else {'git_repo': GIT_REPO}
+    kwargs = {
+        'git_repo': GIT_REPO, 'nginx_conf': NGINX_CONF} if NGINX_CONF else {
+        'git_repo': GIT_REPO
+    }
+    if REQS_FILE:
+        kwargs['reqs_file'] = REQS_FILE
+    if SYS_DEPS_FILE:
+        kwargs['sys_deps_file'] = SYS_DEPS_FILE
+    if VENV:
+        kwargs['venv'] = VENV
+
     serve_django_static = ServeStatic(DIST_VERSION, APP_HOME_TMP, LOG_FILE, options.log_level, **kwargs)
 
-    if options.move_static:
+    if options.serve_static:
         static = serve_django_static.serve_static(
             WEB_USER, WEBSERVER_USER, DOWN_PATH, STATIC_PATH, MEDIA_PATH, UWSGI_PATH
         )

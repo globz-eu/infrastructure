@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =====================================================================
 """
 import os
+import sys
 from tests.conf_tests import DIST_VERSION, VENV, LOG_FILE, LOG_LEVEL, CELERY_PID_PATH
 from utilities.commandfileutils import CommandFileUtils
 

@@ -29,12 +29,12 @@ import webserver
 from djangoapp import InstallDjangoApp
 from webserver import main, ServeStatic
 from tests.helpers import remove_test_dir
-from tests.conf_tests import GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, STATIC_PATH
-from tests.conf_tests import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, TEST_DIR, NGINX_CONF
+from tests.conf_tests import GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, STATIC_PATH, VENV
+from tests.conf_tests import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, TEST_DIR, NGINX_CONF, REQS_FILE, SYS_DEPS_FILE
 from tests.runandlogtest import RunAndLogTest
 from utilities.commandfileutils import CommandFileUtils
 from tests.mocks.commandfileutils_mocks import own_app_mock
-from tests.mocks.installdjangoapp_mocks import clone_app_mock
+from tests.mocks.installdjangoapp_mocks import clone_app_mock, add_app_to_path_mock, copy_config_mock
 
 __author__ = 'Stefan Dieterle'
 
@@ -53,6 +53,9 @@ class StaticTest(RunAndLogTest):
         self.git_repo = GIT_REPO
         p = re.compile('https://github.com/[\w\-]+/(\w+)\.git')
         self.app_name = p.match(self.git_repo).group(1)
+        self.reqs_file = REQS_FILE
+        self.sys_deps_file = SYS_DEPS_FILE
+        self.venv = VENV
 
     def make_site_confs(self, initial_state):
         """
@@ -79,6 +82,10 @@ class StaticTest(RunAndLogTest):
 
 
 class ServeStaticTest(StaticTest):
+    """
+    tests ServeStatic functionality
+    """
+
     def setUp(self):
         StaticTest.setUp(self)
         self.test_dir = TEST_DIR
@@ -99,8 +106,11 @@ class ServeStaticTest(StaticTest):
             static_type = ''
             static_file = ''
 
-        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level, git_repo=self.git_repo)
-        move = serve_django_static.move(from_path, to_path, file_type)
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo, venv=self.venv)
+        move = serve_django_static.move(
+            from_path, to_path, file_type, reqs_file=self.reqs_file, sys_deps_file=self.sys_deps_file
+        )
 
         self.assertEqual(move, ret)
         self.assertTrue(os.path.isfile(static_file))
@@ -116,20 +126,36 @@ class ServeStaticTest(StaticTest):
             self.assertEqual(1, error.code, 'CommandFileUtils exited with: %s' % str(error))
             self.log('CRITICAL: distribution not supported')
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_dirs(self, clone_app_mock):
+    def test_move_dirs(self, clone_app_mock, own_app_mock, copy_config_mock, add_app_to_path_mock):
         """
         tests move moves static files, removes temp app directory and writes to log
         """
         dirs = [['static', self.static_path], ['media', self.media_path]]
         for d, path in dirs:
             os.makedirs(path)
+
+        for d, path in dirs:
             msg = 'INFO: %s moved to %s' % (d, path)
             self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 0)
         self.assertEqual([call(self.app_home)] * 2, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)] * 2, copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home)] * 2, add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual(
+            [
+                call(self.app_home, self.web_user, self.web_user),
+                call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            ] * 2, own_app_mock.mock_calls, own_app_mock.mock_calls)
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_dirs_handles_existing_content(self, clone_app_mock):
+    def test_move_dirs_handles_existing_content(self, clone_app_mock, own_app_mock, copy_config_mock,
+                                                add_app_to_path_mock):
         """
         tests move does not move static files and does not clone app when files are already present in destination
         directory
@@ -144,9 +170,15 @@ class ServeStaticTest(StaticTest):
             msg = 'INFO: content already present in %s' % path
             self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 1)
         self.assertEqual([], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual([], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_file(self, clone_app_mock):
+    def test_move_file(self, clone_app_mock, own_app_mock, copy_config_mock, add_app_to_path_mock):
         """
         tests move moves files and writes to log
         """
@@ -157,9 +189,19 @@ class ServeStaticTest(StaticTest):
             self.uwsgi_path, 'file', msg, 0
         )
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual([
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+        ], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_handles_already_existing_static_dir(self, clone_app_mock):
+    def test_move_handles_already_existing_static_dir(self, clone_app_mock, own_app_mock, copy_config_mock,
+                                                      add_app_to_path_mock):
         """
         tests that move moves static files even if static directory already exists
         """
@@ -169,7 +211,9 @@ class ServeStaticTest(StaticTest):
         with open(os.path.join(self.app_home, self.app_name, 'static/static_file'), 'w') as static_file:
             static_file.write('static stuff\n')
 
-        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level, git_repo=self.git_repo)
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
+                                          reqs_file=self.reqs_file, venv=self.venv)
         serve_django_static.move(to_dir, self.static_path, 'dir')
 
         self.assertTrue(os.path.isfile(os.path.join(self.static_path, 'static_file')))
@@ -178,9 +222,19 @@ class ServeStaticTest(StaticTest):
             self.assertEqual(['static stuff\n'], static_file_list, static_file_list)
         self.log('INFO: static moved to %s' % self.static_path)
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual([
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+        ], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_file_handles_existing_file(self, clone_app_mock):
+    def test_move_file_handles_existing_file(self, clone_app_mock, own_app_mock, copy_config_mock,
+                                             add_app_to_path_mock):
         """
         tests move does not move files when they are already present in destination directory
         """
@@ -193,14 +247,21 @@ class ServeStaticTest(StaticTest):
             self.uwsgi_path, 'file', msg, 1
         )
         self.assertEqual([], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual([], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
+    @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
+    @mock.patch.object(InstallDjangoApp, 'copy_config', side_effect=copy_config_mock)
+    @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
-    def test_move_exits_on_error(self, clone_app_mock):
+    def test_move_exits_on_error(self, clone_app_mock, own_app_mock, copy_config_mock, add_app_to_path_mock):
         """
         tests move exits on error and writes to log
         """
         os.makedirs(os.path.dirname(self.static_path))
-        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level, git_repo=self.git_repo)
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo)
 
         try:
             serve_django_static.move(os.path.join(self.app_home, self.app_name, 'static'), self.static_path, 'dir')
@@ -209,19 +270,41 @@ class ServeStaticTest(StaticTest):
             self.assertEqual(1, error.code, 'move exited with: ' + str(error))
             self.log('ERROR: file not found: %s' % os.path.join(self.app_home, self.app_name, 'static'))
         self.assertEqual([], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+        self.assertEqual([], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
+        self.assertEqual([], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
     @mock.patch.object(InstallDjangoApp, 'clone_app', side_effect=clone_app_mock)
     @mock.patch.object(CommandFileUtils, 'own', side_effect=own_app_mock)
     def test_serve_static(self, own_app_mock, clone_app_mock):
         """
-        tests serve_static creates app_home and static directories and runs clone app command, writes to log
+        tests serve_static creates app_home and static directories and runs install app and collectstatic commands,
+        writes to log
         """
         user = 'web_user'
         os.makedirs(self.static_path)
         os.makedirs(self.media_path)
         os.makedirs(self.uwsgi_path)
         os.makedirs(self.down_path)
-        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level, git_repo=self.git_repo)
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
+        os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
+        conf = [
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
+            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
+        ]
+        for f in conf:
+            with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', f['file']), 'w') as config:
+                config.write('%s file\n' % f['file'])
+        if self.dist_version == '14.04':
+            self.python_version = 'python3.4'
+        elif self.dist_version == '16.04':
+            self.python_version = 'python3.5'
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+
+        serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
+                                          git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
+                                          reqs_file=self.reqs_file, venv=self.venv)
         ret = serve_django_static.serve_static(
             user, user, self.down_path, self.static_path, self.media_path, self.uwsgi_path
         )
@@ -247,8 +330,21 @@ class ServeStaticTest(StaticTest):
                 self.assertEqual(['%s stuff\n' % f['name']], static_list, static_list)
 
         # check that all expected log entries are present
-        # for clone_app
-        self.log('INFO: successfully cloned app_name to %s' % self.app_home)
+        # for install_app and collect_static
+        msgs = [
+            'INFO: successfully cloned app_name to %s' % self.app_home,
+            'INFO: virtualenv %s already exists' % self.venv,
+            'INFO: successfully installed: numpy==1.11.0',
+            'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
+            'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
+            'INFO: successfully installed: libpq-dev python3-numpy libxml2-dev libxslt1-dev zlib1g-dev',
+            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: successfully collected static for %s' % self.app_name,
+        ]
+        for m in msgs:
+            self.log(m)
+
+        # self.log('INFO: successfully cloned app_name to %s' % self.app_home)
 
         # for move
         for f in fds:
@@ -276,8 +372,25 @@ class ServeStaticTest(StaticTest):
         os.makedirs(self.media_path)
         os.makedirs(self.uwsgi_path)
         os.makedirs(self.down_path)
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
+        os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
+        conf = [
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
+            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
+        ]
+        for f in conf:
+            with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', f['file']), 'w') as config:
+                config.write('%s file\n' % f['file'])
+        if self.dist_version == '14.04':
+            self.python_version = 'python3.4'
+        elif self.dist_version == '16.04':
+            self.python_version = 'python3.5'
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+
         serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
-                                          git_repo=self.git_repo)
+                                          git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
+                                          reqs_file=self.reqs_file, venv=self.venv)
         serve_django_static.serve_static(
             user, user, self.down_path, self.static_path, self.media_path, self.uwsgi_path
         )
@@ -401,17 +514,34 @@ class WebServerMainTest(StaticTest):
         for p in paths:
             os.makedirs(p)
         webserver.DIST_VERSION = self.dist_version
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
+        os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
+        conf = [
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
+            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
+        ]
+        for f in conf:
+            with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', f['file']), 'w') as config:
+                config.write('%s file\n' % f['file'])
+        if self.dist_version == '14.04':
+            self.python_version = 'python3.4'
+        elif self.dist_version == '16.04':
+            self.python_version = 'python3.5'
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+
         try:
             main()
         except SystemExit as sysexit:
             self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
-        self.assertEqual(
-            [call(self.down_path, self.web_user, self.webserver_user),
-             call(self.static_path, self.web_user, self.webserver_user),
-             call(self.media_path, self.web_user, self.webserver_user),
-             call(self.uwsgi_path, self.web_user, self.webserver_user)],
-            own_app_mock.mock_calls, own_app_mock.mock_calls
-        )
+        expected_calls = [call(self.down_path, self.web_user, self.webserver_user),
+                          call(os.path.dirname(self.venv), self.web_user, self.web_user),
+                          call(self.app_home, self.web_user, self.web_user),
+                          call(self.static_path, self.web_user, self.webserver_user),
+                          call(self.media_path, self.web_user, self.webserver_user),
+                          call(self.uwsgi_path, self.web_user, self.webserver_user)]
+        for e in expected_calls:
+            self.assertTrue(e in own_app_mock.mock_calls, '%s not in %s' % (e, own_app_mock.mock_calls))
         self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
 
     def test_run_main_site_down(self):
@@ -437,8 +567,26 @@ class WebServerMainTest(StaticTest):
         os.makedirs(self.media_path)
         os.makedirs(self.uwsgi_path)
         os.makedirs(self.down_path)
+        webserver.DIST_VERSION = self.dist_version
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
+        os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
+        conf = [
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
+            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
+        ]
+        for f in conf:
+            with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', f['file']), 'w') as config:
+                config.write('%s file\n' % f['file'])
+        if self.dist_version == '14.04':
+            self.python_version = 'python3.4'
+        elif self.dist_version == '16.04':
+            self.python_version = 'python3.5'
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+
         serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
-                                          git_repo=self.git_repo)
+                                          git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
+                                          reqs_file=self.reqs_file, venv=self.venv)
         serve_django_static.serve_static(
             user, user, self.down_path, self.static_path, self.media_path, self.uwsgi_path
         )
@@ -470,17 +618,36 @@ class WebServerMainTest(StaticTest):
         for p in paths:
             os.makedirs(p)
         webserver.DIST_VERSION = self.dist_version
+        os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
+        os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
+        conf = [
+            {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
+            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
+        ]
+        for f in conf:
+            with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', f['file']), 'w') as config:
+                config.write('%s file\n' % f['file'])
+        if self.dist_version == '14.04':
+            self.python_version = 'python3.4'
+        elif self.dist_version == '16.04':
+            self.python_version = 'python3.5'
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+
         try:
             main()
         except SystemExit as sysexit:
             self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
-        self.assertEqual(
-            [call(self.down_path, self.web_user, self.webserver_user),
-             call(self.static_path, self.web_user, self.webserver_user),
-             call(self.media_path, self.web_user, self.webserver_user),
-             call(self.uwsgi_path, self.web_user, self.webserver_user)],
-            own_app_mock.mock_calls, own_app_mock.mock_calls
-        )
+
+        expected_calls = [call(self.down_path, self.web_user, self.webserver_user),
+                          call(os.path.dirname(self.venv), self.web_user, self.web_user),
+                          call(self.app_home, self.web_user, self.web_user),
+                          call(self.static_path, self.web_user, self.webserver_user),
+                          call(self.media_path, self.web_user, self.webserver_user),
+                          call(self.uwsgi_path, self.web_user, self.webserver_user)]
+        for e in expected_calls:
+            self.assertTrue(e in own_app_mock.mock_calls, '%s not in %s' % (e, own_app_mock.mock_calls))
+
         self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
 
         fds = [

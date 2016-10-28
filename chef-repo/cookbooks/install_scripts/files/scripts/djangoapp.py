@@ -195,7 +195,7 @@ class InstallDjangoApp(CommandFileUtils):
         """
         app_conf = os.path.join(os.path.dirname(app_home), 'conf.d')
         conf = [
-            {'file': 'configuration.py', 'move_to': os.path.join(app_home, self.app_name)},
+            {'file': 'settings.json', 'move_to': os.path.join(app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(app_home, self.app_name, self.app_name.lower())},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': app_home}
         ]
@@ -221,7 +221,7 @@ class InstallDjangoApp(CommandFileUtils):
         """
         runs database migrations for django app
         :param app_home: app root
-        :return: returns run_command return code as soon as it is not 0
+        :return: returns run_command return code as soon as it is not 0 or 0 if all commands are run successfully
         """
         cmds = [
             {
@@ -244,6 +244,21 @@ class InstallDjangoApp(CommandFileUtils):
             if run != 0:
                 return run
         return 0
+
+    def collect_static(self, app_home):
+        """
+        runs collectstatic for django app
+        :param app_home: app root
+        :return: returns run_command return code
+        """
+        cmd = [
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic',
+                '--noinput', '--settings', '%s.settings_admin' % self.app_name
+        ]
+        cwd = os.path.join(app_home, self.app_name)
+        msg = 'successfully collected static for %s' % self.app_name
+        run = self.run_command(cmd, msg, cwd=cwd)
+        return run
 
     def run_tests(self, app_home):
         """
@@ -376,7 +391,8 @@ class InstallDjangoApp(CommandFileUtils):
             self.write_to_log('did not stop uwsgi, was not running', 'INFO')
         return run
 
-    def install_app(self, app_home, app_user, deps_file, reqs_file):
+    def install_app(self, app_home, app_user, deps_file='system_dependencies.txt', reqs_file='requirements.txt',
+                    chmod_app=True):
         """
         Manages installation of django app as well as system dependencies and python packages requirements, adds django
         app to python path.
@@ -392,7 +408,8 @@ class InstallDjangoApp(CommandFileUtils):
         self.install_sys_deps(deps_list)
         self.copy_config(app_home)
         self.own(app_home, app_user, app_user)
-        self.permissions(app_home, '400', '500', recursive=True)
+        if chmod_app:
+            self.permissions(app_home, '400', '500', recursive=True)
         self.create_venv()
         self.install_requirements(reqs_list)
         self.add_app_to_path(app_home)
@@ -434,8 +451,10 @@ def main():
                       help='log-level: DEBUG, INFO, WARNING, ERROR, CRITICAL', default='INFO')
     parser.add_option('-m', '--migrate', dest='migrate', action='store_true',
                       help='migrate: runs database migrations', default=False)
+    parser.add_option('-s', '--collect-static', dest='collect_static', action='store_true',
+                      help='collect-static: runs collects static files to static root', default=False)
     parser.add_option('-t', '--run-tests', dest='tests', action='store_true',
-                      help='migrate: runs app tests', default=False)
+                      help='run-tests: runs app tests', default=False)
     parser.add_option('-c', '--celery', dest='celery',
                       help='celery and beat: start, stop, restart', default=False)
     parser.add_option('-u', '--uwsgi', dest='uwsgi',
@@ -451,12 +470,21 @@ def main():
         fifo_dir=FIFO_DIR
     )
 
+    kwargs = {}
+    if REQS_FILE:
+        kwargs['reqs_file'] = REQS_FILE
+    if SYS_DEPS_FILE:
+        kwargs['deps_file'] = SYS_DEPS_FILE
+
     if options.install:
-        install = install_django_app.install_app(APP_HOME, APP_USER, SYS_DEPS_FILE, REQS_FILE)
+        install = install_django_app.install_app(APP_HOME, APP_USER, **kwargs)
         run.append(install)
     if options.migrate:
         migrate = install_django_app.run_migrations(APP_HOME)
         run.append(migrate)
+    if options.collect_static:
+        collect_static = install_django_app.collect_static(APP_HOME)
+        run.append(collect_static)
     if options.tests:
         tests = install_django_app.run_tests(APP_HOME)
         run.append(tests)
