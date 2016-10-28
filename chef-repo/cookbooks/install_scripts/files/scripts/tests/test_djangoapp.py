@@ -495,7 +495,6 @@ class InstallDjangoAppTest(InstallTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
-            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
         for f in conf:
@@ -520,7 +519,6 @@ class InstallDjangoAppTest(InstallTest):
         """
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
-            {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
         os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
@@ -537,6 +535,10 @@ class InstallDjangoAppTest(InstallTest):
             self.log('INFO: %s is already present in %s' % (f['file'], self.app_name))
 
     def copy_config_exits_when_conf_file_missing(self, conf):
+        """
+        helper function that tests that copy_config exits when the conf file is missing
+        :param conf: missing conf file
+        """
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
@@ -558,7 +560,7 @@ class InstallDjangoAppTest(InstallTest):
 
         with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', 'settings.json'), 'w') as file:
             file.write('settings.json\n')
-        self.copy_config_exits_when_conf_file_missing('settings_admin.py')
+        self.copy_config_exits_when_conf_file_missing('%s_uwsgi.ini' % self.app_name)
 
     def test_migrate(self):
         """
@@ -835,7 +837,7 @@ class InstallDjangoAppTest(InstallTest):
         for m in msgs:
             self.log(m)
 
-        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
 
 
@@ -867,7 +869,7 @@ class TestInstallDjangoAppMain(InstallTest):
             own_app_mock.mock_calls,
             own_app_mock.mock_calls
         )
-        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,
@@ -905,7 +907,7 @@ class TestInstallDjangoAppMain(InstallTest):
             own_app_mock.mock_calls,
             own_app_mock.mock_calls
         )
-        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,

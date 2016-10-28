@@ -186,19 +186,19 @@ class InstallDjangoApp(CommandFileUtils):
             self.write_to_log(msg, 'INFO')
         return 0
 
-    def copy_config(self, app_home):
+    def copy_config(self, app_home, uwsgi=True):
         """
         Copies configuration.py and settings_admin.py to app
+        :param uwsgi: copy uwsgi.ini if true, else do not copy
         :param app_home: folder to install app to
-        :param app_name: django app name
         :return: returns 0
         """
         app_conf = os.path.join(os.path.dirname(app_home), 'conf.d')
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(app_home, self.app_name)},
-            {'file': 'settings_admin.py', 'move_to': os.path.join(app_home, self.app_name, self.app_name.lower())},
-            {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': app_home}
         ]
+        if uwsgi:
+            conf.append({'file': '%s_uwsgi.ini' % self.app_name, 'move_to': app_home})
 
         for c in conf:
             if os.path.isfile(os.path.join(c['move_to'], c['file'])):
@@ -227,14 +227,14 @@ class InstallDjangoApp(CommandFileUtils):
             {
                 'cmd': [
                     os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
-                    '--settings', '%s.settings_admin' % self.app_name.lower()
+                    '--settings', 'settings_admin'
                 ],
                 'msg': 'successfully ran makemigrations'
             },
             {
                 'cmd': [
                     os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
-                    '--settings', '%s.settings_admin' % self.app_name.lower()
+                    '--settings', 'settings_admin'
                 ],
                 'msg': 'successfully migrated %s' % self.app_name
             }
@@ -253,7 +253,7 @@ class InstallDjangoApp(CommandFileUtils):
         """
         cmd = [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic',
-                '--noinput', '--settings', '%s.settings_admin' % self.app_name
+                '--noinput', '--settings', 'settings_admin'
         ]
         cwd = os.path.join(app_home, self.app_name)
         msg = 'successfully collected static for %s' % self.app_name
@@ -392,7 +392,7 @@ class InstallDjangoApp(CommandFileUtils):
         return run
 
     def install_app(self, app_home, app_user, deps_file='system_dependencies.txt', reqs_file='requirements.txt',
-                    chmod_app=True):
+                    chmod_app=True, cp_uwsgi_ini=True):
         """
         Manages installation of django app as well as system dependencies and python packages requirements, adds django
         app to python path.
@@ -406,7 +406,10 @@ class InstallDjangoApp(CommandFileUtils):
         deps_list = self.read_sys_deps(deps_file)
         reqs_list = self.read_reqs(reqs_file)
         self.install_sys_deps(deps_list)
-        self.copy_config(app_home)
+        if cp_uwsgi_ini:
+            self.copy_config(app_home, uwsgi=True)
+        else:
+            self.copy_config(app_home, uwsgi=False)
         self.own(app_home, app_user, app_user)
         if chmod_app:
             self.permissions(app_home, '400', '500', recursive=True)

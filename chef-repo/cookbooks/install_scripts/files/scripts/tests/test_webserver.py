@@ -142,7 +142,7 @@ class ServeStaticTest(StaticTest):
             msg = 'INFO: %s moved to %s' % (d, path)
             self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 0)
         self.assertEqual([call(self.app_home)] * 2, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home)] * 2, copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=False)] * 2, copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)] * 2, add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual(
             [
@@ -189,7 +189,7 @@ class ServeStaticTest(StaticTest):
             self.uwsgi_path, 'file', msg, 0
         )
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual([
             call(self.app_home, self.web_user, self.web_user),
@@ -222,7 +222,7 @@ class ServeStaticTest(StaticTest):
             self.assertEqual(['static stuff\n'], static_file_list, static_file_list)
         self.log('INFO: static moved to %s' % self.static_path)
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual([
             call(self.app_home, self.web_user, self.web_user),

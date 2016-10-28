@@ -70,11 +70,13 @@ class ServeStatic(InstallDjangoApp):
                 if os.path.exists(to_path):
                     if file_type == 'dir':
                         if not os.listdir(to_path):
-                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file, chmod_app=False)
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
+                                             chmod_app=False, cp_uwsgi_ini=False)
                             self.collect_static(self.app_home)
                     elif file_type == 'file':
                         if not os.path.isfile(os.path.join(to_path, os.path.basename(from_path))):
-                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file, chmod_app=False)
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
+                                             chmod_app=False, cp_uwsgi_ini=False)
                             self.collect_static(self.app_home)
                     if file_type == 'dir':
                         if os.listdir(to_path):
