@@ -270,7 +270,7 @@ class InstallDjangoApp(CommandFileUtils):
         cmd = [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test']
         for p in pending:
             cmd.extend(['--exclude-dir', p])
-        cmd.extend(['--settings', '%s.settings_admin' % self.app_name.lower()])
+        cmd.extend(['--settings', 'settings_admin'])
         cmds = [
             {
                 'cmd': cmd,
@@ -279,7 +279,7 @@ class InstallDjangoApp(CommandFileUtils):
             {
                 'cmd': [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
                         '--tags', '~@skip', '--no-skipped', '--junit', '--settings',
-                        '%s.settings_admin' % self.app_name.lower()],
+                        'settings_admin'],
                 'msg': 'successfully ran functional tests for %s' % self.app_name,
             }
         ]
