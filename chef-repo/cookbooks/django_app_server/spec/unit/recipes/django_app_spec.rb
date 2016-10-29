@@ -180,7 +180,7 @@ describe 'django_app_server::django_app' do
             %r(^\s+"SERVER_URL": "liveserver",$),
             %r(^\s+"INITIAL_USERS": \[$),
             %r(^\s+\["user0", "user0@example\.com", "user0_password"\],$),
-            %r(^\s+\["user1", "user1@example\.com", "user1_password"\],$),
+            %r(^\s+\["user1", "user1@example\.com", "user1_password"\]$),
             %r(^\s+"INITIAL_SUPERUSER": \["superuser", "superuser@example\.com", "superuser_password"\]$),
         ]
         config.each do |u|

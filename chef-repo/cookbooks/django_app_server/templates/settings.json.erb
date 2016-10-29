@@ -14,9 +14,10 @@
   "CELERY_RESULT_BACKEND": "<%= @celery_result_backend %>",
   "SERVER_URL": "<%= @server_url %>",
   "INITIAL_USERS": [
-  <% @init_users.each do |user| -%>
-  ["<%= user['username'] %>", "<%= user['email'] %>", "<%= user['password'] %>"],
+  <% @init_users[0..-1].each do |user| -%>
+    ["<%= user['username'] %>", "<%= user['email'] %>", "<%= user['password'] %>"],
   <% end -%>
+    ["<%= @init_users[-1]['username'] %>", "<%= @init_users[-1]['email'] %>", "<%= @init_users[-1]['password'] %>"]
   ],
   "INITIAL_SUPERUSER": ["<%= @init_superuser['username'] %>", "<%= @init_superuser['email'] %>", "<%= @init_superuser['password'] %>"]
 }

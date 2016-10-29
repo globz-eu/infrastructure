@@ -25,8 +25,10 @@ require 'find'
 
 set :backend, :exec
 
-def django_app_spec(app_name)
+def django_app_spec(app_name, ips)
   if os[:family] == 'ubuntu'
+    ip_regex = Regexp.escape(ips[os[:release]])
+
     describe package('git') do
       it { should be_installed }
     end
@@ -276,36 +278,31 @@ def django_app_spec(app_name)
 
     # Django app configuration file should be present
     configuration_files = %W(
-    /home/app_user/sites/#{app_name}/conf.d/configuration.py
-    /home/app_user/sites/#{app_name}/source/#{app_name}/configuration.py
+    /home/app_user/sites/#{app_name}/conf.d/settings.json
+    /home/app_user/sites/#{app_name}/source/#{app_name}/settings.json
     )
     configuration_files.each do |f|
       describe file(f) do
-        if os[:release] == '14.04'
-          params = [
-              %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-              %r(ALLOWED_HOSTS = \['192\.168\.1\.86'\]$),
-              %r(^\s+'PASSWORD': "db_user_password",$),
-              %r(^DEBUG = False$),
-              %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-              %r(^\s+'NAME': '#{app_name}',$),
-              %r(^\s+'USER': 'db_user',$),
-              %r(^\s+'HOST': 'localhost',$),
-              %r(^\s+'NAME': 'test_#{app_name}',$)
-          ]
-        elsif os[:release] == '16.04'
-          params = [
-              %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-              %r(ALLOWED_HOSTS = \['192\.168\.1\.87'\]$),
-              %r(^\s+'PASSWORD': "db_user_password",$),
-              %r(^DEBUG = False$),
-              %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-              %r(^\s+'NAME': '#{app_name}',$),
-              %r(^\s+'USER': 'db_user',$),
-              %r(^\s+'HOST': 'localhost',$),
-              %r(^\s+'NAME': 'test_#{app_name}',$)
-          ]
-        end
+        params = [
+            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+            %r(^\s+"ALLOWED_HOSTS": \["#{ip_regex}"\],$),
+            %r(^\s+"DEBUG": false,$),
+            %r(^\s+"DB_ENGINE": "django\.db\.backends\.postgresql_psycopg2",$),
+            %r(^\s+"DB_NAME": "#{app_name}",$),
+            %r(^\s+"DB_USER": "db_user",$),
+            %r(^\s+"DB_PASSWORD": "db_user_password",$),
+            %r(^\s+"DB_ADMIN_USER": "postgres",$),
+            %r(^\s+"DB_ADMIN_PASSWORD": "postgres_password",$),
+            %r(^\s+"DB_HOST": "localhost",$),
+            %r(^\s+"TEST_DB_NAME": "test_#{app_name}",$),
+            %r(^\s+"BROKER_URL": "redis://localhost:6379/0",$),
+            %r(^\s+"CELERY_RESULT_BACKEND": "redis://localhost:6379/0",$),
+            %r(^\s+"SERVER_URL": "liveserver",$),
+            %r(^\s+"INITIAL_USERS": \[$),
+            %r(^\s+\["user0", "user0@example\.com", "user0_password"\],$),
+            %r(^\s+\["user1", "user1@example\.com", "user1_password"\],$),
+            %r(^\s+"INITIAL_SUPERUSER": \["superuser", "superuser@example\.com", "superuser_password"\]$),
+        ]
         it { should exist }
         it { should be_file }
         it { should be_owned_by 'app_user' }
@@ -318,26 +315,12 @@ def django_app_spec(app_name)
     end
 
     # Django app configuration file for admin tasks should be present
-    settings_admin_files = %W(
-    /home/app_user/sites/#{app_name}/source/#{app_name}/#{app_name}/settings_admin.py
-    /home/app_user/sites/#{app_name}/conf.d/settings_admin.py
-    )
-    settings_admin_files.each do |f|
-      describe file(f) do
-        params = [
-            %r(^from #{app_name}.settings import \*$),
-            %r(^\s+'USER': 'postgres',$),
-            %r(^\s+'PASSWORD': "postgres_password",$),
-        ]
-        it { should exist }
-        it { should be_file }
-        it { should be_owned_by 'app_user' }
-        it { should be_grouped_into 'app_user' }
-        it { should be_mode 400 }
-        params.each do |p|
-          its(:content) { should match(p)}
-        end
-      end
+    describe file("/home/app_user/sites/#{app_name}/source/#{app_name}/settings_admin.py") do
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'app_user' }
+      it { should be_grouped_into 'app_user' }
+      it { should be_mode 400 }
     end
 
     # uWSGI ini file should be present

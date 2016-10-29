@@ -116,7 +116,6 @@ if app_repo
     mode '0750'
   end
 
-  # TODO: adapt serverspec tests
   # create host-specific configuration file for django app
   template "/home/#{web_user}/sites/#{app_name}/conf.d/settings.json" do
     source 'settings.json.erb'

@@ -112,7 +112,6 @@ if app_repo
     mode '0750'
   end
 
-  # TODO: adapt to settings.json
   # create host-specific configuration file for django app
   template "/home/#{app_user}/sites/#{app_name}/conf.d/settings.json" do
     source 'settings.json.erb'

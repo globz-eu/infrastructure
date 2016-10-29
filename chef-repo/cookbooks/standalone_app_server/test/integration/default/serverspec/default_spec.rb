@@ -51,7 +51,7 @@ require 'web_user'
 # Server Spec:: nginx
 
 require 'nginx'
-nginx_spec(app_name, ips, https)
+nginx_spec(app_name, ips, https, site_down: false)
 
 # Cookbook:: django_app_server
 # Server Spec:: app_user
@@ -67,7 +67,7 @@ require 'python'
 # Server Spec:: django_app
 
 require 'django_app'
-django_app_spec(app_name)
+django_app_spec(app_name, ips)
 
 # Cookbook Name:: django_app_server
 # Server Spec:: uwsgi

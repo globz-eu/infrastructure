@@ -25,7 +25,7 @@ require 'serverspec'
 
 set :backend, :exec
 
-def nginx_spec(app_name, ips, https, www=false)
+def nginx_spec(app_name, ips, https, www: false, site_down: true)
   if os[:family] == 'ubuntu'
     ip_regex = Regexp.escape(ips[os[:release]])
     if www
@@ -65,6 +65,59 @@ def nginx_spec(app_name, ips, https, www=false)
     describe service('nginx') do
       it { should be_enabled }
       it { should be_running }
+    end
+
+    # installs a python runtime
+    if os[:release] == '14.04'
+      describe package('python3.4') do
+        it { should be_installed }
+      end
+
+      describe file('/usr/bin/python3.4') do
+        it { should exist }
+        it { should be_file }
+      end
+
+      describe command ( 'pip -V' ) do
+        pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/local/lib/python3\.4/dist-packages \(python 3\.4\))
+        its(:stdout) { should match(pip3_version)}
+      end
+
+      describe package('python3.4-dev') do
+        it { should be_installed }
+      end
+
+      describe command ('pip list | grep virtualenv') do
+        its(:stdout) { should match(/virtualenv\s+\(\d+\.\d+\.\d+\)/)}
+      end
+    end
+
+    if os[:release] == '16.04'
+      describe package('python3.5') do
+        it { should be_installed }
+      end
+
+      describe file('/usr/bin/python3.5') do
+        it { should exist }
+        it { should be_file }
+      end
+
+      describe command ( 'pip3 -V' ) do
+        pip3_version = %r(pip \d+\.\d+\.\d+ from /usr/local/lib/python3\.5/dist-packages \(python 3\.5\))
+        its(:stdout) { should match(pip3_version)}
+      end
+
+      describe package('python3.5-dev') do
+        it { should be_installed }
+      end
+
+      describe package('python3-pip') do
+        it { should be_installed }
+      end
+
+      describe package('python3-venv') do
+        it { should be_installed }
+      end
     end
 
     describe file("/etc/nginx/sites-available/#{app_name}.conf") do
@@ -109,7 +162,11 @@ def nginx_spec(app_name, ips, https, www=false)
             its(:content) { should match(p) }
           end
         elsif f == "/etc/nginx/sites-enabled/#{app_name}_down.conf"
-          it { should_not exist }
+          if site_down
+            it { should exist }
+          else
+            it { should_not exist }
+          end
         end
       end
     end
@@ -202,11 +259,46 @@ def nginx_spec(app_name, ips, https, www=false)
           %r(^STATIC_PATH = '/home/web_user/sites/#{app_name}/static'$),
           %r(^MEDIA_PATH = '/home/web_user/sites/#{app_name}/media'$),
           %r(^UWSGI_PATH = '/home/web_user/sites/#{app_name}/uwsgi'$),
-          %r(^VENV = ''$),
+          %r(^VENV = '/home/web_user/.envs/#{app_name}'$),
           %r(^REQS_FILE = ''$),
           %r(^SYS_DEPS_FILE = ''$),
           %r(^LOG_FILE = '/var/log/#{app_name}/serve_static\.log'$),
           %r(^FIFO_DIR = ''$)
+      ]
+      it { should exist }
+      it { should be_file }
+      it { should be_owned_by 'web_user' }
+      it { should be_grouped_into 'web_user' }
+      it { should be_mode 400 }
+      params.each do |p|
+        its(:content) { should match(p)}
+      end
+    end
+
+    # settings.json file should be present
+    describe file("/home/web_user/sites/#{app_name}/conf.d") do
+      it {should exist}
+      it {should be_directory}
+      it {should be_owned_by 'web_user'}
+      it {should be_grouped_into 'web_user'}
+      it {should be_mode 750}
+    end
+
+    describe file("/home/web_user/sites/#{app_name}/conf.d/settings.json") do
+      params = [
+          %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+          %r(^\s+"DEBUG": false,$),
+          %r(^\s+"ALLOWED_HOSTS": \[""\],$),
+          %r(^\s+"DB_ENGINE": "",$),
+          %r(^\s+"DB_NAME": "",$),
+          %r(^\s+"DB_USER": "",$),
+          %r(^\s+"DB_PASSWORD": "",$),
+          %r(^\s+"DB_ADMIN_USER": "",$),
+          %r(^\s+"DB_ADMIN_PASSWORD": "",$),
+          %r(^\s+"DB_HOST": "",$),
+          %r(^\s+"TEST_DB_NAME": "",$),
+          %r(^\s+"BROKER_URL": "",$),
+          %r(^\s+"CELERY_RESULT_BACKEND": ""$)
       ]
       it { should exist }
       it { should be_file }
