@@ -18,7 +18,7 @@
 # =====================================================================
 #
 # Cookbook:: web_server
-# Spec:: web_user
+# Server Spec:: web_user
 
 require 'spec_helper'
 

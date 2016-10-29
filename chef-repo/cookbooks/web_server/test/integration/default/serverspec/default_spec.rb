@@ -16,18 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
+#
+# Cookbook:: web_server
+# Server Spec:: default
 
+require 'default'
 
-require 'spec_helper'
+# Cookbook:: web_server
+# Server Spec:: web_user
 
-set :backend, :exec
+require 'web_user'
 
-describe file('/var/log/chef-kitchen/chef-client.log') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'root' }
-  it { should be_grouped_into 'root' }
-  it { should be_mode 644 }
-  its(:content) { should_not match(/ERROR/)}
-  its(:content) { should_not match(/FATAL/)}
-end
+# Cookbook:: web_server
+# Server Spec:: nginx
+
+app_name = 'django_base'
+ips = {'14.04' => '192.168.1.84', '16.04' => '192.168.1.85'}
+https = false
+
+require 'nginx'
+nginx_spec(app_name, ips, https)

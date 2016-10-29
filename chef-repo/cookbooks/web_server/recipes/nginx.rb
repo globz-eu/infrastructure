@@ -30,6 +30,7 @@ app_user_vault = chef_vault_item('app_user', "app_user#{node_nr}")
 app_user = app_user_vault['user']
 app_name = node['web_server']['nginx']['app_name']
 node_ip_item = chef_vault_item('basic_node', "node_ips#{node_nr}")
+django_app_vault = chef_vault_item('django_app', "app#{node['django_app_server']['node_number']}")
 if node['web_server']['nginx']['app_home']
   app_home = node['web_server']['nginx']['app_home']
 else
@@ -64,6 +65,17 @@ if app_repo
   down_path = "/home/#{web_user}/sites/#{app_name}/down"
   paths = [static_path, media_path, uwsgi_path, down_path]
 
+  # create venv file structure
+  directory "/home/#{web_user}/.envs" do
+    owner web_user
+    group web_user
+    mode '0500'
+  end
+
+  # install python runtime
+  include_recipe 'django_app_server::python'
+
+  # create static directories
   paths.each do |p|
     directory p do
       owner web_user
@@ -91,8 +103,40 @@ if app_repo
                   media_path: media_path,
                   uwsgi_path: uwsgi_path,
                   down_path: down_path,
+                  venv: "/home/#{web_user}/.envs/#{app_name}",
                   log_file: "/var/log/#{app_name}/serve_static.log",
                   fifo_dir: ''
+              })
+  end
+
+  # create conf.d directory
+  directory "/home/#{web_user}/sites/#{app_name}/conf.d" do
+    owner web_user
+    group web_user
+    mode '0750'
+  end
+
+  # TODO: adapt serverspec tests
+  # create host-specific configuration file for django app
+  template "/home/#{web_user}/sites/#{app_name}/conf.d/settings.json" do
+    source 'settings.json.erb'
+    action :create
+    owner web_user
+    group web_user
+    mode '0400'
+    variables({
+                  secret_key: django_app_vault['secret_key'],
+                  allowed_host: '',
+                  db_engine: '',
+                  db_name: '',
+                  db_user: '',
+                  db_password: '',
+                  db_admin_user: '',
+                  db_admin_password: '',
+                  db_host: '',
+                  test_db_name: '',
+                  broker_url: '',
+                  celery_result_backend: ''
               })
   end
 

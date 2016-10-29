@@ -17,18 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook:: web_server
-# Spec:: web_user
+# Cookbook Name:: standalone_app_server
+# Server Spec:: default
 
 require 'spec_helper'
 
 set :backend, :exec
 
-describe user( 'web_user' ) do
+# converges successfully
+describe file('/var/log/chef-kitchen/chef-client.log') do
   it { should exist }
-  it { should belong_to_group 'web_user' }
-  it { should belong_to_group 'www-data' }
-  it { should have_home_directory '/home/web_user' }
-  it { should have_login_shell '/bin/bash' }
-  its(:encrypted_password) { should match('$6$yVU4DyvxK$eA6SgYYkMjB11XavwzqLAvCfEuhYKmxElVHmxq/OszdU31ZjfukGZtJivTwwyHMt8DmiFv9NDvHRCWBNCcwKK.') }
+  it { should be_file }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
+  it { should be_mode 644 }
+  its(:content) { should_not match(/ERROR/)}
+  its(:content) { should_not match(/FATAL/)}
 end

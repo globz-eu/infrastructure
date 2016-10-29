@@ -23,7 +23,7 @@
 require 'spec_helper'
 
 describe 'web_server::nginx' do
-  ['14.04', '16.04'].each do |version|
+  %w(14.04 16.04).each do |version|
     context "When git repo is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
@@ -39,6 +39,7 @@ describe 'web_server::nginx' do
 
       before do
         stub_command('ls /home/web_user/sites/django_base/down/index.html').and_return(true)
+        stub_command('pip list | grep virtualenv').and_return(false)
       end
 
       it 'converges successfully' do
@@ -46,10 +47,18 @@ describe 'web_server::nginx' do
       end
 
       it 'includes chef-vault and firewall recipes' do
-        recipes = %w(chef-vault basic_node::firewall)
+        recipes = %w(chef-vault basic_node::firewall django_app_server::python)
         recipes.each do |r|
           expect(chef_run).to include_recipe(r)
         end
+      end
+
+      it 'creates the /home/web_user/.envs directory' do
+        expect(chef_run).to create_directory('/home/web_user/.envs').with(
+            owner: 'web_user',
+            group: 'web_user',
+            mode: '0500',
+        )
       end
 
       it 'installs the nginx package' do
@@ -119,6 +128,14 @@ describe 'web_server::nginx' do
         end
       end
 
+      it 'creates the /home/web_user/sites/django_base/conf.d directory' do
+        expect(chef_run).to create_directory('/home/web_user/sites/django_base/conf.d').with(
+            owner: 'web_user',
+            group: 'web_user',
+            mode: '0750',
+        )
+      end
+
       it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
         expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/conf.py').with(
             owner: 'web_user',
@@ -139,6 +156,7 @@ describe 'web_server::nginx' do
                 media_path: '/home/web_user/sites/django_base/media',
                 uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
                 down_path: '/home/web_user/sites/django_base/down',
+                venv: '/home/web_user/.envs/django_base',
                 log_file: '/var/log/django_base/serve_static.log',
                 fifo_dir: ''
             }
@@ -157,7 +175,7 @@ describe 'web_server::nginx' do
             %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
             %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
             %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
-            %r(^VENV = ''$),
+            %r(^VENV = '/home/web_user/\.envs/django_base'$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
             %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
@@ -167,6 +185,47 @@ describe 'web_server::nginx' do
           expect(chef_run).to render_file(
                                   '/home/web_user/sites/django_base/scripts/conf.py'
                               ).with_content(u)
+        end
+      end
+
+      it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
+        expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
+            owner: 'web_user',
+            group: 'web_user',
+            mode: '0400',
+            source: 'settings.json.erb',
+            variables: {
+                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+                allowed_host: '',
+                db_engine: '',
+                db_name: '',
+                db_user: '',
+                db_password: '',
+                db_admin_user: '',
+                db_admin_password: '',
+                db_host: '',
+                test_db_name: '',
+                broker_url: '',
+                celery_result_backend: ''
+            }
+        )
+        config = [
+            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+            %r(^\s+"DEBUG": false,$),
+            %r(^\s+"ALLOWED_HOSTS": \[""\],$),
+            %r(^\s+"DB_ENGINE": "",$),
+            %r(^\s+"DB_NAME": "",$),
+            %r(^\s+"DB_USER": "",$),
+            %r(^\s+"DB_PASSWORD": "",$),
+            %r(^\s+"DB_ADMIN_USER": "",$),
+            %r(^\s+"DB_ADMIN_PASSWORD": "",$),
+            %r(^\s+"DB_HOST": "",$),
+            %r(^\s+"TEST_DB_NAME": "",$),
+            %r(^\s+"BROKER_URL": "",$),
+            %r(^\s+"CELERY_RESULT_BACKEND": ""$)
+        ]
+        config.each do |u|
+          expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
         end
       end
 
@@ -253,7 +312,7 @@ describe 'web_server::nginx' do
 end
 
 describe 'web_server::nginx' do
-  ['14.04', '16.04'].each do |version|
+  %w(14.04 16.04).each do |version|
     context "When git repo is specified and https and www are true, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
@@ -271,6 +330,7 @@ describe 'web_server::nginx' do
 
       before do
         stub_command('ls /home/web_user/sites/django_base/down/index.html').and_return(true)
+        stub_command('pip list | grep virtualenv').and_return(false)
       end
 
       it 'converges successfully' do
@@ -278,10 +338,18 @@ describe 'web_server::nginx' do
       end
 
       it 'includes chef-vault and firewall recipes' do
-        recipes = %w(chef-vault basic_node::firewall)
+        recipes = %w(chef-vault basic_node::firewall django_app_server::python)
         recipes.each do |r|
           expect(chef_run).to include_recipe(r)
         end
+      end
+
+      it 'creates the /home/web_user/.envs directory' do
+        expect(chef_run).to create_directory('/home/web_user/.envs').with(
+            owner: 'web_user',
+            group: 'web_user',
+            mode: '0500',
+        )
       end
 
       it 'installs the nginx package' do
@@ -501,6 +569,7 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
                 static_path: '/home/web_user/sites/django_base/static',
                 media_path: '/home/web_user/sites/django_base/media',
                 uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
+                venv: '/home/web_user/.envs/django_base',
                 down_path: '/home/web_user/sites/django_base/down',
                 log_file: '/var/log/django_base/serve_static.log',
                 fifo_dir: ''
@@ -520,7 +589,7 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
             %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
             %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
             %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
-            %r(^VENV = ''$),
+            %r(^VENV = '/home/web_user/.envs/django_base'$),
             %r(^REQS_FILE = ''$),
             %r(^SYS_DEPS_FILE = ''$),
             %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
@@ -530,6 +599,47 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
           expect(chef_run).to render_file(
                                   '/home/web_user/sites/django_base/scripts/conf.py'
                               ).with_content(u)
+        end
+      end
+
+      it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
+        expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
+            owner: 'web_user',
+            group: 'web_user',
+            mode: '0400',
+            source: 'settings.json.erb',
+            variables: {
+                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+                allowed_host: '',
+                db_engine: '',
+                db_name: '',
+                db_user: '',
+                db_password: '',
+                db_admin_user: '',
+                db_admin_password: '',
+                db_host: '',
+                test_db_name: '',
+                broker_url: '',
+                celery_result_backend: ''
+            }
+        )
+        config = [
+            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+            %r(^\s+"DEBUG": false,$),
+            %r(^\s+"ALLOWED_HOSTS": \[""\],$),
+            %r(^\s+"DB_ENGINE": "",$),
+            %r(^\s+"DB_NAME": "",$),
+            %r(^\s+"DB_USER": "",$),
+            %r(^\s+"DB_PASSWORD": "",$),
+            %r(^\s+"DB_ADMIN_USER": "",$),
+            %r(^\s+"DB_ADMIN_PASSWORD": "",$),
+            %r(^\s+"DB_HOST": "",$),
+            %r(^\s+"TEST_DB_NAME": "",$),
+            %r(^\s+"BROKER_URL": "",$),
+            %r(^\s+"CELERY_RESULT_BACKEND": ""$)
+        ]
+        config.each do |u|
+          expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
         end
       end
 

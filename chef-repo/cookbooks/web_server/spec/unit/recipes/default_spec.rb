@@ -53,7 +53,7 @@ end
 
 describe 'web_server::default' do
   ['14.04', '16.04'].each do |version|
-    context "When all app repo is specified, on an Ubuntu #{version} platform" do
+    context "When app repo is specified, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
@@ -68,6 +68,7 @@ describe 'web_server::default' do
 
       before do
         stub_command('ls /home/web_user/sites/django_base/down/index.html').and_return(true)
+        stub_command('pip list | grep virtualenv').and_return(false)
       end
 
       it 'converges successfully' do
