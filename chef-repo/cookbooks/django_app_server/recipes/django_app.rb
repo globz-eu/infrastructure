@@ -112,38 +112,30 @@ if app_repo
     mode '0750'
   end
 
+  # TODO: adapt to settings.json
   # create host-specific configuration file for django app
-  template "/home/#{app_user}/sites/#{app_name}/conf.d/configuration.py" do
-    source 'configuration.py.erb'
+  template "/home/#{app_user}/sites/#{app_name}/conf.d/settings.json" do
+    source 'settings.json.erb'
     action :create
     owner app_user
     group app_user
     mode '0400'
     variables({
                   secret_key: django_app_vault['secret_key'],
-                  debug: node['django_app_server']['django_app']['debug'],
-                  allowed_host: allowed_host,
-                  engine: node['django_app_server']['django_app']['engine'],
-                  app_name: app_name,
+                  allowed_hosts: allowed_host,
+                  db_engine: node['django_app_server']['django_app']['engine'],
+                  db_name: app_name,
                   db_user: db_user,
-                  db_user_password: db_password,
-                  db_host: node['django_app_server']['django_app']['db_host'],
-                  init_users: init_user_vault['users'],
-                  init_superuser: init_user_vault['superuser'],
-              })
-  end
-
-  # create django settings file for administrative tasks (manage.py)
-  template "/home/#{app_user}/sites/#{app_name}/conf.d/settings_admin.py" do
-    source 'settings_admin.py.erb'
-    action :create
-    owner app_user
-    group app_user
-    mode '0400'
-    variables({
-                  app_name: app_name,
+                  db_password: db_password,
                   db_admin_user: pg_user_vault['user'],
                   db_admin_password: pg_user_vault['password'],
+                  db_host: node['django_app_server']['django_app']['db_host'],
+                  test_db_name: "test_#{app_name}",
+                  broker_url: 'redis://localhost:6379/0',
+                  celery_result_backend: 'redis://localhost:6379/0',
+                  server_url: 'liveserver',
+                  init_users: init_user_vault['users'],
+                  init_superuser: init_user_vault['superuser'],
               })
   end
 

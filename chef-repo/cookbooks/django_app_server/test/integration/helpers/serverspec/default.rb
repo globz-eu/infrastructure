@@ -17,22 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =====================================================================
 #
-# Cookbook Name:: django_app_server
-# Server Spec:: python
+# Cookbook Name:: standalone_app_server
+# Server Spec:: default
 
 require 'spec_helper'
 
 set :backend, :exec
 
-describe command ( 'pip3 list' ) do
-  its(:stdout) { should match(/uWSGI/)}
-end
-
-describe file('/var/log/uwsgi') do
+# converges successfully
+describe file('/var/log/chef-kitchen/chef-client.log') do
   it { should exist }
-  it { should be_directory }
+  it { should be_file }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
-  it { should be_mode 755 }
+  it { should be_mode 644 }
+  its(:content) { should_not match(/ERROR/)}
+  its(:content) { should_not match(/FATAL/)}
 end
-

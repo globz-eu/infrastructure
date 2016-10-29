@@ -20,17 +20,27 @@
 # Cookbook Name:: django_app_server
 # Server Spec:: default
 
+require 'default'
 
-require 'spec_helper'
+# Cookbook:: django_app_server
+# Server Spec:: app_user
 
-set :backend, :exec
+require 'app_user'
 
-describe file('/var/log/chef-kitchen/chef-client.log') do
-  it { should exist }
-  it { should be_file }
-  it { should be_owned_by 'root' }
-  it { should be_grouped_into 'root' }
-  it { should be_mode 644 }
-  its(:content) { should_not match(/ERROR/)}
-  its(:content) { should_not match(/FATAL/)}
-end
+# Cookbook Name:: django_app_server
+# Server Spec:: python
+
+require 'python'
+
+# Cookbook Name:: django_app_server
+# Server Spec:: django_app
+
+require 'django_app'
+app_name = 'django_base'
+ips = {'14.04' => '192.168.1.82', '16.04' => '192.168.1.83'}
+django_app_spec(app_name, ips)
+
+# Cookbook Name:: django_app_server
+# Server Spec:: uwsgi
+
+require 'uwsgi'

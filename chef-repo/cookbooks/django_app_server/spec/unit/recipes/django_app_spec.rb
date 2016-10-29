@@ -128,26 +128,34 @@ describe 'django_app_server::django_app' do
         )
       end
 
-      it 'creates the /home/app_user/sites/django_base/conf.d/configuration.py file' do
+      it 'creates the /home/app_user/sites/django_base/conf.d/settings.json file' do
         if version == '14.04'
           allowed_host = '192.168.1.82'
         elsif version == '16.04'
           allowed_host = '192.168.1.83'
+        else
+          allowed_host = ''
         end
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/configuration.py').with(
+        allowed_host_regex = Regexp.escape(allowed_host)
+        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/settings.json').with(
             owner: 'app_user',
             group: 'app_user',
             mode: '0400',
-            source: 'configuration.py.erb',
+            source: 'settings.json.erb',
             variables: {
                 secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-                debug: 'False',
-                allowed_host: allowed_host,
-                engine: 'django.db.backends.postgresql_psycopg2',
-                app_name: 'django_base',
+                allowed_hosts: allowed_host,
+                db_engine: 'django.db.backends.postgresql_psycopg2',
+                db_name: 'django_base',
                 db_user: 'db_user',
-                db_user_password: 'db_user_password',
+                db_password: 'db_user_password',
+                db_admin_user: 'postgres',
+                db_admin_password: 'postgres_password',
                 db_host: 'localhost',
+                test_db_name: 'test_django_base',
+                broker_url: 'redis://localhost:6379/0',
+                celery_result_backend: 'redis://localhost:6379/0',
+                server_url: 'liveserver',
                 init_users: [
                     {"username"=>"user0", "email"=>"user0@example.com", "password"=>"user0_password"},
                     {"username"=>"user1", "email"=>"user1@example.com", "password"=>"user1_password"}
@@ -156,45 +164,27 @@ describe 'django_app_server::django_app' do
             }
         )
         config = [
-            %r(^SECRET_KEY = 'n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!'$),
-            %r(^DEBUG = False$),
-            %r(^ALLOWED_HOSTS = \['#{allowed_host}'\]$),
-            %r(^\s+'ENGINE': 'django\.db\.backends\.postgresql_psycopg2',$),
-            %r(^\s+'NAME': 'django_base',$),
-            %r(^\s+'USER': 'db_user',$),
-            %r(^\s+'PASSWORD': "db_user_password",$),
-            %r(^\s+'HOST': 'localhost',$),
-            %r(^\s+'NAME': 'test_django_base',$),
-            %r(^SERVER_URL = 'liveserver'$),
-            %r(^INITIAL_USERS = \[$),
-            %r(^\s+\('user0', 'user0@example\.com', 'user0_password'\),$),
-            %r(^\s+\('user1', 'user1@example\.com', 'user1_password'\),$),
-            %r(^INITIAL_SUPERUSER = \('superuser', 'superuser@example\.com', 'superuser_password'\)$),
+            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+            %r(^\s+"ALLOWED_HOSTS": \["#{allowed_host_regex}"\],$),
+            %r(^\s+"DEBUG": false,$),
+            %r(^\s+"DB_ENGINE": "django\.db\.backends\.postgresql_psycopg2",$),
+            %r(^\s+"DB_NAME": "django_base",$),
+            %r(^\s+"DB_USER": "db_user",$),
+            %r(^\s+"DB_PASSWORD": "db_user_password",$),
+            %r(^\s+"DB_ADMIN_USER": "postgres",$),
+            %r(^\s+"DB_ADMIN_PASSWORD": "postgres_password",$),
+            %r(^\s+"DB_HOST": "localhost",$),
+            %r(^\s+"TEST_DB_NAME": "test_django_base",$),
+            %r(^\s+"BROKER_URL": "redis://localhost:6379/0",$),
+            %r(^\s+"CELERY_RESULT_BACKEND": "redis://localhost:6379/0",$),
+            %r(^\s+"SERVER_URL": "liveserver",$),
+            %r(^\s+"INITIAL_USERS": \[$),
+            %r(^\s+\["user0", "user0@example\.com", "user0_password"\],$),
+            %r(^\s+\["user1", "user1@example\.com", "user1_password"\],$),
+            %r(^\s+"INITIAL_SUPERUSER": \["superuser", "superuser@example\.com", "superuser_password"\]$),
         ]
         config.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/configuration.py').with_content(u)
-        end
-      end
-
-      it 'creates the /home/app_user/sites/django_base/conf.d/settings_admin.py file' do
-        expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/settings_admin.py').with(
-            owner: 'app_user',
-            group: 'app_user',
-            mode: '0400',
-            source: 'settings_admin.py.erb',
-            variables: {
-                app_name: 'django_base',
-                db_admin_user: 'postgres',
-                db_admin_password: 'postgres_password',
-            }
-        )
-        admin_conf = [
-            %r(^from django_base\.settings import \*$),
-            %r(^\s+'USER': 'postgres',$),
-            %r(^\s+'PASSWORD': "postgres_password",$)
-        ]
-        admin_conf.each do |u|
-          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/settings_admin.py').with_content(u)
+          expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/settings.json').with_content(u)
         end
       end
 

@@ -1,0 +1,22 @@
+{
+  "SECRET_KEY": "<%= @secret_key %>",
+  "DEBUG": false,
+  "ALLOWED_HOSTS": ["<%= @allowed_hosts %>"],
+  "DB_ENGINE": "<%= @db_engine %>",
+  "DB_NAME": "<%= @db_name %>",
+  "DB_USER": "<%= @db_user %>",
+  "DB_PASSWORD": "<%= @db_password %>",
+  "DB_ADMIN_USER": "<%= @db_admin_user %>",
+  "DB_ADMIN_PASSWORD": "<%= @db_admin_password %>",
+  "DB_HOST": "<%= @db_host %>",
+  "TEST_DB_NAME": "<%= @test_db_name %>",
+  "BROKER_URL": "<%= @broker_url %>",
+  "CELERY_RESULT_BACKEND": "<%= @celery_result_backend %>",
+  "SERVER_URL": "<%= @server_url %>",
+  "INITIAL_USERS": [
+  <% @init_users.each do |user| -%>
+  ["<%= user['username'] %>", "<%= user['email'] %>", "<%= user['password'] %>"],
+  <% end -%>
+  ],
+  "INITIAL_SUPERUSER": ["<%= @init_superuser['username'] %>", "<%= @init_superuser['email'] %>", "<%= @init_superuser['password'] %>"]
+}
