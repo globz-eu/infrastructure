@@ -112,6 +112,26 @@ if app_repo
     mode '0750'
   end
 
+  # construct strings for initial users and superuser list
+  if init_user_vault['users'] == []
+    init_users = ''
+  else
+    init_users = ''
+    if init_user_vault['users'].length >= 2
+      init_user_vault['users'][0..-2].each do |user|
+        init_users += "\n  [\"#{user['username']}\", \"#{user['email']}\", \"#{user['password']}\"],"
+      end
+      init_users += "\n  [\"#{init_user_vault['users'][-1]['username']}\", \"#{init_user_vault['users'][-1]['email']}\", \"#{init_user_vault['users'][-1]['password']}\"]\n"
+    else
+      init_users += "\n[\"#{init_user_vault['users'][0]['username']}\", \"#{init_user_vault['users'][0]['email']}\", \"#{init_user_vault['users'][0]['password']}\"]\n"
+    end
+  end
+  if init_user_vault['superuser'] == {}
+    init_superuser = ''
+  else
+    init_superuser = "\"#{init_user_vault['superuser']['username']}\", \"#{init_user_vault['superuser']['email']}\", \"#{init_user_vault['superuser']['password']}\""
+  end
+
   # create host-specific configuration file for django app
   template "/home/#{app_user}/sites/#{app_name}/conf.d/settings.json" do
     source 'settings.json.erb'
@@ -133,8 +153,8 @@ if app_repo
                   broker_url: 'redis://localhost:6379/0',
                   celery_result_backend: 'redis://localhost:6379/0',
                   server_url: 'liveserver',
-                  init_users: init_user_vault['users'],
-                  init_superuser: init_user_vault['superuser'],
+                  init_users: init_users,
+                  init_superuser: init_superuser,
               })
   end
 
