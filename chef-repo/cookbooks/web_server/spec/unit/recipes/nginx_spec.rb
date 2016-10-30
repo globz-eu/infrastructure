@@ -22,6 +22,305 @@
 
 require 'spec_helper'
 
+def app(version, https: false, www: false)
+  if version == '14.04'
+    ip_end = '84'
+    ip = '192.168.1.84'
+  elsif version == '16.04'
+    ip_end = '85'
+    ip = '192.168.1.85'
+  end
+
+  if https
+    listen_port = '443'
+    port_regex = [/^\s+listen\s+443 ssl;$/]
+  else
+    listen_port = '80'
+    port_regex = [/^\s+listen\s+80;$/]
+  end
+
+  if www
+    server_name = [/^\s+server_name\s+192\.168\.1\.#{ip_end}\s+www.192\.168\.1\.#{ip_end};$/]
+  else
+    server_name = [/^\s+server_name\s+192\.168\.1\.#{ip_end};$/]
+  end
+
+  it 'converges successfully' do
+    expect { chef_run }.to_not raise_error
+  end
+
+  it 'includes chef-vault and firewall recipes' do
+    recipes = %w(chef-vault basic_node::firewall django_app_server::python)
+    recipes.each do |r|
+      expect(chef_run).to include_recipe(r)
+    end
+  end
+
+  it 'creates the /home/web_user/.envs directory' do
+    expect(chef_run).to create_directory('/home/web_user/.envs').with(
+        owner: 'web_user',
+        group: 'web_user',
+        mode: '0500',
+    )
+  end
+
+  it 'installs the nginx package' do
+    expect(chef_run).to install_package( 'nginx' )
+  end
+
+  it 'does not start nginx service until notified' do
+    expect(chef_run).to_not start_service( 'nginx' )
+  end
+
+  it 'creates firewall rules' do
+    if https
+      %w(http https).each do |r|
+        expect(chef_run).to create_firewall_rule(r)
+      end
+    else
+      expect(chef_run).to create_firewall_rule('http')
+      expect(chef_run).to_not create_firewall_rule('https')
+    end
+  end
+
+  it 'creates or updates django_base.conf file' do
+    params = [
+        /^# django_base.conf$/,
+        %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+        /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+        %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
+    ]
+    params += port_regex
+    params += server_name
+    if https
+      source_file = 'app_name_https.conf.erb'
+    else
+      source_file = 'app_name.conf.erb'
+    end
+    expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
+        owner: 'root',
+        group: 'root',
+        mode: '0400',
+        source: source_file,
+        variables: {
+            app_name: 'django_base',
+            server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
+            server_tcp_socket: '# server 127.0.0.1:8001;',
+            listen_port: listen_port,
+            server_name: ip,
+            static_path: '/home/web_user/sites/django_base/static',
+            media_path: '/home/web_user/sites/django_base/media',
+            uwsgi_path: '/home/web_user/sites/django_base/uwsgi'
+        }
+    })
+    params.each do |p|
+      expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
+    end
+  end
+
+  it 'installs the git package' do
+    expect( chef_run ).to install_package('git')
+  end
+
+  it 'creates the site file structure' do
+    sites_paths = ['static', 'media', 'uwsgi', 'down']
+    sites_paths.each do |s|
+      expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
+          owner: 'web_user',
+          group: 'www-data',
+          mode: '0550',
+      )
+    end
+  end
+
+  it 'creates the /home/web_user/sites/django_base/conf.d directory' do
+    expect(chef_run).to create_directory('/home/web_user/sites/django_base/conf.d').with(
+        owner: 'web_user',
+        group: 'web_user',
+        mode: '0750',
+    )
+  end
+
+  it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
+    expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/conf.py').with(
+        owner: 'web_user',
+        group: 'web_user',
+        mode: '0400',
+        source: 'conf.py.erb',
+        variables: {
+            dist_version: version,
+            log_level: 'DEBUG',
+            nginx_conf: '',
+            git_repo: 'https://github.com/globz-eu/django_base.git',
+            app_home: '',
+            app_home_tmp: '/home/web_user/sites/django_base/source',
+            app_user: '',
+            web_user: 'web_user',
+            webserver_user: 'www-data',
+            static_path: '/home/web_user/sites/django_base/static',
+            media_path: '/home/web_user/sites/django_base/media',
+            uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
+            down_path: '/home/web_user/sites/django_base/down',
+            venv: '/home/web_user/.envs/django_base',
+            log_file: '/var/log/django_base/serve_static.log',
+            fifo_dir: ''
+        }
+    )
+    install_app_conf = [
+        %r(^DIST_VERSION = '#{version}'$),
+        %r(^LOG_LEVEL = 'DEBUG'$),
+        %r(^NGINX_CONF = ''$),
+        %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+        %r(^APP_HOME = ''$),
+        %r(^APP_USER = ''$),
+        %r(^WEB_USER = 'web_user'$),
+        %r(^WEBSERVER_USER = 'www-data'$),
+        %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+        %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
+        %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
+        %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
+        %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
+        %r(^VENV = '/home/web_user/\.envs/django_base'$),
+        %r(^REQS_FILE = ''$),
+        %r(^SYS_DEPS_FILE = ''$),
+        %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
+        %r(^FIFO_DIR = ''$)
+    ]
+    install_app_conf.each do |u|
+      expect(chef_run).to render_file(
+                              '/home/web_user/sites/django_base/scripts/conf.py'
+                          ).with_content(u)
+    end
+  end
+
+  it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
+    expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
+        owner: 'web_user',
+        group: 'web_user',
+        mode: '0400',
+        source: 'settings.json.erb',
+        variables: {
+            secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+            allowed_host: '',
+            db_engine: '',
+            db_name: '',
+            db_user: '',
+            db_password: '',
+            db_admin_user: '',
+            db_admin_password: '',
+            db_host: '',
+            test_db_name: '',
+            broker_url: '',
+            celery_result_backend: ''
+        }
+    )
+    config = [
+        %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+        %r(^\s+"DEBUG": false,$),
+        %r(^\s+"ALLOWED_HOSTS": \[""\],$),
+        %r(^\s+"DB_ENGINE": "",$),
+        %r(^\s+"DB_NAME": "",$),
+        %r(^\s+"DB_USER": "",$),
+        %r(^\s+"DB_PASSWORD": "",$),
+        %r(^\s+"DB_ADMIN_USER": "",$),
+        %r(^\s+"DB_ADMIN_PASSWORD": "",$),
+        %r(^\s+"DB_HOST": "",$),
+        %r(^\s+"TEST_DB_NAME": "",$),
+        %r(^\s+"BROKER_URL": "",$),
+        %r(^\s+"CELERY_RESULT_BACKEND": "",$),
+        %r(^\s+"SECURE_SSL_REDIRECT": false,$),
+        %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
+        %r(^\s+"CHROME_DRIVER": "",$),
+        %r(^\s+"FIREFOX_BINARY": "",$),
+        %r(^\s+"SERVER_URL": "",$),
+        %r(^\s+"HEROKU": false$),
+    ]
+    config.each do |u|
+      expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
+    end
+  end
+
+  it 'runs the serve_static script' do
+    expect(chef_run).to run_bash('serve_static').with(
+        cwd: '/home/web_user/sites/django_base/scripts',
+        code: './webserver.py -m',
+        user: 'root'
+    )
+  end
+
+  it 'creates the server down index page' do
+    params = [
+        %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
+    ]
+    expect(chef_run).to_not create_template('/home/web_user/sites/django_base/down/index.html').with(
+        owner: 'web_user',
+        group: 'www-data',
+        mode: '0440',
+        source: 'index_down.html.erb',
+        variables: {
+            app_name: 'django_base'
+        }
+    )
+    params.each do |p|
+      expect(chef_run).to_not render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
+    end
+  end
+
+  it 'creates or updates django_base_down.conf file' do
+    params = [
+        /^# django_base_down.conf$/,
+        %r(^\s+index index\.html;$),
+        %r(^\s+root /home/web_user/sites/django_base/down;),
+        %r(^\s+alias /home/web_user/sites/django_base/media;),
+        %r(^\s+alias /home/web_user/sites/django_base/static;),
+    ]
+    params += port_regex
+    params += server_name
+
+    if https
+      source_file = 'app_name_down_https.conf.erb'
+    else
+      source_file = 'app_name_down.conf.erb'
+    end
+    expect(chef_run).to create_template('/etc/nginx/sites-available/django_base_down.conf').with({
+         owner: 'root',
+         group: 'root',
+         mode: '0400',
+         source: source_file,
+         variables: {
+             app_name: 'django_base',
+             listen_port: listen_port,
+             server_name: ip,
+             down_path: '/home/web_user/sites/django_base/down',
+             static_path: '/home/web_user/sites/django_base/static',
+             media_path: '/home/web_user/sites/django_base/media',
+         }
+     })
+    params.each do |p|
+      expect(chef_run).to render_file('/etc/nginx/sites-available/django_base_down.conf').with_content(p)
+    end
+  end
+
+  it 'disables the default site' do
+    expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
+  end
+
+  it 'enables the server down site' do
+    expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base_down.conf').with(
+        owner: 'root',
+        group: 'root',
+        to: '/etc/nginx/sites-available/django_base_down.conf'
+    )
+  end
+
+  it 'notifies nginx to restart' do
+    site_down_enabled = chef_run.link('/etc/nginx/sites-enabled/django_base_down.conf')
+    expect(site_down_enabled).to notify('service[nginx]').to(:restart).immediately
+  end
+end
+
 describe 'web_server::nginx' do
   %w(14.04 16.04).each do |version|
     context "When git repo is specified, on an Ubuntu #{version} platform" do
@@ -42,271 +341,8 @@ describe 'web_server::nginx' do
         stub_command('pip list | grep virtualenv').and_return(false)
       end
 
-      it 'converges successfully' do
-        expect { chef_run }.to_not raise_error
-      end
+      app(version)
 
-      it 'includes chef-vault and firewall recipes' do
-        recipes = %w(chef-vault basic_node::firewall django_app_server::python)
-        recipes.each do |r|
-          expect(chef_run).to include_recipe(r)
-        end
-      end
-
-      it 'creates the /home/web_user/.envs directory' do
-        expect(chef_run).to create_directory('/home/web_user/.envs').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0500',
-        )
-      end
-
-      it 'installs the nginx package' do
-        expect(chef_run).to install_package( 'nginx' )
-      end
-
-      it 'does not start nginx service until notified' do
-        expect(chef_run).to_not start_service( 'nginx' )
-      end
-
-      it 'creates firewall rules' do
-        expect(chef_run).to create_firewall_rule('http')
-        expect(chef_run).to_not create_firewall_rule('https')
-      end
-
-      it 'creates or updates django_base.conf file' do
-        if version == '14.04'
-          ip_end = '84'
-          ip = '192.168.1.84'
-        elsif version == '16.04'
-          ip_end = '85'
-          ip = '192.168.1.85'
-        end
-        params = [
-            /^# django_base.conf$/,
-            %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-            /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-            /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.#{ip_end};$/,
-            %r(^\s+alias /home/web_user/sites/django_base/media;),
-            %r(^\s+alias /home/web_user/sites/django_base/static;),
-            %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
-        ]
-        expect(chef_run).to create_template('/etc/nginx/sites-available/django_base.conf').with({
-            owner: 'root',
-            group: 'root',
-            mode: '0400',
-            source: 'app_name.conf.erb',
-            variables: {
-                app_name: 'django_base',
-                server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
-                server_tcp_socket: '# server 127.0.0.1:8001;',
-                listen_port: '80',
-                server_name: ip,
-                static_path: '/home/web_user/sites/django_base/static',
-                media_path: '/home/web_user/sites/django_base/media',
-                uwsgi_path: '/home/web_user/sites/django_base/uwsgi'
-            }
-        })
-        params.each do |p|
-          expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
-        end
-      end
-
-      it 'installs the git package' do
-        expect( chef_run ).to install_package('git')
-      end
-
-      it 'creates the site file structure' do
-        sites_paths = ['static', 'media', 'uwsgi', 'down']
-        sites_paths.each do |s|
-          expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
-              owner: 'web_user',
-              group: 'www-data',
-              mode: '0550',
-          )
-        end
-      end
-
-      it 'creates the /home/web_user/sites/django_base/conf.d directory' do
-        expect(chef_run).to create_directory('/home/web_user/sites/django_base/conf.d').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0750',
-        )
-      end
-
-      it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
-        expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/conf.py').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0400',
-            source: 'conf.py.erb',
-            variables: {
-                dist_version: version,
-                log_level: 'DEBUG',
-                nginx_conf: '',
-                git_repo: 'https://github.com/globz-eu/django_base.git',
-                app_home: '',
-                app_home_tmp: '/home/web_user/sites/django_base/source',
-                app_user: '',
-                web_user: 'web_user',
-                webserver_user: 'www-data',
-                static_path: '/home/web_user/sites/django_base/static',
-                media_path: '/home/web_user/sites/django_base/media',
-                uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
-                down_path: '/home/web_user/sites/django_base/down',
-                venv: '/home/web_user/.envs/django_base',
-                log_file: '/var/log/django_base/serve_static.log',
-                fifo_dir: ''
-            }
-        )
-        install_app_conf = [
-            %r(^DIST_VERSION = '#{version}'$),
-            %r(^LOG_LEVEL = 'DEBUG'$),
-            %r(^NGINX_CONF = ''$),
-            %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
-            %r(^APP_HOME = ''$),
-            %r(^APP_USER = ''$),
-            %r(^WEB_USER = 'web_user'$),
-            %r(^WEBSERVER_USER = 'www-data'$),
-            %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
-            %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
-            %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
-            %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
-            %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
-            %r(^VENV = '/home/web_user/\.envs/django_base'$),
-            %r(^REQS_FILE = ''$),
-            %r(^SYS_DEPS_FILE = ''$),
-            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
-            %r(^FIFO_DIR = ''$)
-        ]
-        install_app_conf.each do |u|
-          expect(chef_run).to render_file(
-                                  '/home/web_user/sites/django_base/scripts/conf.py'
-                              ).with_content(u)
-        end
-      end
-
-      it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
-        expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0400',
-            source: 'settings.json.erb',
-            variables: {
-                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-                allowed_host: '',
-                db_engine: '',
-                db_name: '',
-                db_user: '',
-                db_password: '',
-                db_admin_user: '',
-                db_admin_password: '',
-                db_host: '',
-                test_db_name: '',
-                broker_url: '',
-                celery_result_backend: ''
-            }
-        )
-        config = [
-            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
-            %r(^\s+"DEBUG": false,$),
-            %r(^\s+"ALLOWED_HOSTS": \[""\],$),
-            %r(^\s+"DB_ENGINE": "",$),
-            %r(^\s+"DB_NAME": "",$),
-            %r(^\s+"DB_USER": "",$),
-            %r(^\s+"DB_PASSWORD": "",$),
-            %r(^\s+"DB_ADMIN_USER": "",$),
-            %r(^\s+"DB_ADMIN_PASSWORD": "",$),
-            %r(^\s+"DB_HOST": "",$),
-            %r(^\s+"TEST_DB_NAME": "",$),
-            %r(^\s+"BROKER_URL": "",$),
-            %r(^\s+"CELERY_RESULT_BACKEND": ""$)
-        ]
-        config.each do |u|
-          expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
-        end
-      end
-
-      it 'runs the serve_static script' do
-        expect(chef_run).to run_bash('serve_static').with(
-            cwd: '/home/web_user/sites/django_base/scripts',
-            code: './webserver.py -m',
-            user: 'root'
-        )
-      end
-
-      it 'creates the server down index page' do
-        params = [
-            %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
-        ]
-        expect(chef_run).to_not create_template('/home/web_user/sites/django_base/down/index.html').with(
-             owner: 'web_user',
-             group: 'www-data',
-             mode: '0440',
-             source: 'index_down.html.erb',
-             variables: {
-                 app_name: 'django_base'
-             }
-        )
-        params.each do |p|
-          expect(chef_run).to_not render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
-        end
-      end
-
-      it 'creates or updates django_base_down.conf file' do
-        if version == '14.04'
-          ip_end = '84'
-          ip = '192.168.1.84'
-        elsif version == '16.04'
-          ip_end = '85'
-          ip = '192.168.1.85'
-        end
-        params = [
-            /^# django_base_down.conf$/,
-            %r(^\s+index index.html;$),
-            /^\s+listen\s+80;$/,
-            /^\s+server_name\s+192\.168\.1\.#{ip_end};$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;),
-            %r(^\s+alias /home/web_user/sites/django_base/media;),
-            %r(^\s+alias /home/web_user/sites/django_base/static;),
-        ]
-        expect(chef_run).to create_template('/etc/nginx/sites-available/django_base_down.conf').with({
-                  owner: 'root',
-                  group: 'root',
-                  mode: '0400',
-                  source: 'app_name_down.conf.erb',
-                  variables: {
-                      app_name: 'django_base',
-                      listen_port: '80',
-                      server_name: ip,
-                      down_path: '/home/web_user/sites/django_base/down',
-                      static_path: '/home/web_user/sites/django_base/static',
-                      media_path: '/home/web_user/sites/django_base/media',
-                  }
-                                                                                                })
-        params.each do |p|
-          expect(chef_run).to render_file('/etc/nginx/sites-available/django_base_down.conf').with_content(p)
-        end
-      end
-
-      it 'disables the default site' do
-        expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
-      end
-
-      it 'enables the server down site' do
-        expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base_down.conf').with(
-                   owner: 'root',
-                   group: 'root',
-                   to: '/etc/nginx/sites-available/django_base_down.conf'
-        )
-      end
-
-      it 'notifies nginx to restart' do
-        site_down_enabled = chef_run.link('/etc/nginx/sites-enabled/django_base_down.conf')
-        expect(site_down_enabled).to notify('service[nginx]').to(:restart).immediately
-      end
     end
   end
 end
@@ -333,79 +369,81 @@ describe 'web_server::nginx' do
         stub_command('pip list | grep virtualenv').and_return(false)
       end
 
-      it 'converges successfully' do
-        expect { chef_run }.to_not raise_error
-      end
+      app(version, https: true, www: true)
 
-      it 'includes chef-vault and firewall recipes' do
-        recipes = %w(chef-vault basic_node::firewall django_app_server::python)
-        recipes.each do |r|
-          expect(chef_run).to include_recipe(r)
-        end
-      end
+      # it 'converges successfully' do
+      #   expect { chef_run }.to_not raise_error
+      # end
 
-      it 'creates the /home/web_user/.envs directory' do
-        expect(chef_run).to create_directory('/home/web_user/.envs').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0500',
-        )
-      end
+      # it 'includes chef-vault and firewall recipes' do
+      #   recipes = %w(chef-vault basic_node::firewall django_app_server::python)
+      #   recipes.each do |r|
+      #     expect(chef_run).to include_recipe(r)
+      #   end
+      # end
 
-      it 'installs the nginx package' do
-        expect(chef_run).to install_package( 'nginx' )
-      end
+      # it 'creates the /home/web_user/.envs directory' do
+      #   expect(chef_run).to create_directory('/home/web_user/.envs').with(
+      #       owner: 'web_user',
+      #       group: 'web_user',
+      #       mode: '0500',
+      #   )
+      # end
 
-      it 'does not start nginx service until notified' do
-        expect(chef_run).to_not start_service( 'nginx' )
-      end
+      # it 'installs the nginx package' do
+      #   expect(chef_run).to install_package( 'nginx' )
+      # end
 
-      it 'creates firewall rules' do
-        %w(http https).each do |r|
-          expect(chef_run).to create_firewall_rule(r)
-        end
-      end
+      # it 'does not start nginx service until notified' do
+      #   expect(chef_run).to_not start_service( 'nginx' )
+      # end
 
-      it 'creates or updates django_base.conf file' do
-        if version == '14.04'
-          ip_end = '84'
-          ip = '192.168.1.84'
-        elsif version == '16.04'
-          ip_end = '85'
-          ip = '192.168.1.85'
-        end
-        params = [
-            /^# django_base.conf$/,
-            %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
-            /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
-            /^\s+listen\s+443\s+ssl;$/,
-            /^\s+server_name\s+192\.168\.1\.#{ip_end}\s+www.192\.168\.1\.#{ip_end};$/,
-            %r(^\s+alias /home/web_user/sites/django_base/media;),
-            %r(^\s+alias /home/web_user/sites/django_base/static;),
-            %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
-        ]
-        expect(chef_run).to create_template(
-                                '/etc/nginx/sites-available/django_base.conf'
-                            ).with({
-                                owner: 'root',
-                                group: 'root',
-                                mode: '0400',
-                                source: 'app_name_https.conf.erb',
-                                variables: {
-                                    app_name: 'django_base',
-                                    server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
-                                    server_tcp_socket: '# server 127.0.0.1:8001;',
-                                    listen_port: '443',
-                                    server_name: ip,
-                                    static_path: '/home/web_user/sites/django_base/static',
-                                    media_path: '/home/web_user/sites/django_base/media',
-                                    uwsgi_path: '/home/web_user/sites/django_base/uwsgi'
-                                }
-                            })
-        params.each do |p|
-          expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
-        end
-      end
+      # it 'creates firewall rules' do
+      #   %w(http https).each do |r|
+      #     expect(chef_run).to create_firewall_rule(r)
+      #   end
+      # end
+
+      # it 'creates or updates django_base.conf file' do
+      #   if version == '14.04'
+      #     ip_end = '84'
+      #     ip = '192.168.1.84'
+      #   elsif version == '16.04'
+      #     ip_end = '85'
+      #     ip = '192.168.1.85'
+      #   end
+      #   params = [
+      #       /^# django_base.conf$/,
+      #       %r(^\s+server unix:///home/app_user/sites/django_base/sockets/django_base\.sock; # for a file socket$),
+      #       /^\s+# server 127\.0\.0\.1:8001; # for a web port socket/,
+      #       /^\s+listen\s+443\s+ssl;$/,
+      #       /^\s+server_name\s+192\.168\.1\.#{ip_end}\s+www.192\.168\.1\.#{ip_end};$/,
+      #       %r(^\s+alias /home/web_user/sites/django_base/media;),
+      #       %r(^\s+alias /home/web_user/sites/django_base/static;),
+      #       %r(^\s+include\s+/home/web_user/sites/django_base/uwsgi/uwsgi_params;$)
+      #   ]
+      #   expect(chef_run).to create_template(
+      #                           '/etc/nginx/sites-available/django_base.conf'
+      #                       ).with({
+      #                           owner: 'root',
+      #                           group: 'root',
+      #                           mode: '0400',
+      #                           source: 'app_name_https.conf.erb',
+      #                           variables: {
+      #                               app_name: 'django_base',
+      #                               server_unix_socket: 'server unix:///home/app_user/sites/django_base/sockets/django_base.sock;',
+      #                               server_tcp_socket: '# server 127.0.0.1:8001;',
+      #                               listen_port: '443',
+      #                               server_name: ip,
+      #                               static_path: '/home/web_user/sites/django_base/static',
+      #                               media_path: '/home/web_user/sites/django_base/media',
+      #                               uwsgi_path: '/home/web_user/sites/django_base/uwsgi'
+      #                           }
+      #                       })
+      #   params.each do |p|
+      #     expect(chef_run).to render_file('/etc/nginx/sites-available/django_base.conf').with_content(p)
+      #   end
+      # end
 
       it 'creates the ssl directory' do
         expect(chef_run).to create_directory('/etc/nginx/ssl').with(
@@ -535,194 +573,200 @@ ceMkZ96kunsVNfj3/JAjC7F6LQ==
 -----END PRIVATE KEY-----$))
     end
 
-      it 'installs the git package' do
-        expect( chef_run ).to install_package('git')
-      end
+      # it 'installs the git package' do
+      #   expect( chef_run ).to install_package('git')
+      # end
 
-      it 'creates the site file structure' do
-        sites_paths = %w(static media uwsgi down)
-        sites_paths.each do |s|
-          expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
-              owner: 'web_user',
-              group: 'www-data',
-              mode: '0550',
-          )
-        end
-      end
+      # it 'creates the site file structure' do
+      #   sites_paths = %w(static media uwsgi down)
+      #   sites_paths.each do |s|
+      #     expect(chef_run).to create_directory("/home/web_user/sites/django_base/#{s}").with(
+      #         owner: 'web_user',
+      #         group: 'www-data',
+      #         mode: '0550',
+      #     )
+      #   end
+      # end
 
-      it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
-        expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/conf.py').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0400',
-            source: 'conf.py.erb',
-            variables: {
-                dist_version: version,
-                log_level: 'DEBUG',
-                nginx_conf: '',
-                git_repo: 'https://github.com/globz-eu/django_base.git',
-                app_home: '',
-                app_home_tmp: '/home/web_user/sites/django_base/source',
-                app_user: '',
-                web_user: 'web_user',
-                webserver_user: 'www-data',
-                static_path: '/home/web_user/sites/django_base/static',
-                media_path: '/home/web_user/sites/django_base/media',
-                uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
-                venv: '/home/web_user/.envs/django_base',
-                down_path: '/home/web_user/sites/django_base/down',
-                log_file: '/var/log/django_base/serve_static.log',
-                fifo_dir: ''
-            }
-        )
-        install_app_conf = [
-            %r(^DIST_VERSION = '#{version}'$),
-            %r(^LOG_LEVEL = 'DEBUG'$),
-            %r(^NGINX_CONF = ''$),
-            %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
-            %r(^APP_HOME = ''$),
-            %r(^APP_USER = ''$),
-            %r(^WEB_USER = 'web_user'$),
-            %r(^WEBSERVER_USER = 'www-data'$),
-            %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
-            %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
-            %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
-            %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
-            %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
-            %r(^VENV = '/home/web_user/.envs/django_base'$),
-            %r(^REQS_FILE = ''$),
-            %r(^SYS_DEPS_FILE = ''$),
-            %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
-            %r(^FIFO_DIR = ''$)
-        ]
-        install_app_conf.each do |u|
-          expect(chef_run).to render_file(
-                                  '/home/web_user/sites/django_base/scripts/conf.py'
-                              ).with_content(u)
-        end
-      end
+      # it 'creates the /home/web_user/sites/django_base/scripts/conf.py file' do
+      #   expect(chef_run).to create_template('/home/web_user/sites/django_base/scripts/conf.py').with(
+      #       owner: 'web_user',
+      #       group: 'web_user',
+      #       mode: '0400',
+      #       source: 'conf.py.erb',
+      #       variables: {
+      #           dist_version: version,
+      #           log_level: 'DEBUG',
+      #           nginx_conf: '',
+      #           git_repo: 'https://github.com/globz-eu/django_base.git',
+      #           app_home: '',
+      #           app_home_tmp: '/home/web_user/sites/django_base/source',
+      #           app_user: '',
+      #           web_user: 'web_user',
+      #           webserver_user: 'www-data',
+      #           static_path: '/home/web_user/sites/django_base/static',
+      #           media_path: '/home/web_user/sites/django_base/media',
+      #           uwsgi_path: '/home/web_user/sites/django_base/uwsgi',
+      #           venv: '/home/web_user/.envs/django_base',
+      #           down_path: '/home/web_user/sites/django_base/down',
+      #           log_file: '/var/log/django_base/serve_static.log',
+      #           fifo_dir: ''
+      #       }
+      #   )
+      #   install_app_conf = [
+      #       %r(^DIST_VERSION = '#{version}'$),
+      #       %r(^LOG_LEVEL = 'DEBUG'$),
+      #       %r(^NGINX_CONF = ''$),
+      #       %r(^APP_HOME_TMP = '/home/web_user/sites/django_base/source'$),
+      #       %r(^APP_HOME = ''$),
+      #       %r(^APP_USER = ''$),
+      #       %r(^WEB_USER = 'web_user'$),
+      #       %r(^WEBSERVER_USER = 'www-data'$),
+      #       %r(^GIT_REPO = 'https://github\.com/globz-eu/django_base\.git'$),
+      #       %r(^STATIC_PATH = '/home/web_user/sites/django_base/static'$),
+      #       %r(^MEDIA_PATH = '/home/web_user/sites/django_base/media'$),
+      #       %r(^UWSGI_PATH = '/home/web_user/sites/django_base/uwsgi'$),
+      #       %r(^DOWN_PATH = '/home/web_user/sites/django_base/down'$),
+      #       %r(^VENV = '/home/web_user/.envs/django_base'$),
+      #       %r(^REQS_FILE = ''$),
+      #       %r(^SYS_DEPS_FILE = ''$),
+      #       %r(^LOG_FILE = '/var/log/django_base/serve_static\.log'$),
+      #       %r(^FIFO_DIR = ''$)
+      #   ]
+      #   install_app_conf.each do |u|
+      #     expect(chef_run).to render_file(
+      #                             '/home/web_user/sites/django_base/scripts/conf.py'
+      #                         ).with_content(u)
+      #   end
+      # end
 
-      it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
-        expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
-            owner: 'web_user',
-            group: 'web_user',
-            mode: '0400',
-            source: 'settings.json.erb',
-            variables: {
-                secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-                allowed_host: '',
-                db_engine: '',
-                db_name: '',
-                db_user: '',
-                db_password: '',
-                db_admin_user: '',
-                db_admin_password: '',
-                db_host: '',
-                test_db_name: '',
-                broker_url: '',
-                celery_result_backend: ''
-            }
-        )
-        config = [
-            %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
-            %r(^\s+"DEBUG": false,$),
-            %r(^\s+"ALLOWED_HOSTS": \[""\],$),
-            %r(^\s+"DB_ENGINE": "",$),
-            %r(^\s+"DB_NAME": "",$),
-            %r(^\s+"DB_USER": "",$),
-            %r(^\s+"DB_PASSWORD": "",$),
-            %r(^\s+"DB_ADMIN_USER": "",$),
-            %r(^\s+"DB_ADMIN_PASSWORD": "",$),
-            %r(^\s+"DB_HOST": "",$),
-            %r(^\s+"TEST_DB_NAME": "",$),
-            %r(^\s+"BROKER_URL": "",$),
-            %r(^\s+"CELERY_RESULT_BACKEND": ""$)
-        ]
-        config.each do |u|
-          expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
-        end
-      end
+      # it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
+      #   expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
+      #       owner: 'web_user',
+      #       group: 'web_user',
+      #       mode: '0400',
+      #       source: 'settings.json.erb',
+      #       variables: {
+      #           secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+      #           allowed_host: '',
+      #           db_engine: '',
+      #           db_name: '',
+      #           db_user: '',
+      #           db_password: '',
+      #           db_admin_user: '',
+      #           db_admin_password: '',
+      #           db_host: '',
+      #           test_db_name: '',
+      #           broker_url: '',
+      #           celery_result_backend: ''
+      #       }
+      #   )
+      #   config = [
+      #       %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
+      #       %r(^\s+"DEBUG": false,$),
+      #       %r(^\s+"ALLOWED_HOSTS": \[""\],$),
+      #       %r(^\s+"DB_ENGINE": "",$),
+      #       %r(^\s+"DB_NAME": "",$),
+      #       %r(^\s+"DB_USER": "",$),
+      #       %r(^\s+"DB_PASSWORD": "",$),
+      #       %r(^\s+"DB_ADMIN_USER": "",$),
+      #       %r(^\s+"DB_ADMIN_PASSWORD": "",$),
+      #       %r(^\s+"DB_HOST": "",$),
+      #       %r(^\s+"TEST_DB_NAME": "",$),
+      #       %r(^\s+"BROKER_URL": "",$),
+      #       %r(^\s+"CELERY_RESULT_BACKEND": "",$),
+      #       %r(^\s+"SECURE_SSL_REDIRECT": false,$),
+      #       %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
+      #       %r(^\s+"CHROME_DRIVER": "",$),
+      #       %r(^\s+"FIREFOX_BINARY": "",$),
+      #       %r(^\s+"SERVER_URL": "",$),
+      #       %r(^\s+"HEROKU": false$),
+      #   ]
+      #   config.each do |u|
+      #     expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
+      #   end
+      # end
 
-      it 'runs the serve_static script' do
-        expect(chef_run).to run_bash('serve_static').with(
-            cwd: '/home/web_user/sites/django_base/scripts',
-            code: './webserver.py -m',
-            user: 'root'
-        )
-      end
+      # it 'runs the serve_static script' do
+      #   expect(chef_run).to run_bash('serve_static').with(
+      #       cwd: '/home/web_user/sites/django_base/scripts',
+      #       code: './webserver.py -m',
+      #       user: 'root'
+      #   )
+      # end
 
-      it 'creates the server down index page' do
-        params = [
-            %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
-        ]
-        expect(chef_run).to_not create_template('/home/web_user/sites/django_base/down/index.html').with(
-            owner: 'web_user',
-            group: 'www-data',
-            mode: '0440',
-            source: 'index_down.html.erb',
-            variables: {
-                app_name: 'django_base'
-            }
-        )
-        params.each do |p|
-          expect(chef_run).to_not render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
-        end
-      end
+      # it 'creates the server down index page' do
+      #   params = [
+      #       %r(^\s+<h1>django_base is down for maintenance\. Please come back later\.</h1>$)
+      #   ]
+      #   expect(chef_run).to_not create_template('/home/web_user/sites/django_base/down/index.html').with(
+      #       owner: 'web_user',
+      #       group: 'www-data',
+      #       mode: '0440',
+      #       source: 'index_down.html.erb',
+      #       variables: {
+      #           app_name: 'django_base'
+      #       }
+      #   )
+      #   params.each do |p|
+      #     expect(chef_run).to_not render_file('/home/web_user/sites/django_base/down/index.html').with_content(p)
+      #   end
+      # end
 
-      it 'creates or updates django_base_down.conf file' do
-        if version == '14.04'
-          ip_end = '84'
-          ip = '192.168.1.84'
-        elsif version == '16.04'
-          ip_end = '85'
-          ip = '192.168.1.85'
-        end
-        params = [
-            /^# django_base_down.conf$/,
-            %r(^\s+index index.html;$),
-            /^\s+listen\s+443\s+ssl;$/,
-            /^\s+server_name\s+192\.168\.1\.#{ip_end}\s+www\.192\.168\.1\.#{ip_end};$/,
-            %r(^\s+root /home/web_user/sites/django_base/down;),
-            %r(^\s+alias /home/web_user/sites/django_base/media;),
-            %r(^\s+alias /home/web_user/sites/django_base/static;),
-        ]
-        expect(chef_run).to create_template(
-                                '/etc/nginx/sites-available/django_base_down.conf'
-                            ).with({
-                               owner: 'root',
-                               group: 'root',
-                               mode: '0400',
-                               source: 'app_name_down_https.conf.erb',
-                               variables: {
-                                   app_name: 'django_base',
-                                   listen_port: '443',
-                                   server_name: ip,
-                                   down_path: '/home/web_user/sites/django_base/down',
-                                   static_path: '/home/web_user/sites/django_base/static',
-                                   media_path: '/home/web_user/sites/django_base/media',
-                               }
-                           })
-        params.each do |p|
-          expect(chef_run).to render_file('/etc/nginx/sites-available/django_base_down.conf').with_content(p)
-        end
-      end
+      # it 'creates or updates django_base_down.conf file' do
+      #   if version == '14.04'
+      #     ip_end = '84'
+      #     ip = '192.168.1.84'
+      #   elsif version == '16.04'
+      #     ip_end = '85'
+      #     ip = '192.168.1.85'
+      #   end
+      #   params = [
+      #       /^# django_base_down.conf$/,
+      #       %r(^\s+index index.html;$),
+      #       /^\s+listen\s+443\s+ssl;$/,
+      #       /^\s+server_name\s+192\.168\.1\.#{ip_end}\s+www\.192\.168\.1\.#{ip_end};$/,
+      #       %r(^\s+root /home/web_user/sites/django_base/down;),
+      #       %r(^\s+alias /home/web_user/sites/django_base/media;),
+      #       %r(^\s+alias /home/web_user/sites/django_base/static;),
+      #   ]
+      #   expect(chef_run).to create_template(
+      #                           '/etc/nginx/sites-available/django_base_down.conf'
+      #                       ).with({
+      #                          owner: 'root',
+      #                          group: 'root',
+      #                          mode: '0400',
+      #                          source: 'app_name_down_https.conf.erb',
+      #                          variables: {
+      #                              app_name: 'django_base',
+      #                              listen_port: '443',
+      #                              server_name: ip,
+      #                              down_path: '/home/web_user/sites/django_base/down',
+      #                              static_path: '/home/web_user/sites/django_base/static',
+      #                              media_path: '/home/web_user/sites/django_base/media',
+      #                          }
+      #                      })
+      #   params.each do |p|
+      #     expect(chef_run).to render_file('/etc/nginx/sites-available/django_base_down.conf').with_content(p)
+      #   end
+      # end
 
-      it 'disables the default site' do
-        expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
-      end
+      # it 'disables the default site' do
+      #   expect(chef_run).to delete_file('/etc/nginx/sites-enabled/default')
+      # end
 
-      it 'enables the server down site' do
-        expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base_down.conf').with(
-            owner: 'root',
-            group: 'root',
-            to: '/etc/nginx/sites-available/django_base_down.conf'
-        )
-      end
+      # it 'enables the server down site' do
+      #   expect(chef_run).to create_link('/etc/nginx/sites-enabled/django_base_down.conf').with(
+      #       owner: 'root',
+      #       group: 'root',
+      #       to: '/etc/nginx/sites-available/django_base_down.conf'
+      #   )
+      # end
 
-      it 'notifies nginx to restart' do
-        site_down_enabled = chef_run.link('/etc/nginx/sites-enabled/django_base_down.conf')
-        expect(site_down_enabled).to notify('service[nginx]').to(:restart).immediately
-      end
+      # it 'notifies nginx to restart' do
+      #   site_down_enabled = chef_run.link('/etc/nginx/sites-enabled/django_base_down.conf')
+      #   expect(site_down_enabled).to notify('service[nginx]').to(:restart).immediately
+      # end
     end
   end
 end

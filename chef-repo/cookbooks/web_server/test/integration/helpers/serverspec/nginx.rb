@@ -298,7 +298,13 @@ def nginx_spec(app_name, ips, https, www=false, site_down=true)
           %r(^\s+"DB_HOST": "",$),
           %r(^\s+"TEST_DB_NAME": "",$),
           %r(^\s+"BROKER_URL": "",$),
-          %r(^\s+"CELERY_RESULT_BACKEND": ""$)
+          %r(^\s+"CELERY_RESULT_BACKEND": "",$),
+          %r(^\s+"SECURE_SSL_REDIRECT": false,$),
+          %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
+          %r(^\s+"CHROME_DRIVER": "",$),
+          %r(^\s+"FIREFOX_BINARY": "",$),
+          %r(^\s+"SERVER_URL": "",$),
+          %r(^\s+"HEROKU": false$),
       ]
       it { should exist }
       it { should be_file }
