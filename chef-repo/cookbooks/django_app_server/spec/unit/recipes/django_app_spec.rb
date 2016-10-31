@@ -130,18 +130,23 @@ def app(version, initial_users: false)
         %r(^\s+"BROKER_URL": "redis://localhost:6379/0",$),
         %r(^\s+"CELERY_RESULT_BACKEND": "redis://localhost:6379/0",$),
         %r(^\s+"SERVER_URL": "liveserver",$),
+        %r(^\s+"SECURE_SSL_REDIRECT": false,$),
+        %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
+        %r(^\s+"CHROME_DRIVER": "",$),
+        %r(^\s+"FIREFOX_BINARY": "",$),
+        %r(^\s+"HEROKU": false$),
     ]
     if initial_users
       users = [
           %r(^\s+"INITIAL_USERS": \[$),
           %r(^\s+\["user0", "user0@example\.com", "user0_password"\],$),
           %r(^\s+\["user1", "user1@example\.com", "user1_password"\]$),
-          %r(^\s+"INITIAL_SUPERUSER": \["superuser", "superuser@example\.com", "superuser_password"\]$),
+          %r(^\s+"INITIAL_SUPERUSER": \["superuser", "superuser@example\.com", "superuser_password"\],$),
       ]
     else
       users = [
           %r(^\s+"INITIAL_USERS": \[\],$),
-          %r(^\s+"INITIAL_SUPERUSER": \[\]$),
+          %r(^\s+"INITIAL_SUPERUSER": \[\],$),
       ]
     end
     config += users
@@ -253,12 +258,10 @@ end
 
 describe 'django_app_server::django_app' do
   %w(14.04 16.04).each do |version|
-    context "When app name is specified, on an Ubuntu #{version} platform" do
+    context "When all attributes are default, on an Ubuntu #{version} platform" do
       include ChefVault::TestFixtures.rspec_shared_context(true)
       let(:chef_run) do
-        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version) do |node|
-          node.set['django_app_server']['django_app']['app_name'] = 'django_base'
-        end.converge(described_recipe)
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: version).converge(described_recipe)
       end
 
       before do
@@ -270,6 +273,8 @@ describe 'django_app_server::django_app' do
     end
   end
 end
+
+# TODO: add default and celery is true case
 
 describe 'django_app_server::django_app' do
   %w(14.04 16.04).each do |version|

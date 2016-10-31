@@ -37,3 +37,8 @@ if node['platform_version'].include?('16.04')
   # install python3.5 runtime
   package %w(python3.5-dev python3-pip python3-venv)
 end
+
+bash 'update_pip' do
+  code 'pip3 install --upgrade pip'
+  user 'root'
+end

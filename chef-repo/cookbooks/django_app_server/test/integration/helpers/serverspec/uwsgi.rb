@@ -35,4 +35,3 @@ describe file('/var/log/uwsgi') do
   it { should be_grouped_into 'root' }
   it { should be_mode 755 }
 end
-

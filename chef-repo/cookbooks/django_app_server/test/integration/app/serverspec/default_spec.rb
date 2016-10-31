@@ -38,7 +38,7 @@ require 'python'
 require 'django_app'
 app_name = 'django_base'
 ips = {'14.04' => '192.168.1.82', '16.04' => '192.168.1.83'}
-django_app_spec(app_name, ips)
+django_app_spec(app_name: app_name,ips: ips)
 
 # Cookbook Name:: django_app_server
 # Server Spec:: uwsgi

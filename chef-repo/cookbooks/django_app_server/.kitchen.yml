@@ -25,7 +25,7 @@ platforms:
         cpus: 2
     attributes:
       django_app_server:
-        node_number: '000'
+        node_number: '002'
   - name: ubuntu-16.04
     driver:
      provider: libvirt
@@ -39,7 +39,7 @@ platforms:
        cpus: 2
     attributes:
       django_app_server:
-        node_number: '001'
+        node_number: '003'
   - name: centos-7.1
     driver:
       provider: libvirt
