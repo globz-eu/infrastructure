@@ -36,4 +36,4 @@ https = true
 www = true
 
 require 'nginx'
-nginx_spec(app_name, ips, https, www)
+nginx_spec(app_name, ips, https, www: www)

@@ -25,7 +25,7 @@ require 'serverspec'
 
 set :backend, :exec
 
-def nginx_spec(app_name, ips, https, www=false, site_down=true)
+def nginx_spec(app_name, ips, https, www: false, site_down: true)
   if os[:family] == 'ubuntu'
     ip_regex = Regexp.escape(ips[os[:release]])
     if www

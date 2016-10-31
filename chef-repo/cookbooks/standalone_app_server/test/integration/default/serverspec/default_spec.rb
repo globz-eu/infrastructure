@@ -67,7 +67,7 @@ require 'python'
 # Server Spec:: django_app
 
 require 'django_app'
-django_app_spec(app_name, ips)
+django_app_spec(app_name: app_name, ips: ips)
 
 # Cookbook Name:: django_app_server
 # Server Spec:: uwsgi
