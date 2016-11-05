@@ -66,7 +66,7 @@ describe 'install_scripts::user' do
       end
 
       it 'adds user to group www-data' do
-        expect(chef_run).to manage_group('www-data').with(
+        expect(chef_run).to create_group('www-data').with(
             append: true,
             members: ['user']
         )

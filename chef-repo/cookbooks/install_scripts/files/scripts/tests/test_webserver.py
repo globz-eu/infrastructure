@@ -137,6 +137,7 @@ class ServeStaticTest(StaticTest):
         dirs = [['static', self.static_path], ['media', self.media_path]]
         for d, path in dirs:
             os.makedirs(path)
+        os.makedirs(os.path.join(self.app_home, self.app_name))
 
         for d, path in dirs:
             msg = 'INFO: %s moved to %s' % (d, path)
@@ -157,18 +158,19 @@ class ServeStaticTest(StaticTest):
     def test_move_dirs_handles_existing_content(self, clone_app_mock, own_app_mock, copy_config_mock,
                                                 add_app_to_path_mock):
         """
-        tests move does not move static files and does not clone app when files are already present in destination
-        directory
+        tests move does not move static files and does not clone app when files
+        are already present in destination directory
         """
         dirs = [['static', self.static_path], ['media', self.media_path]]
         for d, path in dirs:
             os.makedirs(path)
             with open(os.path.join(path, '%s_file' % d), 'w') as static:
                 static.write('%s stuff\n' % d)
+        os.makedirs(os.path.join(self.app_home, self.app_name))
 
         for d, path in dirs:
             msg = 'INFO: content already present in %s' % path
-            self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 1)
+            self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 0)
         self.assertEqual([], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
         self.assertEqual([], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
@@ -226,7 +228,7 @@ class ServeStaticTest(StaticTest):
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual([
             call(self.app_home, self.web_user, self.web_user),
-            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user)
         ], own_app_mock.mock_calls, own_app_mock.mock_calls)
 
     @mock.patch.object(InstallDjangoApp, 'add_app_to_path', side_effect=add_app_to_path_mock)
@@ -244,7 +246,7 @@ class ServeStaticTest(StaticTest):
         msg = 'INFO: %s is already present in %s' % ('uwsgi_params', self.uwsgi_path)
         self.move(
             os.path.join(self.app_home, self.app_name, 'uwsgi_params'),
-            self.uwsgi_path, 'file', msg, 1
+            self.uwsgi_path, 'file', msg, 0
         )
         self.assertEqual([], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
         self.assertEqual([], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
@@ -300,7 +302,7 @@ class ServeStaticTest(StaticTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
 
         serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
                                           git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
@@ -386,7 +388,7 @@ class ServeStaticTest(StaticTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
 
         serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
                                           git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
@@ -528,7 +530,7 @@ class WebServerMainTest(StaticTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
 
         try:
             main()
@@ -582,7 +584,7 @@ class WebServerMainTest(StaticTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
 
         serve_django_static = ServeStatic(self.dist_version, self.app_home, self.log_file, self.log_level,
                                           git_repo=self.git_repo, sys_deps_file=self.sys_deps_file,
@@ -632,7 +634,7 @@ class WebServerMainTest(StaticTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
 
         try:
             main()

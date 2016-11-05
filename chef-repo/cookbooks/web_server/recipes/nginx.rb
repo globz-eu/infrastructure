@@ -69,7 +69,7 @@ if app_repo
   directory "/home/#{web_user}/.envs" do
     owner web_user
     group web_user
-    mode '0500'
+    mode '0700'
   end
 
   # install python runtime
@@ -137,6 +137,13 @@ if app_repo
                   broker_url: '',
                   celery_result_backend: ''
               })
+  end
+
+  bash 'create_venv' do
+    cwd "/home/#{web_user}/sites/#{app_name}/scripts"
+    code './djangoapp.py -e'
+    user web_user
+    group 'loggers'
   end
 
   bash 'serve_static' do

@@ -83,6 +83,7 @@ suites:
     run_list:
       - recipe[standalone_app_server::default]
       - recipe[standalone_app_server::start_app]
+      - recipe[standalone_app_server::update]
       - recipe[test-helper::default]
     attributes:
       db_server:
@@ -100,4 +101,6 @@ suites:
           app_repo: 'https://github.com/globz-eu/formalign.git'
         start_app:
           celery: true
+        update:
+          purge_db: false
     excludes: centos-7.1

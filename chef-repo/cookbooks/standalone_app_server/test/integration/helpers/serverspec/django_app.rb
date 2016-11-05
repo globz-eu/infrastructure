@@ -39,7 +39,7 @@ def django_app_spec(app_name: '', ips: '')
       it { should be_directory }
       it { should be_owned_by 'app_user' }
       it { should be_grouped_into 'app_user' }
-      it { should be_mode 500 }
+      it { should be_mode 700 }
     end
 
     if app_name != ''
@@ -147,8 +147,8 @@ def django_app_spec(app_name: '', ips: '')
         it { should exist }
         it { should be_directory }
         it { should be_owned_by 'root' }
-        it { should be_grouped_into 'root' }
-        it { should be_mode 755 }
+        it { should be_grouped_into 'loggers' }
+        it { should be_mode 775 }
       }
 
       # Virtual env directory for app should be present
@@ -157,7 +157,7 @@ def django_app_spec(app_name: '', ips: '')
         it { should be_directory }
         it { should be_owned_by 'app_user' }
         it { should be_grouped_into 'app_user' }
-        it { should be_mode 500 }
+        it { should be_mode 700 }
       end
 
       # check .envs/django_base ownership and permissions
@@ -226,7 +226,7 @@ def django_app_spec(app_name: '', ips: '')
       end
 
       if os[:release] == '14.04'
-        describe file("/home/app_user/.envs/#{app_name}/lib/python3.4/#{app_name}.pth") do
+        describe file("/home/app_user/.envs/#{app_name}/lib/python3.4/site-packages/#{app_name}.pth") do
           it { should exist }
           it { should be_file }
           it { should be_owned_by 'app_user' }
@@ -237,7 +237,7 @@ def django_app_spec(app_name: '', ips: '')
       end
 
       if os[:release] == '16.04'
-        describe file("/home/app_user/.envs/#{app_name}/lib/python3.5/#{app_name}.pth") do
+        describe file("/home/app_user/.envs/#{app_name}/lib/python3.5/site-packages/#{app_name}.pth") do
           it { should exist }
           it { should be_file }
           it { should be_owned_by 'app_user' }

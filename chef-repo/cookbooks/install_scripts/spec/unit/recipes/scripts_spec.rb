@@ -86,8 +86,8 @@ describe 'install_scripts::scripts' do
       it 'creates the /var/log/django_base directory' do
         expect(chef_run).to create_directory('/var/log/django_base').with(
             owner: 'root',
-            group: 'root',
-            mode: '0755',
+            group: 'loggers',
+            mode: '0775',
         )
       end
 

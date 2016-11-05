@@ -33,8 +33,8 @@ web_user = web_user_item['user']
 
 node.default['install_scripts']['users'] = [
     {user: db_user, password: db_user_item['password_hash'], scripts: 'db'},
-    {user: app_user, password: app_user_item['password'], groups: ['www-data'], scripts: 'app'},
-    {user: web_user, password: web_user_item['password'], groups: ['www-data'], scripts: 'web'}
+    {user: app_user, password: app_user_item['password'], groups: %w(www-data loggers), scripts: 'app'},
+    {user: web_user, password: web_user_item['password'], groups: %w(www-data loggers), scripts: 'web'}
 ]
 node.default['django_app_server']['django_app']['celery'] = node['standalone_app_server']['start_app']['celery']
 

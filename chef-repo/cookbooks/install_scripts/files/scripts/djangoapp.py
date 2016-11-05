@@ -96,9 +96,21 @@ class InstallDjangoApp(CommandFileUtils):
         :return: returns run_command return code
         """
         if not os.path.exists(self.venv):
-            msg = 'successfully created virtualenv %s' % self.venv
-            run = self.run_command(self.venv_cmd, msg)
-            return run
+            cmds = [
+                {
+                    'cmd': self.venv_cmd,
+                    'msg': 'successfully created virtualenv %s' % self.venv
+                },
+                {
+                    'cmd': [self.pip, 'install', '--upgrade', 'pip'],
+                    'msg': 'successfully updated pip for virtualenv %s' % self.venv
+                }
+            ]
+            for cmd in cmds:
+                run = self.run_command(cmd['cmd'], cmd['msg'])
+                if run != 0:
+                    return run
+            return 0
         else:
             msg = 'virtualenv %s already exists' % self.venv
             self.write_to_log(msg, 'INFO')
@@ -178,7 +190,7 @@ class InstallDjangoApp(CommandFileUtils):
         :param: app_name: django app name
         :return: returns 0
         """
-        pth_file = os.path.join(self.venv, 'lib/%s/%s.pth' % (self.python_version, self.app_name))
+        pth_file = os.path.join(self.venv, 'lib/%s/site-packages/%s.pth' % (self.python_version, self.app_name))
         app_path = os.path.join(app_home, self.app_name)
         with open(pth_file, 'w+') as pth:
             pth.write(app_path + '\n')
@@ -252,7 +264,7 @@ class InstallDjangoApp(CommandFileUtils):
         :return: returns run_command return code
         """
         cmd = [
-                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic',
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic', '-c',
                 '--noinput', '--settings', 'settings_admin'
         ]
         cwd = os.path.join(app_home, self.app_name)
@@ -417,9 +429,9 @@ class InstallDjangoApp(CommandFileUtils):
         self.install_requirements(reqs_list)
         self.add_app_to_path(app_home)
         self.own(os.path.dirname(self.venv), app_user, app_user)
-        venvs = [os.path.dirname(self.venv), self.venv]
-        for venv in venvs:
-            self.permissions(venv, dir_permissions='500')
+        venv_root_dirs = [os.path.dirname(self.venv), self.venv]
+        for venv in venv_root_dirs:
+            self.permissions(venv, dir_permissions='700')
         self.write_to_log('install django app exited with code 0\n', 'INFO')
         return 0
 
@@ -464,6 +476,8 @@ def main():
                       help='uwsgi: start, stop, restart', default=False)
     parser.add_option('-x', '--remove-app', dest='remove_app', action='store_true',
                       help='remove-app: stops uwsgi server and removes app', default=False)
+    parser.add_option('-e', '--create-venv', dest='create_venv', action='store_true',
+                      help='create-venv: creates a python virtualenv', default=False)
     (options, args) = parser.parse_args()
     if len(args) > 2:
         parser.error('incorrect number of arguments')
@@ -515,13 +529,17 @@ def main():
         time.sleep(1)
         uwsgi = install_django_app.start_uwsgi(APP_HOME)
         run.append(uwsgi)
+    elif not options.uwsgi:
+        pass
     if options.remove_app:
         uwsgi = install_django_app.stop_uwsgi()
         run.append(uwsgi)
         remove = install_django_app.remove_app(APP_HOME, APP_USER)
         run.append(remove)
-    elif not options.uwsgi:
-        pass
+    if options.create_venv:
+        venv = install_django_app.create_venv()
+        run.append(venv)
+
     for r in run:
         if r != 0:
             sys.exit(1)

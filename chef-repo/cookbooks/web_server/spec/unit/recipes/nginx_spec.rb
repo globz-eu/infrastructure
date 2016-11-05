@@ -60,7 +60,7 @@ def app(version, https: false, www: false)
     expect(chef_run).to create_directory('/home/web_user/.envs').with(
         owner: 'web_user',
         group: 'web_user',
-        mode: '0500',
+        mode: '0700',
     )
   end
 
@@ -197,24 +197,24 @@ def app(version, https: false, www: false)
 
   it 'creates the /home/web_user/sites/django_base/conf.d/settings.json file' do
     expect(chef_run).to create_template('/home/web_user/sites/django_base/conf.d/settings.json').with(
-        owner: 'web_user',
-        group: 'web_user',
-        mode: '0400',
-        source: 'settings.json.erb',
-        variables: {
-            secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
-            allowed_host: '',
-            db_engine: '',
-            db_name: '',
-            db_user: '',
-            db_password: '',
-            db_admin_user: '',
-            db_admin_password: '',
-            db_host: '',
-            test_db_name: '',
-            broker_url: '',
-            celery_result_backend: ''
-        }
+      owner: 'web_user',
+      group: 'web_user',
+      mode: '0400',
+      source: 'settings.json.erb',
+      variables: {
+        secret_key: 'n)#o5pw7kelvr982iol48tz--n#q!*8681k3sv0^*q#-lddwv!',
+        allowed_host: '',
+        db_engine: '',
+        db_name: '',
+        db_user: '',
+        db_password: '',
+        db_admin_user: '',
+        db_admin_password: '',
+        db_host: '',
+        test_db_name: '',
+        broker_url: '',
+        celery_result_backend: ''
+      }
     )
     config = [
         %r(^\s+"SECRET_KEY": "n\)#o5pw7kelvr982iol48tz--n#q!\*8681k3sv0\^\*q#-lddwv!",$),
@@ -240,6 +240,14 @@ def app(version, https: false, www: false)
     config.each do |u|
       expect(chef_run).to render_file('/home/web_user/sites/django_base/conf.d/settings.json').with_content(u)
     end
+  end
+
+  it 'runs the create_venv script' do
+    expect(chef_run).to run_bash('create_venv').with(
+        cwd: '/home/web_user/sites/django_base/scripts',
+        code: './djangoapp.py -e',
+        user: 'web_user'
+    )
   end
 
   it 'runs the serve_static script' do

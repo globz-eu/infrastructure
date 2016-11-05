@@ -59,7 +59,6 @@ describe 'standalone_app_server::default' do
         expect(chef_run).to include_recipe('db_server::default')
         expect(chef_run).to include_recipe('django_app_server::default')
         expect(chef_run).to include_recipe('web_server::default')
-        expect(chef_run).to include_recipe('standalone_app_server::start_app')
       end
     end
   end

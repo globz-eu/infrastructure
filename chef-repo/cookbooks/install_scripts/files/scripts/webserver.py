@@ -51,7 +51,9 @@ class ServeStatic(InstallDjangoApp):
 
     def move(self, from_path=None, to_path=None, file_type=None, web_user='web_user', reqs_file='', sys_deps_file=''):
         """
-        moves static content from django app (and clones it and install venv and dependencies if absent) to static_path
+        moves static content from django app
+        (and clones it and install venv and dependencies if absent)
+        to static_path
         :param sys_deps_file: system package dependencies file from django app
         :param reqs_file: python package requirements file from django app
         :param web_user: web user username
@@ -69,42 +71,40 @@ class ServeStatic(InstallDjangoApp):
             try:
                 if os.path.exists(to_path):
                     if file_type == 'dir':
-                        if not os.listdir(to_path):
-                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
-                                             chmod_app=False, cp_uwsgi_ini=False)
-                            self.collect_static(self.app_home)
-                    elif file_type == 'file':
-                        if not os.path.isfile(os.path.join(to_path, os.path.basename(from_path))):
-                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
-                                             chmod_app=False, cp_uwsgi_ini=False)
-                            self.collect_static(self.app_home)
-                    if file_type == 'dir':
                         if os.listdir(to_path):
                             msg = 'content already present in %s' % to_path
-                            self.write_to_log(msg, 'INFO')
-                            return 1
+
                         else:
                             if os.path.exists(to_path):
                                 shutil.rmtree(to_path)
-
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
+                                             chmod_app=False, cp_uwsgi_ini=False)
+                            self.collect_static(self.app_home)
                             shutil.move(from_path, os.path.dirname(to_path))
                             os.rename(os.path.join(os.path.dirname(to_path), os.path.basename(from_path)), to_path)
                             msg = '%s moved to %s' % (os.path.basename(from_path), to_path)
+
                     elif file_type == 'file':
                         if os.path.isfile(os.path.join(to_path, os.path.basename(from_path))):
                             msg = '%s is already present in %s' % (os.path.basename(from_path), to_path)
-                            self.write_to_log(msg, 'INFO')
-                            return 1
+
                         else:
+                            self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
+                                             chmod_app=False, cp_uwsgi_ini=False)
+                            self.collect_static(self.app_home)
                             shutil.move(from_path, to_path)
                             msg = '%s moved to %s' % (os.path.basename(from_path), to_path)
+
                     else:
                         msg = 'unknown file type %s' % file_type
                         self.write_to_log(msg, 'ERROR')
                         sys.exit(1)
+
                     self.write_to_log(msg, 'INFO')
+
                 else:
                     raise FileNotFoundError(from_path)
+
             except FileNotFoundError as error:
                 if error.filename and error.filename2:
                     filename = '%s and %s' % (error.filename, error.filename2)
@@ -117,10 +117,12 @@ class ServeStatic(InstallDjangoApp):
                 msg = 'file not found: %s' % filename
                 self.write_to_log(msg, 'ERROR')
                 sys.exit(1)
+
         else:
             msg = 'cannot move app files, some path is not specified'
             self.write_to_log(msg, 'ERROR')
             sys.exit(1)
+
         return 0
 
     def serve_static(self, web_user, webserver_user, down_path, static_path, media_path, uwsgi_path):

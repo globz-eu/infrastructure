@@ -24,7 +24,7 @@ maintainer_email 'you@example.com'
 license 'all_rights'
 description 'Installs/Configures web_server'
 long_description 'Installs/Configures web_server'
-version '0.2.3'
+version '0.2.4'
 
 depends 'basic_node', '~> 0.2.2'
 depends 'chef-vault', '~> 1.3.3'

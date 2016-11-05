@@ -39,8 +39,8 @@ def start_app_spec(app_name, ips, https)
     it { should exist }
     it { should be_directory }
     it { should be_owned_by 'root' }
-    it { should be_grouped_into 'root' }
-    it { should be_mode 755 }
+    it { should be_grouped_into 'loggers' }
+    it { should be_mode 775 }
   end
 
   describe file("/var/log/#{app_name}/test_results") do
@@ -123,5 +123,20 @@ def start_app_spec(app_name, ips, https)
   end
   describe command("#{cmd}") do
     its(:stdout) {should match(%r(^\s+<title id="head-title">#{app_name}(\.eu|\.org){0,1} home</title>$)i)}
+  end
+
+  # old alignments have been removed
+  if app_name == 'formalign'
+    title = %r(^\s+<title id="head-title">#{app_name}(\.eu|\.org){0,1} error 404</title>$)i
+  elsif app_name == 'django_base'
+    title = %r(^<h1>Not Found</h1><p>The requested URL /align-display/1234567890123456 was not found on this server\.</p>$)i
+  end
+  if https
+    cmd = "curl -k https://#{ips[os[:release]]}/align-display/1234567890123456"
+  else
+    cmd = "curl http://#{ips[os[:release]]}/align-display/1234567890123456"
+  end
+  describe command("#{cmd}") do
+    its(:stdout) {should match(title)}
   end
 end

@@ -37,7 +37,6 @@ unless users.empty?
     unless u[:groups].empty?
       u[:groups].each do |g|
         group g do
-          action :manage
           members u[:user]
           append true
         end

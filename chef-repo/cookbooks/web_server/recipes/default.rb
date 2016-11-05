@@ -29,7 +29,7 @@ web_user = web_user_item['user']
 
 if node['install_scripts']['users'].empty?
   node.default['install_scripts']['users'] = [
-      {user: web_user, password: web_user_item['password'], groups: ['www-data'], scripts: 'web'}
+      {user: web_user, password: web_user_item['password'], groups: %w(www-data loggers), scripts: 'web'}
   ]
   include_recipe 'install_scripts::user'
   if node['install_scripts']['git']['app_repo']

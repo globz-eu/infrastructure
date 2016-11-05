@@ -39,6 +39,16 @@ end
 
 celery = node['standalone_app_server']['start_app']['celery']
 
+bash 'update_app_user_pip' do
+  code "/home/#{app_user}/.envs/#{app_name}/bin/pip install --upgrade pip"
+  user app_user
+end
+
+bash 'update_web_user_pip' do
+  code "/home/#{web_user}/.envs/#{app_name}/bin/pip install --upgrade pip"
+  user web_user
+end
+
 bash 'server_down' do
   cwd "/home/#{web_user}/sites/#{app_name}/scripts"
   code './webserver.py -s down'
@@ -82,29 +92,41 @@ bash 'reinstall_app' do
   user 'root'
 end
 
-bash 'create_users_executable' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
-  code 'chmod +x ./create_users.py'
-  user 'root'
-  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/create_users.py"
-end
-
-bash 'create_users' do
-  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
-  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./create_users.py"
-  user 'root'
-  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/create_users.py"
-end
-
-bash 'restart_celery' do
+bash 'start_celery' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
   code './djangoapp.py -c start'
   user 'root'
 end if celery
 
-bash 'restart_uwsgi' do
+bash 'start_uwsgi' do
   cwd "/home/#{app_user}/sites/#{app_name}/scripts"
   code './djangoapp.py -u start'
+  user 'root'
+end
+
+bash 'update_init_users' do
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
+  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./initialize/init_users.py"
+  user 'root'
+  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/initialize/init_users.py"
+end
+
+bash 'update_init_data' do
+  cwd "/home/#{app_user}/sites/#{app_name}/source/#{app_name}"
+  code "/home/#{app_user}/.envs/#{app_name}/bin/python ./initialize/init_data.py"
+  user 'root'
+  only_if "ls /home/#{app_user}/sites/#{app_name}/source/#{app_name}/initialize/init_data.py"
+end
+
+bash 'restart_celery' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -c restart'
+  user 'root'
+end if celery
+
+bash 'restart_uwsgi' do
+  cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+  code './djangoapp.py -u restart'
   user 'root'
 end
 

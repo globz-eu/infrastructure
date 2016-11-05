@@ -38,8 +38,8 @@ end
 unless users.empty?
   directory "/var/log/#{app_name}" do
     owner 'root'
-    group 'root'
-    mode '0755'
+    group 'loggers'
+    mode '0775'
   end
 
   users.each do |u|

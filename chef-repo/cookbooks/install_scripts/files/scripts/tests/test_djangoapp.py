@@ -290,7 +290,7 @@ class InstallDjangoAppTest(InstallTest):
 
     def test_create_venv(self):
         """
-        tests create_venv runs virtualenv command, exits on error and writes to log
+        tests create_venv runs virtualenv command, runs pip upgrade, exits on error and writes to log
         """
         if self.dist_version == '14.04':
             self.python_version = 'python3.4'
@@ -299,16 +299,25 @@ class InstallDjangoAppTest(InstallTest):
         os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
         shutil.rmtree(self.venv)
         if self.dist_version == '14.04':
-            cmd = ['virtualenv', '-p', '/usr/bin/' + self.python_version, self.venv]
-        else:
-            if self.dist_version == '16.04':
-                cmd = ['pyvenv', self.venv]
+            cmds = [
+                ['virtualenv', '-p', '/usr/bin/' + self.python_version, self.venv],
+                [self.pip, 'install', '--upgrade', 'pip']
+            ]
+        elif self.dist_version == '16.04':
+            cmds = [
+                ['pyvenv', self.venv],
+                [self.pip, 'install', '--upgrade', 'pip']
+            ]
         install_django_app = InstallDjangoApp(self.dist_version, self.log_file, self.log_level, venv=self.venv)
-        msg = 'successfully created virtualenv %s' % self.venv
+        msgs = [
+            'successfully created virtualenv %s' % self.venv,
+            'successfully updated pip for virtualenv %s' % self.venv
+        ]
         func = 'create_venv'
         args = ()
-        self.run_success([cmd], [msg], func, install_django_app.create_venv, args)
-        self.run_error(cmd, func, install_django_app.create_venv, args)
+        self.run_success(cmds, msgs, func, install_django_app.create_venv, args)
+        for cmd in cmds:
+            self.run_error(cmd, func, install_django_app.create_venv, args)
 
     def test_create_venv_does_nothing_if_already_present(self):
         """
@@ -452,13 +461,13 @@ class InstallDjangoAppTest(InstallTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
         install_django_app.add_app_to_path(self.app_home)
 
-        pth = os.path.join(self.venv, 'lib', self.python_version, 'app_name.pth')
+        pth = os.path.join(self.venv, 'lib', self.python_version, 'site-packages', 'app_name.pth')
         msg = '%s has been added to python path in %s' % (self.app_name, self.venv)
         with open(pth) as pth_file:
             pth_list = [l for l in pth_file]
@@ -473,11 +482,11 @@ class InstallDjangoAppTest(InstallTest):
             self.python_version = 'python3.4'
         elif self.dist_version == '16.04':
             self.python_version = 'python3.5'
-        os.makedirs(os.path.join(self.venv, 'lib', self.python_version))
+        os.makedirs(os.path.join(self.venv, 'lib', self.python_version, 'site-packages'))
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo
         )
-        pth = os.path.join(self.venv, 'lib', self.python_version, 'app_name.pth')
+        pth = os.path.join(self.venv, 'lib', self.python_version, 'site-packages', 'app_name.pth')
         msg = '%s has been added to python path in %s' % (self.app_name, self.venv)
         with open(pth, 'w') as pth_file:
             pth_file.write('%s\n' % os.path.join(self.app_home, self.app_name))
@@ -571,11 +580,11 @@ class InstallDjangoAppTest(InstallTest):
         cmds = [
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'makemigrations',
-                '--settings', '%s.settings_admin' % self.app_name
+                '--settings', 'settings_admin'
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'migrate',
-                '--settings', '%s.settings_admin' % self.app_name
+                '--settings', 'settings_admin'
             ]
         ]
         msg = ['successfully ran makemigrations', 'successfully migrated %s' % self.app_name]
@@ -605,11 +614,11 @@ class InstallDjangoAppTest(InstallTest):
         cmds = [
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test',
-                '--settings', '%s.settings_admin' % self.app_name
+                '--settings', 'settings_admin'
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -643,11 +652,11 @@ class InstallDjangoAppTest(InstallTest):
         cmds = [
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'test', '--exclude-dir', './acceptance_tests',
-                '--settings', '%s.settings_admin' % self.app_name
+                '--settings', 'settings_admin'
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -687,11 +696,11 @@ class InstallDjangoAppTest(InstallTest):
                 '--exclude-dir', './acceptance_tests',
                 '--exclude-dir', './base/unit_tests/pending_tests',
                 '--exclude-dir', './%s/functional_tests/pending_tests' % self.app_name,
-                '--settings', '%s.settings_admin' % self.app_name
+                '--settings', 'settings_admin'
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', '%s.settings_admin' % self.app_name
+                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -760,8 +769,8 @@ class InstallDjangoAppTest(InstallTest):
         install_django_app = InstallDjangoApp(
             self.dist_version, self.log_file, self.log_level, venv=self.venv, git_repo=self.git_repo)
         cmd = [
-                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic',
-                '--noinput', '--settings', '%s.settings_admin' % self.app_name
+                os.path.join(self.venv, 'bin', 'python'), './manage.py', 'collectstatic', '-c',
+                '--noinput', '--settings', 'settings_admin'
         ]
         msg = 'successfully collected static for %s' % self.app_name
         cwd = os.path.join(self.app_home, self.app_name)
@@ -1082,6 +1091,27 @@ class TestInstallDjangoAppMain(InstallTest):
         msgs = [
             'INFO: stopped uwsgi server',
             'INFO: removed %s' % self.app_name,
+        ]
+        for m in msgs:
+            self.log(m)
+
+    def test_run_main_create_venv(self):
+        """
+        tests that main with parameter -x removes app
+        """
+        clone_app_mock(self.app_home)
+        os.makedirs(os.path.join(self.fifo_dir, self.app_name))
+        mocks.alt_bool = Alternate([True])
+        sys.argv = ['djangoapp', '-e', '-l', 'DEBUG']
+        djangoapp.DIST_VERSION = self.dist_version
+        try:
+            main()
+        except SystemExit as sysexit:
+            self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+
+        msgs = [
+            'INFO: successfully created virtualenv %s' % self.venv,
+            'INFO: successfully updated pip for virtualenv %s' % self.venv,
         ]
         for m in msgs:
             self.log(m)

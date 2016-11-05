@@ -28,7 +28,7 @@ app_user = app_user_item['user']
 
 if node['install_scripts']['users'].empty?
   node.default['install_scripts']['users'] = [
-      {user: app_user, password: app_user_item['password'], groups: ['www-data'], scripts: 'app'},
+      {user: app_user, password: app_user_item['password'], groups: %w(www-data loggers), scripts: 'app'},
   ]
   include_recipe 'install_scripts::user'
   if node['install_scripts']['git']['app_repo']

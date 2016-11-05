@@ -63,7 +63,7 @@ package 'git'
 directory "/home/#{app_user}/.envs" do
   owner app_user
   group app_user
-  mode '0500'
+  mode '0700'
 end
 
 # when git repo is specified clone from git repo
@@ -214,6 +214,13 @@ if app_repo
         mode '0700'
       end
     end
+  end
+
+  bash 'create_venv' do
+    cwd "/home/#{app_user}/sites/#{app_name}/scripts"
+    code './djangoapp.py -e'
+    user app_user
+    group 'loggers'
   end
 
   bash 'install_django_app' do

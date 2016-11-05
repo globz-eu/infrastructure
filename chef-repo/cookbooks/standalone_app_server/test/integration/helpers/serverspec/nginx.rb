@@ -354,8 +354,8 @@ def nginx_spec(app_name, ips, https, www: false, site_down: true)
       it { should exist }
       it { should be_directory }
       it { should be_owned_by 'root' }
-      it { should be_grouped_into 'root' }
-      it { should be_mode 755 }
+      it { should be_grouped_into 'loggers' }
+      it { should be_mode 775 }
     end
 
     describe file('/etc/nginx/sites-enabled/default') do

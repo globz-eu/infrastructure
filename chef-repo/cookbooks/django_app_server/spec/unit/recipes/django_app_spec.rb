@@ -39,7 +39,7 @@ def common
     expect(chef_run).to create_directory('/home/app_user/.envs').with(
         owner: 'app_user',
         group: 'app_user',
-        mode: '0500',
+        mode: '0700',
     )
   end
 end
@@ -193,6 +193,14 @@ def app(version, initial_users: false)
     install_app_conf.each do |u|
       expect(chef_run).to render_file('/home/app_user/sites/django_base/scripts/conf.py').with_content(u)
     end
+  end
+
+  it 'runs the create_venv script' do
+    expect(chef_run).to run_bash('create_venv').with(
+        cwd: '/home/app_user/sites/django_base/scripts',
+        code: './djangoapp.py -e',
+        user: 'app_user'
+    )
   end
 
   it 'runs the install_django_app script' do
