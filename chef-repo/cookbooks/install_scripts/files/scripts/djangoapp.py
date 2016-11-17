@@ -198,7 +198,7 @@ class InstallDjangoApp(CommandFileUtils):
             self.write_to_log(msg, 'INFO')
         return 0
 
-    def copy_config(self, app_home, uwsgi=True):
+    def copy_config(self, app_home, uwsgi=True, behave=True):
         """
         Copies configuration.py and settings_admin.py to app
         :param uwsgi: copy uwsgi.ini if true, else do not copy
@@ -211,6 +211,8 @@ class InstallDjangoApp(CommandFileUtils):
         ]
         if uwsgi:
             conf.append({'file': '%s_uwsgi.ini' % self.app_name, 'move_to': app_home})
+        if behave:
+            conf.append({'file': 'behave.ini', 'move_to': os.path.join(app_home, self.app_name)})
 
         for c in conf:
             if os.path.isfile(os.path.join(c['move_to'], c['file'])):
@@ -290,7 +292,7 @@ class InstallDjangoApp(CommandFileUtils):
             },
             {
                 'cmd': [os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                        '--tags', '~@skip', '--no-skipped', '--junit', '--settings',
+                        '--tags', '~@skip', '--tags', '~@pending',  '--no-skipped', '--junit', '--settings',
                         'settings_admin'],
                 'msg': 'successfully ran functional tests for %s' % self.app_name,
             }
@@ -404,7 +406,7 @@ class InstallDjangoApp(CommandFileUtils):
         return run
 
     def install_app(self, app_home, app_user, deps_file='system_dependencies.txt', reqs_file='requirements.txt',
-                    chmod_app=True, cp_uwsgi_ini=True):
+                    chmod_app=True, cp_ini=True):
         """
         Manages installation of django app as well as system dependencies and python packages requirements, adds django
         app to python path.
@@ -418,10 +420,10 @@ class InstallDjangoApp(CommandFileUtils):
         deps_list = self.read_sys_deps(deps_file)
         reqs_list = self.read_reqs(reqs_file)
         self.install_sys_deps(deps_list)
-        if cp_uwsgi_ini:
-            self.copy_config(app_home, uwsgi=True)
+        if cp_ini:
+            self.copy_config(app_home, uwsgi=True, behave=True)
         else:
-            self.copy_config(app_home, uwsgi=False)
+            self.copy_config(app_home, uwsgi=False, behave=False)
         self.own(app_home, app_user, app_user)
         if chmod_app:
             self.permissions(app_home, '400', '500', recursive=True)

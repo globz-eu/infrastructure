@@ -78,7 +78,7 @@ class ServeStatic(InstallDjangoApp):
                             if os.path.exists(to_path):
                                 shutil.rmtree(to_path)
                             self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
-                                             chmod_app=False, cp_uwsgi_ini=False)
+                                             chmod_app=False, cp_ini=False)
                             self.collect_static(self.app_home)
                             shutil.move(from_path, os.path.dirname(to_path))
                             os.rename(os.path.join(os.path.dirname(to_path), os.path.basename(from_path)), to_path)
@@ -90,7 +90,7 @@ class ServeStatic(InstallDjangoApp):
 
                         else:
                             self.install_app(self.app_home, web_user, sys_deps_file, reqs_file,
-                                             chmod_app=False, cp_uwsgi_ini=False)
+                                             chmod_app=False, cp_ini=False)
                             self.collect_static(self.app_home)
                             shutil.move(from_path, to_path)
                             msg = '%s moved to %s' % (os.path.basename(from_path), to_path)

@@ -158,6 +158,18 @@ if app_repo
               })
   end
 
+  # create behave.ini file
+  template "/home/#{app_user}/sites/#{app_name}/conf.d/behave.ini" do
+    source 'behave.ini.erb'
+    action :create
+    owner app_user
+    group app_user
+    mode '0400'
+    variables({
+        path: 'functional_tests/features'
+              })
+  end
+
   # create install_django_app configuration file
   template "/home/#{app_user}/sites/#{app_name}/scripts/conf.py" do
     source 'conf.py.erb'

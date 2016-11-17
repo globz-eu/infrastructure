@@ -129,12 +129,12 @@ def start_app_spec(app_name, ips, https)
   if app_name == 'formalign'
     title = %r(^\s+<title id="head-title">#{app_name}(\.eu|\.org){0,1} error 404</title>$)i
   elsif app_name == 'django_base'
-    title = %r(^<h1>Not Found</h1><p>The requested URL /align-display/1234567890123456 was not found on this server\.</p>$)i
+    title = %r(^<h1>Not Found</h1><p>The requested URL /align-display/ToOldAlignment01 was not found on this server\.</p>$)i
   end
   if https
-    cmd = "curl -k https://#{ips[os[:release]]}/align-display/1234567890123456"
+    cmd = "curl -k https://#{ips[os[:release]]}/align-display/ToOldAlignment01"
   else
-    cmd = "curl http://#{ips[os[:release]]}/align-display/1234567890123456"
+    cmd = "curl http://#{ips[os[:release]]}/align-display/ToOldAlignment01"
   end
   describe command("#{cmd}") do
     its(:stdout) {should match(title)}

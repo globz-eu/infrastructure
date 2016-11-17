@@ -56,8 +56,11 @@ def add_app_to_path_mock(app_home):
     return 0
 
 
-def copy_config_mock(app_home, uwsgi=True):
+def copy_config_mock(app_home, uwsgi=True, behave=True):
     os.makedirs(os.path.join(app_home, 'app_name', 'app_name'), exist_ok=True)
+    cfu = CommandFileUtils(DIST_VERSION, LOG_FILE, LOG_LEVEL)
+    cfu.write_to_log('app configuration file settings.json was copied to app', 'INFO')
+    cfu.write_to_log('app configuration file behave.ini was copied to app', 'INFO')
     return 0
 
 

@@ -280,9 +280,9 @@ def django_app_spec(app_name: '', ips: '')
 
       # Django app configuration file should be present
       configuration_files = %W(
-    /home/app_user/sites/#{app_name}/conf.d/settings.json
-    /home/app_user/sites/#{app_name}/source/#{app_name}/settings.json
-    )
+      /home/app_user/sites/#{app_name}/conf.d/settings.json
+      /home/app_user/sites/#{app_name}/source/#{app_name}/settings.json
+      )
       configuration_files.each do |f|
         describe file(f) do
           params = [
@@ -321,6 +321,22 @@ def django_app_spec(app_name: '', ips: '')
         end
       end
 
+      # Behave configuration file for functional tests is present
+      behave_conf_files = %W(
+      /home/app_user/sites/#{app_name}/conf.d/behave.ini
+      /home/app_user/sites/#{app_name}/source/#{app_name}/behave.ini
+      )
+      behave_conf_files.each do |f|
+        describe file(f) do
+          it { should exist }
+          it { should be_file }
+          it { should be_owned_by 'app_user' }
+          it { should be_grouped_into 'app_user' }
+          it { should be_mode 400 }
+          its(:content) { should match(%r(^paths=functional_tests/features$))}
+        end
+      end
+
       # Django app configuration file for admin tasks should be present
       describe file("/home/app_user/sites/#{app_name}/source/#{app_name}/settings_admin.py") do
         it { should exist }
@@ -332,9 +348,9 @@ def django_app_spec(app_name: '', ips: '')
 
       # uWSGI ini file should be present
       uwsgi_conf_files = %W(
-    /home/app_user/sites/#{app_name}/conf.d/#{app_name}_uwsgi.ini
-    /home/app_user/sites/#{app_name}/source/#{app_name}_uwsgi.ini
-    )
+      /home/app_user/sites/#{app_name}/conf.d/#{app_name}_uwsgi.ini
+      /home/app_user/sites/#{app_name}/source/#{app_name}_uwsgi.ini
+      )
       uwsgi_conf_files.each do |f|
         describe file(f) do
           params = [

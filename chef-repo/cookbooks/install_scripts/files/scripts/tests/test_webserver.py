@@ -143,7 +143,7 @@ class ServeStaticTest(StaticTest):
             msg = 'INFO: %s moved to %s' % (d, path)
             self.move(os.path.join(self.app_home, self.app_name, d), path, 'dir', msg, 0)
         self.assertEqual([call(self.app_home)] * 2, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home, uwsgi=False)] * 2, copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=False, uwsgi=False)] * 2, copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)] * 2, add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual(
             [
@@ -191,7 +191,7 @@ class ServeStaticTest(StaticTest):
             self.uwsgi_path, 'file', msg, 0
         )
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=False, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual([
             call(self.app_home, self.web_user, self.web_user),
@@ -224,7 +224,7 @@ class ServeStaticTest(StaticTest):
             self.assertEqual(['static stuff\n'], static_file_list, static_file_list)
         self.log('INFO: static moved to %s' % self.static_path)
         self.assertEqual([call(self.app_home)], clone_app_mock.mock_calls, clone_app_mock.mock_calls)
-        self.assertEqual([call(self.app_home, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=False, uwsgi=False)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         self.assertEqual([
             call(self.app_home, self.web_user, self.web_user),
@@ -292,6 +292,7 @@ class ServeStaticTest(StaticTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -331,6 +332,23 @@ class ServeStaticTest(StaticTest):
                 static_list = [s for s in static]
                 self.assertEqual(['%s stuff\n' % f['name']], static_list, static_list)
 
+        # check calls to mocks
+        self.assertEqual([
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.down_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.static_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.media_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.uwsgi_path, self.web_user, self.web_user),
+        ], own_app_mock.mock_calls, own_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
+
         # check that all expected log entries are present
         # for install_app and collect_static
         msgs = [
@@ -340,7 +358,9 @@ class ServeStaticTest(StaticTest):
             'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
             'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
             'INFO: successfully installed: libpq-dev python3-numpy libxml2-dev libxslt1-dev zlib1g-dev',
-            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: app configuration file settings.json was copied to app',
+            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '700'),
+            'INFO: changed permissions of %s to %s' % (self.venv, '700'),
             'INFO: successfully collected static for %s' % self.app_name,
         ]
         for m in msgs:
@@ -378,6 +398,7 @@ class ServeStaticTest(StaticTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -398,6 +419,23 @@ class ServeStaticTest(StaticTest):
         )
 
         serve_django_static.remove_static(self.down_path, self.static_path, self.media_path, self.uwsgi_path)
+
+        # check calls to mocks
+        self.assertEqual([
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.down_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.static_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.media_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.uwsgi_path, self.web_user, self.web_user),
+        ], own_app_mock.mock_calls, own_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
 
         fds = [
             {'path': self.down_path, 'file': 'index.html'},
@@ -520,6 +558,7 @@ class WebServerMainTest(StaticTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -574,6 +613,7 @@ class WebServerMainTest(StaticTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
@@ -598,6 +638,22 @@ class WebServerMainTest(StaticTest):
             main()
         except SystemExit as sysexit:
             self.assertEqual('0', str(sysexit), 'main returned: ' + str(sysexit))
+
+        self.assertEqual([
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.down_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.static_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.media_path, self.web_user, self.web_user),
+            call(self.app_home, self.web_user, self.web_user),
+            call(os.path.dirname(self.venv), self.web_user, self.web_user),
+            call(self.uwsgi_path, self.web_user, self.web_user),
+        ], own_app_mock.mock_calls, own_app_mock.mock_calls)
+        self.assertEqual([call(self.app_home)] * 4, clone_app_mock.mock_calls, clone_app_mock.mock_calls)
 
         fds = [
             self.down_path,
@@ -624,6 +680,7 @@ class WebServerMainTest(StaticTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': 'settings_admin.py', 'move_to': os.path.join(self.app_home, self.app_name, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]

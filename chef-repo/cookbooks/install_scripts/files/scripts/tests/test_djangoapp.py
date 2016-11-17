@@ -504,6 +504,7 @@ class InstallDjangoAppTest(InstallTest):
         os.makedirs(os.path.join(os.path.dirname(self.app_home), 'conf.d'))
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
         for f in conf:
@@ -528,6 +529,7 @@ class InstallDjangoAppTest(InstallTest):
         """
         conf = [
             {'file': 'settings.json', 'move_to': os.path.join(self.app_home, self.app_name)},
+            {'file': 'behave.ini', 'move_to': os.path.join(self.app_home, self.app_name)},
             {'file': '%s_uwsgi.ini' % self.app_name, 'move_to': self.app_home}
         ]
         os.makedirs(os.path.join(self.app_home, self.app_name, self.app_name))
@@ -569,7 +571,13 @@ class InstallDjangoAppTest(InstallTest):
 
         with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', 'settings.json'), 'w') as file:
             file.write('settings.json\n')
+
         self.copy_config_exits_when_conf_file_missing('%s_uwsgi.ini' % self.app_name)
+
+        with open(os.path.join(os.path.dirname(self.app_home), 'conf.d', '%s_uwsgi.ini' % self.app_name), 'w') as file:
+            file.write('uwsgi.ini\n')
+
+        self.copy_config_exits_when_conf_file_missing('behave.ini')
 
     def test_migrate(self):
         """
@@ -618,7 +626,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
+                '--tags', '~@skip', '--tags', '~@pending', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -656,7 +664,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
+                '--tags', '~@skip', '--tags', '~@pending', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -700,7 +708,7 @@ class InstallDjangoAppTest(InstallTest):
             ],
             [
                 os.path.join(self.venv, 'bin', 'python'), './manage.py', 'behave',
-                '--tags', '~@skip', '--no-skipped', '--junit', '--settings', 'settings_admin'
+                '--tags', '~@skip', '--tags', '~@pending', '--no-skipped', '--junit', '--settings', 'settings_admin'
             ]
         ]
         msgs = [
@@ -837,16 +845,19 @@ class InstallDjangoAppTest(InstallTest):
             'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
             'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
             'INFO: successfully installed: libpq-dev python3-numpy libxml2-dev libxslt1-dev zlib1g-dev',
+            'INFO: app configuration file settings.json was copied to app',
+            'INFO: app configuration file behave.ini was copied to app',
             'INFO: changed ownership of %s to %s:%s' % (self.app_home, user, user),
             'INFO: changed permissions of %s files to 400 and directories to 500' % self.app_home,
             'INFO: changed ownership of %s to %s:%s' % (os.path.dirname(self.venv), user, user),
-            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '700'),
+            'INFO: changed permissions of %s to %s' % (self.venv, '700'),
             'INFO: install django app exited with code 0'
         ]
         for m in msgs:
             self.log(m)
 
-        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=True, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
 
 
@@ -878,7 +889,7 @@ class TestInstallDjangoAppMain(InstallTest):
             own_app_mock.mock_calls,
             own_app_mock.mock_calls
         )
-        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=True, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,
@@ -887,10 +898,13 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
             'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
             'INFO: successfully installed: libpq-dev python3-numpy libxml2-dev libxslt1-dev zlib1g-dev',
+            'INFO: app configuration file settings.json was copied to app',
+            'INFO: app configuration file behave.ini was copied to app',
             'INFO: changed ownership of %s to %s:%s' % (self.app_home, 'app_user', 'app_user'),
             'INFO: changed permissions of %s files to 400 and directories to 500' % self.app_home,
             'INFO: changed ownership of %s to %s:%s' % (os.path.dirname(self.venv), 'app_user', 'app_user'),
-            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '700'),
+            'INFO: changed permissions of %s to %s' % (self.venv, '700'),
             'INFO: install django app exited with code 0'
         ]
         for m in msgs:
@@ -916,7 +930,9 @@ class TestInstallDjangoAppMain(InstallTest):
             own_app_mock.mock_calls,
             own_app_mock.mock_calls
         )
-        self.assertEqual([call(self.app_home, uwsgi=True)], copy_config_mock.mock_calls, copy_config_mock.mock_calls)
+        self.assertEqual([call(self.app_home, behave=True, uwsgi=True)],
+                         copy_config_mock.mock_calls,
+                         copy_config_mock.mock_calls)
         self.assertEqual([call(self.app_home)], add_app_to_path_mock.mock_calls, add_app_to_path_mock.mock_calls)
         msgs = [
             'INFO: successfully cloned app_name to %s' % self.app_home,
@@ -925,10 +941,13 @@ class TestInstallDjangoAppMain(InstallTest):
             'INFO: successfully installed: biopython(1.66) cssselect(0.9.1) Django(1.9.5) django-debug-toolbar(1.4) '
             'django-with-asserts(0.0.1) lxml(3.6.0) numpy(1.11.0) psycopg2(2.6.1) requests(2.9.1) sqlparse(0.1.19)',
             'INFO: successfully installed: libpq-dev python3-numpy libxml2-dev libxslt1-dev zlib1g-dev',
+            'INFO: app configuration file settings.json was copied to app',
+            'INFO: app configuration file behave.ini was copied to app',
             'INFO: changed ownership of %s to %s:%s' % (self.app_home, 'app_user', 'app_user'),
             'INFO: changed permissions of %s files to 400 and directories to 500' % self.app_home,
             'INFO: changed ownership of %s to %s:%s' % (os.path.dirname(self.venv), 'app_user', 'app_user'),
-            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '500'),
+            'INFO: changed permissions of %s to %s' % (os.path.dirname(self.venv), '700'),
+            'INFO: changed permissions of %s to %s' % (self.venv, '700'),
             'INFO: successfully ran makemigrations',
             'INFO: successfully migrated %s' % self.app_name,
             'INFO: successfully collected static for %s' % self.app_name,

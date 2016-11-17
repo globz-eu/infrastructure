@@ -155,6 +155,21 @@ def app(version, initial_users: false)
     end
   end
 
+  it 'creates the behave.ini file' do
+    expect(chef_run).to create_template('/home/app_user/sites/django_base/conf.d/behave.ini').with(
+        owner: 'app_user',
+        group: 'app_user',
+        mode: '0400',
+        source: 'behave.ini.erb',
+        variables: {
+            path: 'functional_tests/features'
+        }
+    )
+    expect(chef_run).to render_file('/home/app_user/sites/django_base/conf.d/behave.ini').with_content(
+        %r(^paths=functional_tests/features$)
+    )
+  end
+
   it 'creates the /home/app_user/sites/django_base/scripts/conf.py file' do
     expect(chef_run).to create_template('/home/app_user/sites/django_base/scripts/conf.py').with(
         owner: 'app_user',
