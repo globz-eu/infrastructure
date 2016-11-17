@@ -134,6 +134,7 @@ def app(version, initial_users: false)
         %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
         %r(^\s+"CHROME_DRIVER": "",$),
         %r(^\s+"FIREFOX_BINARY": "",$),
+        %r(^\s+"TEST": "functional",$),
         %r(^\s+"HEROKU": false$),
     ]
     if initial_users

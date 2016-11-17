@@ -303,6 +303,7 @@ def django_app_spec(app_name: '', ips: '')
               %r(^\s+"SECURE_PROXY_SSL_HEADER": \[\],$),
               %r(^\s+"CHROME_DRIVER": "",$),
               %r(^\s+"FIREFOX_BINARY": "",$),
+              %r(^\s+"TEST": "functional",$),
               %r(^\s+"SERVER_URL": "liveserver",$),
               %r(^\s+"INITIAL_USERS": \[$),
               %r(^\s+\["user0", "user0@example\.com", "user0_password"\],$),

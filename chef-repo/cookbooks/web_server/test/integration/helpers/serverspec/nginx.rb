@@ -304,6 +304,7 @@ def nginx_spec(app_name, ips, https, www: false, site_down: true)
           %r(^\s+"CHROME_DRIVER": "",$),
           %r(^\s+"FIREFOX_BINARY": "",$),
           %r(^\s+"SERVER_URL": "",$),
+          %r(^\s+"TEST": "functional",$),
           %r(^\s+"HEROKU": false$),
       ]
       it { should exist }

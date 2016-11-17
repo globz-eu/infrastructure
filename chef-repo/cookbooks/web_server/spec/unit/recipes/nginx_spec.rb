@@ -235,6 +235,7 @@ def app(version, https: false, www: false)
         %r(^\s+"CHROME_DRIVER": "",$),
         %r(^\s+"FIREFOX_BINARY": "",$),
         %r(^\s+"SERVER_URL": "",$),
+        %r(^\s+"TEST": "functional",$),
         %r(^\s+"HEROKU": false$),
     ]
     config.each do |u|
