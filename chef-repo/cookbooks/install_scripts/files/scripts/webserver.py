@@ -7,17 +7,24 @@ from djangoapp import InstallDjangoApp
 from conf import DIST_VERSION, GIT_REPO, APP_HOME_TMP, WEB_USER, WEBSERVER_USER, LOG_FILE, STATIC_PATH
 from conf import MEDIA_PATH, UWSGI_PATH, DOWN_PATH, NGINX_CONF, REQS_FILE, SYS_DEPS_FILE, VENV
 
-__author__ = 'Stefan Dieterle'
-
 
 class ServeStatic(InstallDjangoApp):
     """
     Manages Django app static content.
     """
 
-    def __init__(self, dist_version, app_home, log_file, log_level,
-                 git_repo='https://github.com/globz-eu/django_base.git', nginx_conf='/etc/nginx',
-                 sys_deps_file='system_dependencies.txt', reqs_file='requirements.txt', venv=''):
+    def __init__(
+        self,
+        dist_version,
+        app_home,
+        log_file, 
+        log_level,
+        git_repo='https://github.com/globz-eu/django_base.git',
+        nginx_conf='/etc/nginx',        
+        sys_deps_file='system_dependencies.txt',
+        reqs_file='requirements.txt',
+        venv=''
+    ):
         InstallDjangoApp.__init__(self, dist_version, log_file, log_level, git_repo=git_repo, venv=venv)
         self.app_home = app_home
         self.nginx_conf = nginx_conf
